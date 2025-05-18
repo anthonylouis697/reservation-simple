@@ -6,12 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import {
-  GoogleCalendar,
-  Microsoft,
-  Slack,
-  Zapier,
+  Calendar,
   CheckCircle,
   XCircle,
+  MessageSquare,
+  Webhook,
+  Cog
 } from "lucide-react";
 
 interface IntegrationCardProps {
@@ -125,7 +125,7 @@ const IntegrationSettings = () => {
           <IntegrationCard
             title="Google Calendar"
             description="Synchronisez vos réservations avec Google Calendar."
-            icon={<GoogleCalendar className="h-6 w-6 text-primary" />}
+            icon={<Calendar className="h-6 w-6 text-primary" />}
             isConnected={googleConnected}
             onConnect={handleGoogleConnect}
             onDisconnect={() => setGoogleConnected(false)}
@@ -133,7 +133,7 @@ const IntegrationSettings = () => {
           <IntegrationCard
             title="Microsoft Outlook"
             description="Synchronisez vos réservations avec Outlook."
-            icon={<Microsoft className="h-6 w-6 text-primary" />}
+            icon={<Calendar className="h-6 w-6 text-primary" />}
             isConnected={microsoftConnected}
             onConnect={handleMicrosoftConnect}
             onDisconnect={() => setMicrosoftConnected(false)}
@@ -152,7 +152,7 @@ const IntegrationSettings = () => {
           <IntegrationCard
             title="Slack"
             description="Recevez des notifications de réservation dans Slack."
-            icon={<Slack className="h-6 w-6 text-primary" />}
+            icon={<MessageSquare className="h-6 w-6 text-primary" />}
             isConnected={slackConnected}
             onConnect={handleSlackConnect}
             onDisconnect={() => setSlackConnected(false)}
@@ -163,7 +163,7 @@ const IntegrationSettings = () => {
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex items-center justify-center h-10 w-10 rounded-md bg-primary/10">
-                    <Zapier className="h-6 w-6 text-primary" />
+                    <Webhook className="h-6 w-6 text-primary" />
                   </div>
                   <div>
                     <CardTitle className="text-lg">Zapier</CardTitle>
