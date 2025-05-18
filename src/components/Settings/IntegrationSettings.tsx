@@ -212,6 +212,23 @@ const IntegrationSettings = () => {
 
       <Card>
         <CardHeader>
+          <CardTitle>Personnalisation de la page de réservation</CardTitle>
+          <CardDescription>
+            Personnalisez l'apparence de votre page de réservation et les options d'intégration.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p>
+            Personnalisez les couleurs, les images et les options d'intégration de votre page de réservation.
+          </p>
+          <Button onClick={() => window.location.href = '/booking-customization'}>
+            Personnaliser ma page de réservation
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>API personnalisée</CardTitle>
           <CardDescription>
             Configurez une intégration avec votre propre API.

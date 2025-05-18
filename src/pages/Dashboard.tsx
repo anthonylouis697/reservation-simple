@@ -31,11 +31,11 @@ const Dashboard = () => {
           <h2 className="text-indigo-600 text-xl font-bold">BookWise</h2>
         </div>
         <div className="flex-grow py-6 px-4 space-y-2">
-          <Button variant="ghost" className="w-full justify-start text-left">
+          <Button variant="ghost" className="w-full justify-start text-left" onClick={() => navigate('/dashboard')}>
             <Grid className="mr-2 h-4 w-4" />
             Tableau de bord
           </Button>
-          <Button variant="ghost" className="w-full justify-start text-left">
+          <Button variant="ghost" className="w-full justify-start text-left" onClick={() => navigate('/calendar')}>
             <CalendarIcon className="mr-2 h-4 w-4" />
             Calendrier
           </Button>
@@ -43,7 +43,7 @@ const Dashboard = () => {
             <User className="mr-2 h-4 w-4" />
             Clients
           </Button>
-          <Button variant="ghost" className="w-full justify-start text-left">
+          <Button variant="ghost" className="w-full justify-start text-left" onClick={() => navigate('/settings')}>
             <Settings className="mr-2 h-4 w-4" />
             Paramètres
           </Button>
@@ -59,11 +59,11 @@ const Dashboard = () => {
       {/* Mobile navigation */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10">
         <div className="flex justify-around p-2">
-          <Button variant="ghost" size="sm" className="flex flex-col items-center py-2">
+          <Button variant="ghost" size="sm" className="flex flex-col items-center py-2" onClick={() => navigate('/dashboard')}>
             <Grid className="h-5 w-5" />
             <span className="text-xs mt-1">Tableau</span>
           </Button>
-          <Button variant="ghost" size="sm" className="flex flex-col items-center py-2">
+          <Button variant="ghost" size="sm" className="flex flex-col items-center py-2" onClick={() => navigate('/calendar')}>
             <CalendarIcon className="h-5 w-5" />
             <span className="text-xs mt-1">Calendrier</span>
           </Button>
@@ -71,7 +71,7 @@ const Dashboard = () => {
             <User className="h-5 w-5" />
             <span className="text-xs mt-1">Clients</span>
           </Button>
-          <Button variant="ghost" size="sm" className="flex flex-col items-center py-2">
+          <Button variant="ghost" size="sm" className="flex flex-col items-center py-2" onClick={() => navigate('/settings')}>
             <Settings className="h-5 w-5" />
             <span className="text-xs mt-1">Paramètres</span>
           </Button>
@@ -86,7 +86,7 @@ const Dashboard = () => {
               <h1 className="text-2xl font-bold text-gray-900">Tableau de bord</h1>
               <p className="text-gray-500">Bienvenue sur votre espace BookWise</p>
             </div>
-            <Button className="mt-4 md:mt-0">
+            <Button className="mt-4 md:mt-0" onClick={() => navigate('/calendar')}>
               + Nouveau rendez-vous
             </Button>
           </div>
@@ -152,13 +152,15 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <div className="ml-auto space-x-2">
-                          <Button variant="outline" size="sm">Détails</Button>
+                          <Button variant="outline" size="sm" onClick={() => navigate('/calendar')}>Détails</Button>
                         </div>
                       </div>
                     ))}
                   </div>
                   <div className="mt-5">
-                    <Button variant="outline" className="w-full">Voir tous les rendez-vous</Button>
+                    <Button variant="outline" className="w-full" onClick={() => navigate('/calendar')}>
+                      Voir tous les rendez-vous
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -179,7 +181,9 @@ const Dashboard = () => {
                     className="border rounded-md p-3 pointer-events-auto"
                   />
                   <Separator className="my-6" />
-                  <Button className="w-full">Ouvrir le calendrier</Button>
+                  <Button className="w-full" onClick={() => navigate('/calendar')}>
+                    Ouvrir le calendrier
+                  </Button>
                 </CardContent>
               </Card>
             </div>
