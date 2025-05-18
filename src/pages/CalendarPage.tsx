@@ -1,29 +1,19 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Button,
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription,
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription,
-  Badge,
-  Input,
-  Label
-} from "@/components/ui";
 import { CalendarIcon, Check, Filter, ChevronDown, X } from 'lucide-react';
-import CalendarView, { Appointment } from '@/components/Calendar/CalendarView';
 import { toast } from 'sonner';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+
+// UI Components
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from "@/components/ui/calendar";
+import CalendarView, { Appointment } from '@/components/Calendar/CalendarView';
 
 // Mock Data
 const mockAppointments: Appointment[] = [
