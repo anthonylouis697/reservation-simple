@@ -13,6 +13,7 @@ import CalendarPage from "./pages/CalendarPage";
 import BookingCustomization from "./pages/BookingCustomization";
 import NotFound from "./pages/NotFound";
 import VisibilityBoostPage from "./components/VisibilityBoost/VisibilityBoostPage";
+import HelpCenter from "./pages/HelpCenter";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/booking-customization" element={<BookingCustomization />} />
           <Route path="/visibility-boost" element={<VisibilityBoostPage />} />
+          <Route path="/help" element={<HelpCenter />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

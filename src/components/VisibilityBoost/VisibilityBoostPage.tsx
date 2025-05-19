@@ -1,350 +1,579 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Check, ArrowUpRight, ChevronRight, TrendingUp, Award, Rocket } from 'lucide-react';
-import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { CalendarIcon, ChevronRight, Star, BarChart, Settings, ArrowRight } from 'lucide-react';
+import PremiumPlatformCard from './PremiumPlatformCard';
+import { AppLayout } from '@/components/AppLayout';
+
+// Types d'affaires disponibles
+const businessTypes = [
+  { value: "coach", label: "Coach / Professeur" },
+  { value: "restaurant", label: "Restaurant / Café" },
+  { value: "spa", label: "Spa / Bien-être" },
+  { value: "salon", label: "Salon de beauté / Coiffure" },
+  { value: "medical", label: "Santé / Médical" },
+  { value: "activity", label: "Activités / Loisirs" },
+  { value: "other", label: "Autre" }
+];
+
+// Plateformes disponibles selon le type d'affaire
+const getPlatformsByType = (type: string) => {
+  switch (type) {
+    case "coach":
+      return [
+        {
+          name: "SuperProf",
+          description: "La référence pour les cours particuliers",
+          commission: "15%",
+          features: [
+            "500 000+ élèves actifs",
+            "Profil vérifié",
+            "Protection des paiements",
+            "Messages illimités"
+          ],
+          popular: true
+        },
+        {
+          name: "LeBonCoin",
+          description: "Plateforme d'annonces très populaire",
+          commission: "10%",
+          features: [
+            "Visibilité nationale",
+            "28 millions de visiteurs mensuels",
+            "Catégorie services dédiée",
+            "Boost d'annonce inclus"
+          ]
+        },
+        {
+          name: "Stootie",
+          description: "Services et prestations entre particuliers",
+          commission: "12%",
+          features: [
+            "Mise en relation directe",
+            "Système d'avis vérifiés",
+            "Alertes demandes clients",
+            "Application mobile"
+          ]
+        }
+      ];
+    case "restaurant":
+      return [
+        {
+          name: "TheFork",
+          description: "Leader de la réservation de restaurants",
+          commission: "2€ / couvert",
+          features: [
+            "12 millions d'utilisateurs actifs",
+            "Visibilité premium",
+            "Système de points fidélité",
+            "Gestion des no-shows"
+          ],
+          popular: true
+        },
+        {
+          name: "TripAdvisor",
+          description: "Le plus grand site de voyage au monde",
+          commission: "14%",
+          features: [
+            "Audience mondiale",
+            "Réservation directe",
+            "Système d'avis",
+            "Statistiques détaillées"
+          ]
+        },
+        {
+          name: "Resto.fr",
+          description: "Plateforme française de réservation",
+          commission: "1.5€ / couvert",
+          features: [
+            "Clientèle française ciblée",
+            "Système anti-annulation",
+            "Promotions personnalisées",
+            "Intégration calendrier"
+          ]
+        }
+      ];
+    case "activity":
+      return [
+        {
+          name: "FunBooker",
+          description: "Plateforme de réservation d'activités",
+          commission: "12%",
+          features: [
+            "Communauté d'amateurs d'activités",
+            "Système de recherche géolocalisée",
+            "Réservations de groupe facilitées",
+            "Mises en avant saisonnières"
+          ],
+          popular: true
+        },
+        {
+          name: "LesAnnuairesLocaux",
+          description: "Réseau d'annuaires locaux et régionaux",
+          commission: "8%",
+          monthlyFee: "19€",
+          features: [
+            "Présence sur +250 sites locaux",
+            "Référencement Google optimisé",
+            "Affichage dans les offices de tourisme",
+            "Photos HD illimitées"
+          ]
+        },
+        {
+          name: "TripAdvisor",
+          description: "Le plus grand site de voyage au monde",
+          commission: "14%",
+          features: [
+            "Audience mondiale",
+            "Réservation directe",
+            "Système d'avis",
+            "Statistiques détaillées"
+          ]
+        }
+      ];
+    default:
+      return [
+        {
+          name: "BookingBoost",
+          description: "Réseau de sites de réservation",
+          commission: "10%",
+          features: [
+            "Présence multi-plateformes",
+            "Dashboard unifié",
+            "Analytics avancés",
+            "Support prioritaire"
+          ],
+          popular: true
+        },
+        {
+          name: "LeBonCoin",
+          description: "Plateforme d'annonces très populaire",
+          commission: "8%",
+          features: [
+            "Visibilité nationale",
+            "28 millions de visiteurs mensuels",
+            "Catégorie services dédiée",
+            "Boost d'annonce inclus"
+          ]
+        },
+        {
+          name: "TopAnnuaires",
+          description: "Réseau d'annuaires professionnels",
+          commission: "5%",
+          monthlyFee: "15€",
+          features: [
+            "Présence sur 300+ annuaires",
+            "Référencement local optimisé",
+            "Badge entreprise vérifiée",
+            "Statistiques de visites"
+          ]
+        }
+      ];
+  }
+};
 
 const VisibilityBoostPage = () => {
-  const [activeTab, setActiveTab] = useState("marketplaces");
-  const [subscribedToBoost, setSubscribedToBoost] = useState(false);
-  const [activePlatforms, setActivePlatforms] = useState<string[]>([]);
+  const [businessType, setBusinessType] = useState("coach");
+  const [activeTab, setActiveTab] = useState("platforms");
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [connectedPlatforms, setConnectedPlatforms] = useState<string[]>([]);
 
-  const handleActivatePlatform = (platform: string, isActive: boolean) => {
-    if (isActive) {
-      setActivePlatforms([...activePlatforms, platform]);
-      toast.success(`Intégration avec ${platform} activée`);
+  const handlePlatformConnect = (platformName: string) => {
+    if (connectedPlatforms.includes(platformName)) {
+      setConnectedPlatforms(connectedPlatforms.filter(p => p !== platformName));
+      toast.success(`${platformName} déconnecté avec succès`);
     } else {
-      setActivePlatforms(activePlatforms.filter(p => p !== platform));
-      toast.success(`Intégration avec ${platform} désactivée`);
+      setConnectedPlatforms([...connectedPlatforms, platformName]);
+      toast.success(`Connecté avec succès à ${platformName}`);
     }
   };
 
-  const handleSubscribeToBoost = () => {
-    setSubscribedToBoost(true);
-    toast.success("Félicitations! Vous êtes abonné au module Boost de Visibilité");
+  const handleSubscribe = () => {
+    setIsSubscribed(true);
+    toast.success("Abonnement Boost de Visibilité activé avec succès !");
   };
 
-  return (
-    <div className="container mx-auto py-8">
-      <div className="flex flex-col space-y-2 mb-6">
-        <div className="flex items-center">
-          <h1 className="text-3xl font-bold">Boost de Visibilité</h1>
-          <Badge variant="outline" className="ml-3 bg-amber-100 text-amber-800 hover:bg-amber-100">Premium</Badge>
-        </div>
+  const handleBusinessTypeChange = (value: string) => {
+    setBusinessType(value);
+  };
+
+  const platforms = getPlatformsByType(businessType);
+
+  // Données de démonstration pour l'analytique
+  const analyticsData = {
+    totalViews: 1243,
+    totalClicks: 87,
+    totalBookings: 14,
+    platformStats: [
+      { name: "SuperProf", views: 620, clicks: 43, bookings: 8 },
+      { name: "LeBonCoin", views: 412, clicks: 29, bookings: 4 },
+      { name: "Stootie", views: 211, clicks: 15, bookings: 2 }
+    ]
+  };
+
+  // Composant step wizard pour l'onboarding
+  const OnboardingWizard = () => (
+    <div className="space-y-6">
+      <div className="text-center mb-8">
+        <h1 className="text-2xl font-bold mb-2">
+          <Star className="inline-block mr-2 text-amber-500 fill-amber-400" size={24} />
+          Boost de Visibilité
+        </h1>
         <p className="text-muted-foreground">
-          Augmentez votre visibilité et vos revenus en vous connectant aux meilleures plateformes du marché
+          Multipliez vos réservations en vous connectant aux meilleures plateformes du marché
         </p>
       </div>
 
-      {!subscribedToBoost ? (
-        <Card className="mb-8 border-2 border-primary/20">
-          <CardHeader className="bg-primary/5">
-            <CardTitle className="flex items-center">
-              <TrendingUp className="mr-2 h-6 w-6 text-primary" />
-              Boostez votre activité
-            </CardTitle>
-            <CardDescription>
-              Accédez à notre module premium pour multiplier vos réservations et revenus
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              <div>
-                <h3 className="font-medium text-lg mb-4">Le module Boost de Visibilité inclut :</h3>
-                <ul className="space-y-3">
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-primary shrink-0 mr-2 mt-0.5" />
-                    <span>Intégration avec les principales plateformes de réservation de votre secteur</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-primary shrink-0 mr-2 mt-0.5" />
-                    <span>Synchronisation automatique de votre calendrier et disponibilités</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-primary shrink-0 mr-2 mt-0.5" />
-                    <span>Gestion centralisée de toutes vos réservations depuis BookWise</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-primary shrink-0 mr-2 mt-0.5" />
-                    <span>Tableau de bord analytics pour suivre les performances par plateforme</span>
-                  </li>
-                  <li className="flex items-start">
-                    <Check className="h-5 w-5 text-primary shrink-0 mr-2 mt-0.5" />
-                    <span>Support dédié pour optimiser votre présence en ligne</span>
-                  </li>
-                </ul>
+      <Card>
+        <CardHeader>
+          <CardTitle>Comment ça marche ?</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex">
+              <div className="mr-4 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <span className="font-medium text-primary">1</span>
               </div>
-              <div className="bg-muted/50 rounded-lg p-6">
-                <h3 className="font-medium text-lg mb-4">Tarification</h3>
-                <div className="mb-4">
-                  <span className="text-3xl font-bold">29€</span>
-                  <span className="text-muted-foreground">/mois</span>
-                </div>
-                <p className="text-sm text-muted-foreground mb-6">
-                  + commission de 2% sur les réservations provenant des plateformes partenaires
-                </p>
-                <Button className="w-full" onClick={handleSubscribeToBoost}>
-                  Activer maintenant
-                </Button>
-                <p className="text-xs text-center text-muted-foreground mt-3">
-                  Sans engagement - Annulez à tout moment
+              <div>
+                <h3 className="font-medium">Activez l'abonnement Boost de Visibilité</h3>
+                <p className="text-sm text-muted-foreground">
+                  Pour seulement 29€/mois + 2% de commission sur les réservations issues des plateformes partenaires
                 </p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          <Card className="mb-6 bg-green-50 border-green-200">
-            <CardContent className="p-4">
-              <div className="flex items-center">
-                <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mr-4">
-                  <Check className="h-6 w-6 text-green-600" />
-                </div>
-                <div>
-                  <h3 className="font-medium">Module Boost de Visibilité actif</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Vous êtes abonné au forfait Premium à 29€/mois
-                  </p>
-                </div>
-                <Button variant="outline" className="ml-auto" size="sm">
-                  Gérer l'abonnement
-                </Button>
+
+            <div className="flex">
+              <div className="mr-4 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <span className="font-medium text-primary">2</span>
+              </div>
+              <div>
+                <h3 className="font-medium">Connectez-vous aux plateformes qui vous intéressent</h3>
+                <p className="text-sm text-muted-foreground">
+                  Choisissez parmi une sélection de plateformes adaptées à votre activité
+                </p>
+              </div>
+            </div>
+
+            <div className="flex">
+              <div className="mr-4 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <span className="font-medium text-primary">3</span>
+              </div>
+              <div>
+                <h3 className="font-medium">Suivez vos performances</h3>
+                <p className="text-sm text-muted-foreground">
+                  Consultez le nombre de vues, clics et réservations générés par chaque plateforme
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="flex-col space-y-4">
+          <div className="w-full">
+            <Label htmlFor="business-type" className="mb-2 block">Sélectionnez votre type d'activité</Label>
+            <Select value={businessType} onValueChange={handleBusinessTypeChange}>
+              <SelectTrigger id="business-type">
+                <SelectValue placeholder="Sélectionnez votre type d'activité" />
+              </SelectTrigger>
+              <SelectContent>
+                {businessTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Button 
+            onClick={handleSubscribe} 
+            className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
+          >
+            Activer le Boost de Visibilité pour 29€/mois
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+          
+          <p className="text-xs text-center text-muted-foreground">
+            L'abonnement est sans engagement et peut être annulé à tout moment.
+            Des frais de 2% s'appliquent sur les réservations issues des plateformes partenaires.
+          </p>
+        </CardFooter>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Les avantages du Boost de Visibilité</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-start space-x-3">
+              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                <span className="text-green-600 font-bold">+</span>
+              </div>
+              <div>
+                <h3 className="font-medium">Plus de visibilité</h3>
+                <p className="text-sm text-muted-foreground">
+                  Augmentez votre présence en ligne sur les plateformes les plus fréquentées
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-3">
+              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                <span className="text-blue-600 font-bold">$</span>
+              </div>
+              <div>
+                <h3 className="font-medium">Plus de revenus</h3>
+                <p className="text-sm text-muted-foreground">
+                  En moyenne, nos utilisateurs augmentent leurs revenus de 35%
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-3">
+              <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center shrink-0">
+                <span className="text-purple-600 font-bold">⚙️</span>
+              </div>
+              <div>
+                <h3 className="font-medium">Gestion centralisée</h3>
+                <p className="text-sm text-muted-foreground">
+                  Gérez toutes vos réservations depuis une seule interface
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-3">
+              <div className="h-8 w-8 rounded-full bg-amber-100 flex items-center justify-center shrink-0">
+                <span className="text-amber-600 font-bold">📊</span>
+              </div>
+              <div>
+                <h3 className="font-medium">Analytiques détaillées</h3>
+                <p className="text-sm text-muted-foreground">
+                  Suivez et optimisez votre performance sur chaque plateforme
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  // Page principale pour les utilisateurs abonnés
+  const MainDashboard = () => (
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+        <div>
+          <div className="flex items-center space-x-2">
+            <Star className="h-6 w-6 text-amber-500 fill-amber-400" />
+            <h1 className="text-2xl font-bold">Boost de Visibilité</h1>
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Actif</Badge>
+          </div>
+          <p className="text-muted-foreground mt-1">
+            Gérez vos connexions aux plateformes partenaires
+          </p>
+        </div>
+        <Button variant="outline" className="mt-2 md:mt-0" onClick={() => setActiveTab("settings")}>
+          <Settings className="mr-2 h-4 w-4" />
+          Gérer mon abonnement
+        </Button>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid grid-cols-3 mb-4">
+          <TabsTrigger value="platforms">
+            Plateformes
+          </TabsTrigger>
+          <TabsTrigger value="analytics">
+            <BarChart className="mr-2 h-4 w-4" />
+            Analytiques
+          </TabsTrigger>
+          <TabsTrigger value="settings">
+            <Settings className="mr-2 h-4 w-4" />
+            Paramètres
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="platforms" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Plateformes disponibles</CardTitle>
+                <Select value={businessType} onValueChange={handleBusinessTypeChange}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Type d'activité" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {businessTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {platforms.map((platform) => (
+                  <PremiumPlatformCard
+                    key={platform.name}
+                    name={platform.name}
+                    description={platform.description}
+                    features={platform.features}
+                    commission={platform.commission}
+                    monthlyFee={platform.monthlyFee}
+                    popular={platform.popular}
+                    onConnect={() => handlePlatformConnect(platform.name)}
+                  />
+                ))}
               </div>
             </CardContent>
           </Card>
+          
+          <div className="bg-muted/30 rounded-lg p-4 text-sm">
+            <p>
+              <span className="font-medium">Note:</span> Les commissions sont prélevées uniquement sur les réservations issues des plateformes partenaires. 
+              Vous conservez 100% des revenus de vos clients directs.
+            </p>
+          </div>
+        </TabsContent>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-3 w-full mb-6">
-              <TabsTrigger value="marketplaces">Places de marché</TabsTrigger>
-              <TabsTrigger value="analytics">Analyses</TabsTrigger>
-              <TabsTrigger value="settings">Paramètres</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="marketplaces" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Places de marché recommandées</CardTitle>
-                  <CardDescription>
-                    Connectez-vous aux plateformes adaptées à votre secteur pour augmenter votre visibilité
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <MarketPlaceCategory
-                    title="Pour coachs et professeurs"
-                    platforms={[
-                      {
-                        name: "SuperProf",
-                        description: "Plateforme de mise en relation avec des élèves",
-                        logo: "https://example.com/superprof.png", 
-                        commission: "3%",
-                        active: activePlatforms.includes("SuperProf"),
-                        onToggle: (isActive) => handleActivatePlatform("SuperProf", isActive)
-                      },
-                      {
-                        name: "LeBonCoin",
-                        description: "Annonces de cours particuliers",
-                        logo: "https://example.com/leboncoin.png",
-                        commission: "2%",
-                        active: activePlatforms.includes("LeBonCoin"),
-                        onToggle: (isActive) => handleActivatePlatform("LeBonCoin", isActive)
-                      },
-                      {
-                        name: "Kelprof",
-                        description: "Plateforme de cours particuliers",
-                        logo: "https://example.com/kelprof.png",
-                        commission: "3%",
-                        active: activePlatforms.includes("Kelprof"),
-                        onToggle: (isActive) => handleActivatePlatform("Kelprof", isActive)
-                      }
-                    ]}
-                  />
-                  
-                  <Separator />
-                  
-                  <MarketPlaceCategory
-                    title="Pour restaurants et établissements food"
-                    platforms={[
-                      {
-                        name: "TheFork",
-                        description: "Plateforme de réservation de restaurant",
-                        logo: "https://example.com/thefork.png",
-                        commission: "2%",
-                        active: activePlatforms.includes("TheFork"),
-                        onToggle: (isActive) => handleActivatePlatform("TheFork", isActive)
-                      },
-                      {
-                        name: "TripAdvisor",
-                        description: "Avis et réservations",
-                        logo: "https://example.com/tripadvisor.png",
-                        commission: "2,5%",
-                        active: activePlatforms.includes("TripAdvisor"),
-                        onToggle: (isActive) => handleActivatePlatform("TripAdvisor", isActive)
-                      }
-                    ]}
-                  />
-                  
-                  <Separator />
-                  
-                  <MarketPlaceCategory
-                    title="Pour activités de loisirs"
-                    platforms={[
-                      {
-                        name: "FunBooker",
-                        description: "Réservation d'activités de loisirs",
-                        logo: "https://example.com/funbooker.png",
-                        commission: "3%",
-                        active: activePlatforms.includes("FunBooker"),
-                        onToggle: (isActive) => handleActivatePlatform("FunBooker", isActive)
-                      },
-                      {
-                        name: "Regiondo",
-                        description: "Plateforme européenne d'activités",
-                        logo: "https://example.com/regiondo.png",
-                        commission: "2,5%",
-                        active: activePlatforms.includes("Regiondo"),
-                        onToggle: (isActive) => handleActivatePlatform("Regiondo", isActive)
-                      }
-                    ]}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="analytics" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Analyse des performances</CardTitle>
-                  <CardDescription>
-                    Suivez vos performances sur l'ensemble des plateformes connectées
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-center h-60 border-2 border-dashed rounded-lg">
-                    <div className="text-center px-4">
-                      <TrendingUp className="mx-auto h-10 w-10 text-muted-foreground/60 mb-3" />
-                      <h3 className="font-medium text-lg">Aucune donnée disponible</h3>
-                      <p className="text-sm text-muted-foreground mt-2 max-w-md">
-                        Connectez-vous à au moins une plateforme pour commencer à afficher vos performances de réservation
-                      </p>
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardContent className="p-6 flex flex-col items-center">
+                <div className="rounded-full bg-blue-100 p-3">
+                  <Star className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="mt-4 text-lg font-medium">Vues</h3>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{analyticsData.totalViews}</p>
+                <p className="text-sm text-gray-500">ce mois-ci</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6 flex flex-col items-center">
+                <div className="rounded-full bg-green-100 p-3">
+                  <ChevronRight className="h-6 w-6 text-green-600" />
+                </div>
+                <h3 className="mt-4 text-lg font-medium">Clics</h3>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{analyticsData.totalClicks}</p>
+                <p className="text-sm text-gray-500">ce mois-ci</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6 flex flex-col items-center">
+                <div className="rounded-full bg-indigo-100 p-3">
+                  <CalendarIcon className="h-6 w-6 text-indigo-600" />
+                </div>
+                <h3 className="mt-4 text-lg font-medium">Réservations</h3>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{analyticsData.totalBookings}</p>
+                <p className="text-sm text-gray-500">ce mois-ci</p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Performance par plateforme</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {analyticsData.platformStats.map((platform) => (
+                  <div key={platform.name} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <div className="font-medium">{platform.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {platform.views} vues • {platform.clicks} clics • {platform.bookings} réservations
+                      </div>
+                    </div>
+                    <div className="bg-muted h-2 rounded-full overflow-hidden">
+                      <div 
+                        className="bg-primary h-full rounded-full" 
+                        style={{ width: `${(platform.clicks / platform.views * 100).toFixed(1)}%` }}
+                      ></div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            <TabsContent value="settings" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Paramètres d'intégration</CardTitle>
-                  <CardDescription>
-                    Configurez les options avancées de vos intégrations avec les plateformes
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="font-medium">Synchronisation bidirectionnelle</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Synchroniser les disponibilités dans les deux sens
-                      </p>
-                    </div>
-                    <Switch defaultChecked />
+        <TabsContent value="settings" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Paramètres de votre abonnement</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="business-name">Nom de l'entreprise</Label>
+                <Input id="business-name" defaultValue="Entreprise ABC" />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="business-type-settings">Type d'activité</Label>
+                <Select defaultValue={businessType}>
+                  <SelectTrigger id="business-type-settings">
+                    <SelectValue placeholder="Sélectionnez votre type d'activité" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {businessTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Abonnement actuel</Label>
+                <div className="flex items-center justify-between p-4 border rounded-md">
+                  <div>
+                    <div className="font-medium">Boost de Visibilité</div>
+                    <div className="text-sm text-muted-foreground">29€/mois + 2% de commission</div>
                   </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="font-medium">Notifications de réservation</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Être notifié des réservations provenant des plateformes externes
-                      </p>
-                    </div>
-                    <Switch defaultChecked />
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Actif</Badge>
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Facturation</Label>
+                <div className="text-sm p-4 border rounded-md">
+                  <div className="flex justify-between mb-2">
+                    <span>Prochaine facture</span>
+                    <span>15 juin 2023</span>
                   </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="font-medium">Confirmation automatique</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Accepter automatiquement les réservations externes
-                      </p>
-                    </div>
-                    <Switch />
+                  <div className="flex justify-between">
+                    <span>Montant</span>
+                    <span className="font-medium">29,00 €</span>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </>
-      )}
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col space-y-2">
+              <Button variant="outline" className="w-full">
+                Gérer mes moyens de paiement
+              </Button>
+              <Button variant="destructive" className="w-full">
+                Annuler mon abonnement
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
-};
 
-// Composant pour afficher une catégorie de plateformes
-interface MarketplacePlatform {
-  name: string;
-  description: string;
-  logo: string;
-  commission: string;
-  active: boolean;
-  onToggle: (isActive: boolean) => void;
-}
-
-interface MarketPlaceCategoryProps {
-  title: string;
-  platforms: MarketplacePlatform[];
-}
-
-const MarketPlaceCategory = ({ title, platforms }: MarketPlaceCategoryProps) => {
   return (
-    <div className="space-y-4">
-      <h3 className="font-medium text-lg">{title}</h3>
-      <div className="space-y-3">
-        {platforms.map((platform) => (
-          <div key={platform.name} className="flex items-center justify-between border rounded-md p-4">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center mr-3 text-xs font-medium">
-                {platform.name.substring(0, 2)}
-              </div>
-              <div>
-                <h4 className="font-medium">{platform.name}</h4>
-                <p className="text-sm text-muted-foreground">{platform.description}</p>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <div className="text-right mr-4">
-                <Badge variant="outline" className="text-xs font-normal">
-                  Commission: {platform.commission}
-                </Badge>
-              </div>
-              <Switch
-                checked={platform.active}
-                onCheckedChange={platform.onToggle}
-              />
-            </div>
-          </div>
-        ))}
+    <AppLayout>
+      <div className="max-w-6xl mx-auto">
+        {isSubscribed ? <MainDashboard /> : <OnboardingWizard />}
       </div>
-    </div>
+    </AppLayout>
   );
 };
 

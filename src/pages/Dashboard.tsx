@@ -1,11 +1,14 @@
 
 import { useState } from 'react';
-import { Calendar as CalendarIcon, Clock, User, Grid, Settings, LogOut } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, User, Star, Settings, ArrowRight } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from "@/components/ui/progress";
 import { useNavigate } from 'react-router-dom';
+import { OnboardingGuide } from '@/components/OnboardingGuide';
+import { AppLayout } from '@/components/AppLayout';
 
 const Dashboard = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -18,179 +21,209 @@ const Dashboard = () => {
     { id: 3, name: 'Sophie Lambert', time: '14:00 - 15:00', service: 'Rendez-vous', date: new Date().toLocaleDateString('fr-FR') },
   ];
   
-  const handleLogout = () => {
-    // In a real app, this would log the user out
-    navigate('/');
-  };
+  // Profil completion status
+  const profileCompletion = 65;
+  
+  // Check système configuration
+  const setupSteps = [
+    { title: "Profil complété", completed: true },
+    { title: "Services configurés", completed: true },
+    { title: "Disponibilités définies", completed: true },
+    { title: "Page de réservation personnalisée", completed: false },
+    { title: "Intégration de paiement", completed: false },
+  ];
   
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <aside className="bg-white w-64 border-r border-gray-200 hidden md:flex flex-col">
-        <div className="p-6">
-          <h2 className="text-indigo-600 text-xl font-bold">BookWise</h2>
-        </div>
-        <div className="flex-grow py-6 px-4 space-y-2">
-          <Button variant="ghost" className="w-full justify-start text-left" onClick={() => navigate('/dashboard')}>
-            <Grid className="mr-2 h-4 w-4" />
-            Tableau de bord
-          </Button>
-          <Button variant="ghost" className="w-full justify-start text-left" onClick={() => navigate('/calendar')}>
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            Calendrier
-          </Button>
-          <Button variant="ghost" className="w-full justify-start text-left">
-            <User className="mr-2 h-4 w-4" />
-            Clients
-          </Button>
-          <Button variant="ghost" className="w-full justify-start text-left" onClick={() => navigate('/settings')}>
-            <Settings className="mr-2 h-4 w-4" />
-            Paramètres
-          </Button>
-        </div>
-        <div className="p-4 border-t border-gray-200">
-          <Button variant="ghost" className="w-full justify-start text-left" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Déconnexion
-          </Button>
-        </div>
-      </aside>
+    <AppLayout>
+      {/* Onboarding pour les nouveaux utilisateurs */}
+      <OnboardingGuide />
       
-      {/* Mobile navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-10">
-        <div className="flex justify-around p-2">
-          <Button variant="ghost" size="sm" className="flex flex-col items-center py-2" onClick={() => navigate('/dashboard')}>
-            <Grid className="h-5 w-5" />
-            <span className="text-xs mt-1">Tableau</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="flex flex-col items-center py-2" onClick={() => navigate('/calendar')}>
-            <CalendarIcon className="h-5 w-5" />
-            <span className="text-xs mt-1">Calendrier</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="flex flex-col items-center py-2">
-            <User className="h-5 w-5" />
-            <span className="text-xs mt-1">Clients</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="flex flex-col items-center py-2" onClick={() => navigate('/settings')}>
-            <Settings className="h-5 w-5" />
-            <span className="text-xs mt-1">Paramètres</span>
-          </Button>
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Tableau de bord</h1>
+          <p className="text-gray-500">Bienvenue sur votre espace BookWise</p>
         </div>
+        <Button className="mt-4 md:mt-0" onClick={() => navigate('/calendar')}>
+          + Nouveau rendez-vous
+        </Button>
       </div>
       
-      {/* Main content */}
-      <main className="flex-grow p-6 pb-20 md:pb-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Tableau de bord</h1>
-              <p className="text-gray-500">Bienvenue sur votre espace BookWise</p>
-            </div>
-            <Button className="mt-4 md:mt-0" onClick={() => navigate('/calendar')}>
-              + Nouveau rendez-vous
-            </Button>
+      {/* Dashboard content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Quick stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardContent className="p-6 flex flex-col items-center">
+                <div className="rounded-full bg-blue-100 p-3">
+                  <CalendarIcon className="h-6 w-6 text-blue-600" />
+                </div>
+                <h3 className="mt-4 text-lg font-medium">Aujourd'hui</h3>
+                <p className="text-3xl font-bold text-gray-900 mt-1">3</p>
+                <p className="text-sm text-gray-500">rendez-vous</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6 flex flex-col items-center">
+                <div className="rounded-full bg-green-100 p-3">
+                  <Clock className="h-6 w-6 text-green-600" />
+                </div>
+                <h3 className="mt-4 text-lg font-medium">Cette semaine</h3>
+                <p className="text-3xl font-bold text-gray-900 mt-1">12</p>
+                <p className="text-sm text-gray-500">rendez-vous</p>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-6 flex flex-col items-center">
+                <div className="rounded-full bg-indigo-100 p-3">
+                  <User className="h-6 w-6 text-indigo-600" />
+                </div>
+                <h3 className="mt-4 text-lg font-medium">Clients</h3>
+                <p className="text-3xl font-bold text-gray-900 mt-1">28</p>
+                <p className="text-sm text-gray-500">total</p>
+              </CardContent>
+            </Card>
           </div>
           
-          {/* Dashboard content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              {/* Quick stats */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card>
-                  <CardContent className="p-6 flex flex-col items-center">
-                    <div className="rounded-full bg-blue-100 p-3">
-                      <CalendarIcon className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <h3 className="mt-4 text-lg font-medium">Aujourd'hui</h3>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">3</p>
-                    <p className="text-sm text-gray-500">rendez-vous</p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-6 flex flex-col items-center">
-                    <div className="rounded-full bg-green-100 p-3">
-                      <Clock className="h-6 w-6 text-green-600" />
-                    </div>
-                    <h3 className="mt-4 text-lg font-medium">Cette semaine</h3>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">12</p>
-                    <p className="text-sm text-gray-500">rendez-vous</p>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-6 flex flex-col items-center">
-                    <div className="rounded-full bg-indigo-100 p-3">
-                      <User className="h-6 w-6 text-indigo-600" />
-                    </div>
-                    <h3 className="mt-4 text-lg font-medium">Clients</h3>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">28</p>
-                    <p className="text-sm text-gray-500">total</p>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              {/* Upcoming appointments */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Rendez-vous à venir</CardTitle>
-                  <CardDescription>Vos prochains rendez-vous pour aujourd'hui</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-5">
-                    {upcomingAppointments.map((appointment) => (
-                      <div key={appointment.id} className="flex items-center p-3 bg-gray-50 rounded-md hover:bg-gray-100">
-                        <div className="bg-indigo-100 rounded-full p-2">
-                          <Clock className="h-4 w-4 text-indigo-600" />
-                        </div>
-                        <div className="ml-4">
-                          <p className="font-medium">{appointment.name}</p>
-                          <div className="flex items-center text-sm text-gray-500">
-                            <span>{appointment.time}</span>
-                            <span className="mx-2">•</span>
-                            <span>{appointment.service}</span>
-                          </div>
-                        </div>
-                        <div className="ml-auto space-x-2">
-                          <Button variant="outline" size="sm" onClick={() => navigate('/calendar')}>Détails</Button>
-                        </div>
+          {/* Guide de mise en route */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Guide de mise en route</CardTitle>
+              <CardDescription>Complétez ces étapes pour configurer votre compte</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {setupSteps.map((step, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                        step.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {step.completed ? '✓' : (index + 1)}
                       </div>
-                    ))}
+                      <span className={`ml-3 ${step.completed ? 'line-through text-muted-foreground' : 'font-medium'}`}>
+                        {step.title}
+                      </span>
+                    </div>
+                    {!step.completed && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => navigate('/settings')}
+                        className="text-indigo-600 hover:text-indigo-800"
+                      >
+                        Configurer
+                      </Button>
+                    )}
                   </div>
-                  <div className="mt-5">
-                    <Button variant="outline" className="w-full" onClick={() => navigate('/calendar')}>
-                      Voir tous les rendez-vous
-                    </Button>
+                ))}
+              </div>
+            </CardContent>
+            <CardFooter className="bg-muted/30">
+              <div className="w-full">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium">Profil complété à {profileCompletion}%</span>
+                </div>
+                <Progress value={profileCompletion} className="h-2" />
+              </div>
+            </CardFooter>
+          </Card>
+          
+          {/* Upcoming appointments */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Rendez-vous à venir</CardTitle>
+              <CardDescription>Vos prochains rendez-vous pour aujourd'hui</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-5">
+                {upcomingAppointments.map((appointment) => (
+                  <div key={appointment.id} className="flex items-center p-3 bg-gray-50 rounded-md hover:bg-gray-100">
+                    <div className="bg-indigo-100 rounded-full p-2">
+                      <Clock className="h-4 w-4 text-indigo-600" />
+                    </div>
+                    <div className="ml-4">
+                      <p className="font-medium">{appointment.name}</p>
+                      <div className="flex items-center text-sm text-gray-500">
+                        <span>{appointment.time}</span>
+                        <span className="mx-2">•</span>
+                        <span>{appointment.service}</span>
+                      </div>
+                    </div>
+                    <div className="ml-auto space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => navigate('/calendar')}>Détails</Button>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            {/* Calendar sidebar */}
-            <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Calendrier</CardTitle>
-                  <CardDescription>Gérez vos disponibilités</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    className="border rounded-md p-3 pointer-events-auto"
-                  />
-                  <Separator className="my-6" />
-                  <Button className="w-full" onClick={() => navigate('/calendar')}>
-                    Ouvrir le calendrier
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+                ))}
+              </div>
+              <div className="mt-5">
+                <Button variant="outline" className="w-full" onClick={() => navigate('/calendar')}>
+                  Voir tous les rendez-vous
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </main>
-    </div>
+        
+        <div className="space-y-6">
+          {/* Calendar sidebar */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Calendrier</CardTitle>
+              <CardDescription>Gérez vos disponibilités</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                className="border rounded-md p-3 pointer-events-auto"
+              />
+              <Separator className="my-6" />
+              <Button className="w-full" onClick={() => navigate('/calendar')}>
+                Ouvrir le calendrier
+              </Button>
+            </CardContent>
+          </Card>
+          
+          {/* Visibility Boost Promo */}
+          <Card className="border-primary/30 bg-gradient-to-b from-white to-primary/5">
+            <CardHeader>
+              <div className="flex items-center space-x-2">
+                <Star className="h-5 w-5 text-amber-500 fill-amber-400" />
+                <CardTitle>Boost de Visibilité</CardTitle>
+              </div>
+              <CardDescription>
+                Augmentez vos revenus en vous connectant aux plateformes partenaires
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
+                    <span className="text-amber-600 font-semibold">+35%</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Augmentez vos réservations</p>
+                    <p className="text-xs text-muted-foreground">Les utilisateurs rapportent en moyenne 35% de clients en plus</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button 
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
+                onClick={() => navigate('/visibility-boost')}
+              >
+                Découvrir <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
+    </AppLayout>
   );
 };
 
