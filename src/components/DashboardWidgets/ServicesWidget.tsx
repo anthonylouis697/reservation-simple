@@ -70,7 +70,7 @@ export const ServicesWidget = () => {
         <Button 
           variant="outline" 
           className="w-full" 
-          onClick={() => navigate("/settings?tab=services")}
+          onClick={() => navigate("/services")}
         >
           <Tag className="h-4 w-4 mr-2" />
           Gérer les services

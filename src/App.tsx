@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import CalendarPage from "./pages/CalendarPage";
 import BookingCustomization from "./pages/BookingCustomization";
+import Services from "./pages/Services";
 import NotFound from "./pages/NotFound";
 import VisibilityBoostPage from "./components/VisibilityBoost/VisibilityBoostPage";
 import HelpCenter from "./pages/HelpCenter";
@@ -39,6 +40,7 @@ const App = () => (
           <Route path="/help" element={<HelpCenter />} />
           <Route path="/statistics" element={<Statistics />} />
           <Route path="/clients" element={<Clients />} />
+          <Route path="/services" element={<Services />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
