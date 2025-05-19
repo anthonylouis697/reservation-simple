@@ -1,3 +1,4 @@
+
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { Button } from '@/components/ui/button';
@@ -115,6 +116,17 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
     }
   }, []);
 
+  // Helper function to check if a path is active or a child path is active
+  const isPathActive = (path: string) => {
+    if (location.pathname === path) return true;
+    
+    // Consider child paths as active for the parent navigation item
+    // For example, if we're on /services/123, the Services nav item should be active
+    if (path !== '/dashboard' && location.pathname.startsWith(path)) return true;
+    
+    return false;
+  };
+
   return (
     <TooltipProvider>
       <div className={cn(
@@ -122,7 +134,7 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
         mobile ? "flex-row justify-around w-full overflow-x-auto" : "flex-col space-y-2 overflow-y-auto max-h-[calc(100vh-200px)]"
       )}>
         {navItems.map((item) => {
-          const isActive = location.pathname === item.href;
+          const isActive = isPathActive(item.href);
           
           return (
             <Tooltip key={item.name} delayDuration={300}>
