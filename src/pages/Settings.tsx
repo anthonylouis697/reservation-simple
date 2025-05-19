@@ -9,6 +9,9 @@ import AvailabilitySettings from "@/components/Settings/AvailabilitySettings";
 import NotificationSettings from "@/components/Settings/NotificationSettings";
 import IntegrationSettings from "@/components/Settings/IntegrationSettings";
 import PaymentSettings from "@/components/Settings/PaymentSettings";
+import { Link } from "react-router-dom";
+import { Rocket } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("profile");
@@ -21,6 +24,27 @@ const Settings = () => {
           <p className="text-muted-foreground">
             Gérez vos paramètres et préférences de compte BookWise.
           </p>
+        </div>
+        
+        {/* Banner promoting Visibility Boost module */}
+        <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center mr-4">
+              <Rocket className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <div className="flex items-center">
+                <h3 className="font-medium">Boost de Visibilité</h3>
+                <Badge variant="outline" className="ml-2 bg-primary/10 text-primary hover:bg-primary/20">Nouveau</Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Augmentez vos revenus en vous connectant aux meilleures plateformes du marché
+              </p>
+            </div>
+          </div>
+          <Link to="/visibility-boost" className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium hover:bg-primary/90">
+            Découvrir
+          </Link>
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
