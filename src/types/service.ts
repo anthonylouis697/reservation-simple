@@ -8,6 +8,7 @@ export interface Service {
   location: string;
   capacity: number;
   category: string;
+  categoryId?: string;
   bufferTimeBefore: number;
   bufferTimeAfter: number;
   assignedEmployees: string[];
@@ -23,4 +24,15 @@ export interface VariableDurationOption {
   duration: number;
   price: number;
   name: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  parentId?: string;
+  isActive: boolean;
+  color?: string;
+  icon?: string;
+  order?: number;
 }

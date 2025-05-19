@@ -30,21 +30,20 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { PlusCircle, X, Calendar as CalendarIcon, Trash2 } from "lucide-react";
+import { PlusCircle, X, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { cn } from "@/lib/utils";
-import { Service, VariableDurationOption } from "@/types/service";
+import { Service, VariableDurationOption, Category } from "@/types/service";
 
 interface ServiceFormProps {
   initialData?: Service;
+  categories: Category[];
   onSubmit: (data: Service) => void;
   onCancel: () => void;
 }
 
 const generateId = () => Math.random().toString(36).substring(2, 11);
 
-export const ServiceForm = ({ initialData, onSubmit, onCancel }: ServiceFormProps) => {
+export const ServiceForm = ({ initialData, categories, onSubmit, onCancel }: ServiceFormProps) => {
   const [formData, setFormData] = useState<Service>({
     id: initialData?.id || "",
     name: initialData?.name || "",
@@ -54,6 +53,7 @@ export const ServiceForm = ({ initialData, onSubmit, onCancel }: ServiceFormProp
     location: initialData?.location || "",
     capacity: initialData?.capacity || 1,
     category: initialData?.category || "",
+    categoryId: initialData?.categoryId,
     bufferTimeBefore: initialData?.bufferTimeBefore || 0,
     bufferTimeAfter: initialData?.bufferTimeAfter || 0,
     assignedEmployees: initialData?.assignedEmployees || [],
@@ -94,7 +94,7 @@ export const ServiceForm = ({ initialData, onSubmit, onCancel }: ServiceFormProp
   const handleSelectChange = (name: string) => (value: string) => {
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: value === "none" && name === "categoryId" ? undefined : value,
     });
   };
 
@@ -172,6 +172,38 @@ export const ServiceForm = ({ initialData, onSubmit, onCancel }: ServiceFormProp
     onSubmit(finalFormData);
   };
 
+  // Organize categories into a hierarchical structure for the select dropdown
+  const organizeCategories = () => {
+    // Get root categories (those without parents)
+    const rootCategories = categories.filter(cat => !cat.parentId && cat.isActive);
+    
+    // Build the tree recursively
+    const buildCategoryTree = (parentId?: string, depth = 0): JSX.Element[] => {
+      const childrenCategories = categories.filter(cat => cat.parentId === parentId && cat.isActive);
+      
+      return childrenCategories.map(category => {
+        const prefix = depth > 0 ? "└ ".padStart(depth * 2 + 2, " ") : "";
+        return (
+          <SelectItem key={category.id} value={category.id}>
+            {prefix}{category.name}
+          </SelectItem>
+        );
+      }).concat(
+        childrenCategories.flatMap(category => buildCategoryTree(category.id, depth + 1))
+      );
+    };
+
+    return (
+      <>
+        <SelectItem value="none">Aucune catégorie</SelectItem>
+        {rootCategories.map(category => (
+          <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+        ))}
+        {rootCategories.flatMap(category => buildCategoryTree(category.id))}
+      </>
+    );
+  };
+
   return (
     <form onSubmit={handleSubmit}>
       <Card>
@@ -198,7 +230,7 @@ export const ServiceForm = ({ initialData, onSubmit, onCancel }: ServiceFormProp
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category">Catégorie *</Label>
+                <Label htmlFor="category">Type de service *</Label>
                 <Input
                   id="category"
                   name="category"
@@ -208,6 +240,21 @@ export const ServiceForm = ({ initialData, onSubmit, onCancel }: ServiceFormProp
                   required
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="categoryId">Catégorie</Label>
+              <Select 
+                value={formData.categoryId || "none"} 
+                onValueChange={handleSelectChange("categoryId")}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sélectionnez une catégorie" />
+                </SelectTrigger>
+                <SelectContent>
+                  {organizeCategories()}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
@@ -488,7 +535,7 @@ export const ServiceForm = ({ initialData, onSubmit, onCancel }: ServiceFormProp
               mode="single"
               selected={exceptionDate}
               onSelect={setExceptionDate}
-              className="rounded-md border"
+              className="rounded-md border pointer-events-auto"
             />
           </div>
           <DialogFooter>

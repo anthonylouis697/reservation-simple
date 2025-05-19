@@ -12,7 +12,8 @@ import {
   ToggleRight, 
   CalendarClock,
   Calendar,
-  X
+  X,
+  Layers
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -30,11 +31,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { Service } from "@/types/service";
+import { Service, Category } from "@/types/service";
 
 interface ServiceDetailsProps {
   service: Service;
+  categories: Category[];
   onEdit: () => void;
   onDelete: () => void;
   onToggleStatus: () => void;
@@ -43,6 +44,7 @@ interface ServiceDetailsProps {
 
 export const ServiceDetails = ({
   service,
+  categories,
   onEdit,
   onDelete,
   onToggleStatus,
@@ -59,6 +61,32 @@ export const ServiceDetails = ({
       default: return 'Non défini';
     }
   };
+
+  // Find the category for this service
+  const category = service.categoryId ? categories.find(c => c.id === service.categoryId) : undefined;
+  
+  // Get breadcrumb for category (all parent categories)
+  const getCategoryBreadcrumb = () => {
+    if (!category) return null;
+    
+    const breadcrumb: Category[] = [category];
+    let currentCategory = category;
+    
+    // Walk up the category tree
+    while (currentCategory.parentId) {
+      const parentCategory = categories.find(c => c.id === currentCategory.parentId);
+      if (parentCategory) {
+        breadcrumb.unshift(parentCategory);
+        currentCategory = parentCategory;
+      } else {
+        break;
+      }
+    }
+    
+    return breadcrumb;
+  };
+  
+  const categoryBreadcrumb = getCategoryBreadcrumb();
 
   return (
     <div>
@@ -82,9 +110,32 @@ export const ServiceDetails = ({
                 </Badge>
               )}
             </div>
-            <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-none mt-1">
-              {service.category}
-            </Badge>
+            
+            <div className="flex flex-wrap gap-2 mt-1">
+              {categoryBreadcrumb && (
+                <div className="flex items-center gap-1">
+                  {categoryBreadcrumb.map((cat, index) => (
+                    <div key={cat.id} className="flex items-center">
+                      <Badge 
+                        className="bg-opacity-20 hover:bg-opacity-30 border-none" 
+                        style={{
+                          backgroundColor: `${cat.color}22`,
+                          color: cat.color
+                        }}
+                      >
+                        {cat.name}
+                      </Badge>
+                      {index < categoryBreadcrumb.length - 1 && (
+                        <span className="mx-1 text-muted-foreground">/</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-none">
+                {service.category}
+              </Badge>
+            </div>
           </div>
           {!hasVariableDurationOptions && (
             <div className="text-3xl font-bold">{service.price} €</div>
@@ -176,6 +227,27 @@ export const ServiceDetails = ({
               </div>
               <span className="font-medium">{service.assignedEmployees.length}</span>
             </div>
+            
+            {category && (
+              <>
+                <Separator />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Layers className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">Catégorie</span>
+                  </div>
+                  <Badge
+                    className="bg-opacity-20 border-none"
+                    style={{
+                      backgroundColor: `${category.color}22`,
+                      color: category.color
+                    }}
+                  >
+                    {category.name}
+                  </Badge>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
