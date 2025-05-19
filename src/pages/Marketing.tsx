@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { FileSpreadsheet, Mail, MessageCircle, Tag, Bell, Users, Award, ArrowRight } from 'lucide-react';
+import { FileSpreadsheet, Mail, MessageCircle, Tag, Bell, Users, Award } from 'lucide-react';
 import { MarketingCampaigns } from '@/components/Marketing/MarketingCampaigns';
 import { EmailTemplates } from '@/components/Marketing/EmailTemplates';
 import { PromotionCodes } from '@/components/Marketing/PromotionCodes';
