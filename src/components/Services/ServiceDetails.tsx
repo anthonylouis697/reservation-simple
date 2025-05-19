@@ -10,7 +10,9 @@ import {
   Tag, 
   ToggleLeft, 
   ToggleRight, 
-  CalendarClock
+  CalendarClock,
+  Calendar,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +29,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Service } from "@/types/service";
 
 interface ServiceDetailsProps {
@@ -44,6 +48,18 @@ export const ServiceDetails = ({
   onToggleStatus,
   onBack,
 }: ServiceDetailsProps) => {
+  const hasVariableDurationOptions = service.variableDurationOptions && service.variableDurationOptions.length > 0;
+  
+  const getRecurringFrequencyLabel = (frequency?: string) => {
+    switch (frequency) {
+      case 'daily': return 'Quotidien';
+      case 'weekly': return 'Hebdomadaire';
+      case 'monthly': return 'Mensuel';
+      case 'yearly': return 'Annuel';
+      default: return 'Non défini';
+    }
+  };
+
   return (
     <div>
       <div className="mb-6">
@@ -70,7 +86,9 @@ export const ServiceDetails = ({
               {service.category}
             </Badge>
           </div>
-          <div className="text-3xl font-bold">{service.price} €</div>
+          {!hasVariableDurationOptions && (
+            <div className="text-3xl font-bold">{service.price} €</div>
+          )}
         </div>
       </div>
 
@@ -81,7 +99,11 @@ export const ServiceDetails = ({
               <Clock className="h-5 w-5 text-muted-foreground" />
               <div>
                 <h3 className="font-medium">Durée</h3>
-                <p>{service.duration} minutes</p>
+                {!hasVariableDurationOptions ? (
+                  <p>{service.duration} minutes</p>
+                ) : (
+                  <p>Variable (plusieurs options)</p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -112,7 +134,7 @@ export const ServiceDetails = ({
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="text-lg">Description</CardTitle>
@@ -157,6 +179,64 @@ export const ServiceDetails = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* Options de durée variable si applicable */}
+      {hasVariableDurationOptions && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-lg">Options de durée et prix</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {service.variableDurationOptions!.map(option => (
+                <div key={option.id} className="border rounded-lg p-4 bg-secondary/10">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium">{option.name}</h3>
+                    <Badge variant="outline">{option.duration} min</Badge>
+                  </div>
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <DollarSign className="h-4 w-4" />
+                    <span className="text-lg font-semibold">{option.price} €</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Service récurrent si applicable */}
+      {service.isRecurring && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="text-lg">Paramètres de récurrence</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm">Fréquence</span>
+              </div>
+              <Badge variant="secondary">
+                {getRecurringFrequencyLabel(service.recurringFrequency)}
+              </Badge>
+            </div>
+            
+            {service.recurringExceptions && service.recurringExceptions.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium mb-2">Exceptions</h4>
+                <div className="flex flex-wrap gap-2">
+                  {service.recurringExceptions.map(date => (
+                    <Badge key={date} variant="outline" className="flex items-center gap-1">
+                      {format(new Date(date), "dd/MM/yyyy")}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <div className="mt-6 flex justify-end gap-3">
         <Button

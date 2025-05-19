@@ -8,7 +8,8 @@ import {
   Clock, 
   DollarSign, 
   MapPin, 
-  Users 
+  Users,
+  CalendarClock 
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -65,6 +66,8 @@ const initialServices: Service[] = [
     bufferTimeAfter: 15,
     assignedEmployees: ["2", "3"],
     isRecurring: true,
+    recurringFrequency: "weekly",
+    recurringExceptions: ["2025-06-15", "2025-07-20"],
     isActive: true,
   },
   {
@@ -81,6 +84,11 @@ const initialServices: Service[] = [
     assignedEmployees: ["1"],
     isRecurring: false,
     isActive: true,
+    variableDurationOptions: [
+      { id: "opt1", name: "Standard", duration: 60, price: 100 },
+      { id: "opt2", name: "Intensive", duration: 90, price: 150 },
+      { id: "opt3", name: "Premium", duration: 120, price: 200 }
+    ]
   },
   {
     id: "5",
@@ -165,9 +173,15 @@ export default function Services() {
   };
 
   const handleToggleStatus = (serviceId: string) => {
-    setServices(services.map(s => 
+    const updatedServices = services.map(s => 
       s.id === serviceId ? { ...s, isActive: !s.isActive } : s
-    ));
+    );
+    setServices(updatedServices);
+    
+    // Update viewing service if it's the one being toggled
+    if (viewingService && viewingService.id === serviceId) {
+      setViewingService({ ...viewingService, isActive: !viewingService.isActive });
+    }
     
     const service = services.find(s => s.id === serviceId);
     if (service) {
@@ -226,7 +240,7 @@ export default function Services() {
                   <CardContent className="p-6">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1.5">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <h2 className="font-semibold text-lg">{service.name}</h2>
                           {!service.isActive && (
                             <Badge variant="outline" className="bg-gray-100 text-gray-500">
@@ -243,9 +257,11 @@ export default function Services() {
                           {service.category}
                         </Badge>
                       </div>
-                      <div className="text-2xl font-semibold text-right">
-                        {service.price} €
-                      </div>
+                      {!service.variableDurationOptions?.length && (
+                        <div className="text-2xl font-semibold text-right">
+                          {service.price} €
+                        </div>
+                      )}
                     </div>
                     
                     <Separator className="my-3" />
@@ -257,7 +273,11 @@ export default function Services() {
                     <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Clock className="h-3.5 w-3.5" />
-                        <span>{service.duration} min</span>
+                        {!service.variableDurationOptions?.length ? (
+                          <span>{service.duration} min</span>
+                        ) : (
+                          <span>Variable</span>
+                        )}
                       </div>
                       <div className="flex items-center gap-1">
                         <MapPin className="h-3.5 w-3.5" />
@@ -271,6 +291,23 @@ export default function Services() {
                         <Tag className="h-3.5 w-3.5" />
                         <span>{service.assignedEmployees.length} employé(s)</span>
                       </div>
+                      {service.variableDurationOptions?.length ? (
+                        <div className="flex items-center gap-1 col-span-2">
+                          <DollarSign className="h-3.5 w-3.5" />
+                          <span>{service.variableDurationOptions.length} options de prix</span>
+                        </div>
+                      ) : null}
+                      {service.isRecurring && (
+                        <div className="flex items-center gap-1 col-span-2">
+                          <CalendarClock className="h-3.5 w-3.5" />
+                          <span>
+                            {service.recurringFrequency === 'daily' && 'Quotidien'}
+                            {service.recurringFrequency === 'weekly' && 'Hebdomadaire'}
+                            {service.recurringFrequency === 'monthly' && 'Mensuel'}
+                            {service.recurringFrequency === 'yearly' && 'Annuel'}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

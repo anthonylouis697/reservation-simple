@@ -12,5 +12,15 @@ export interface Service {
   bufferTimeAfter: number;
   assignedEmployees: string[];
   isRecurring: boolean;
+  recurringFrequency?: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  recurringExceptions?: string[]; // Dates au format ISO pour les exceptions
   isActive: boolean;
+  variableDurationOptions?: VariableDurationOption[];
+}
+
+export interface VariableDurationOption {
+  id: string;
+  duration: number;
+  price: number;
+  name: string;
 }

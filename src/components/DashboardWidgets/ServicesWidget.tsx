@@ -4,6 +4,7 @@ import { ScrollText, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 
 // Mock data for services
 const services = [
@@ -12,21 +13,27 @@ const services = [
     name: "Consultation", 
     duration: 30, 
     price: 50, 
-    bookings: 12 
+    bookings: 12,
+    isRecurring: false,
+    hasVariablePricing: false
   },
   { 
     id: "2", 
     name: "Traitement standard", 
     duration: 60, 
     price: 100, 
-    bookings: 8 
+    bookings: 8,
+    isRecurring: true,
+    hasVariablePricing: false
   },
   { 
     id: "3", 
-    name: "Traitement premium", 
+    name: "Thérapie intensive", 
     duration: 90, 
-    price: 150, 
-    bookings: 4 
+    price: 0, 
+    bookings: 4,
+    isRecurring: false,
+    hasVariablePricing: true
   }
 ];
 
@@ -49,11 +56,27 @@ export const ServicesWidget = () => {
             <div key={service.id}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{service.name}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="font-medium">{service.name}</p>
+                    {service.isRecurring && (
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-[10px] px-1.5 py-0">
+                        Récurrent
+                      </Badge>
+                    )}
+                    {service.hasVariablePricing && (
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-[10px] px-1.5 py-0">
+                        Prix variable
+                      </Badge>
+                    )}
+                  </div>
                   <div className="flex items-center text-xs text-muted-foreground">
                     <span>{service.duration} min</span>
                     <span className="mx-1">•</span>
-                    <span>{service.price} €</span>
+                    {service.hasVariablePricing ? (
+                      <span>Prix variable</span>
+                    ) : (
+                      <span>{service.price} €</span>
+                    )}
                   </div>
                 </div>
                 <div className="text-right">
