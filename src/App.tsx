@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import VisibilityBoostPage from "./components/VisibilityBoost/VisibilityBoostPage";
 import HelpCenter from "./pages/HelpCenter";
 import Events from "./pages/Events";
+import Statistics from "./pages/Statistics";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/visibility-boost" element={<VisibilityBoostPage />} />
           <Route path="/events" element={<Events />} />
           <Route path="/help" element={<HelpCenter />} />
+          <Route path="/statistics" element={<Statistics />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
