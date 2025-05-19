@@ -18,6 +18,7 @@ import HelpCenter from "./pages/HelpCenter";
 import Events from "./pages/Events";
 import Statistics from "./pages/Statistics";
 import Clients from "./pages/Clients";
+import Marketing from "./pages/Marketing";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
           <Route path="/statistics" element={<Statistics />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/services" element={<Services />} />
+          <Route path="/marketing" element={<Marketing />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
