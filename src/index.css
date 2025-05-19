@@ -45,6 +45,12 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* Social Media Brand Colors */
+    --facebook: 214 89% 52%;
+    --instagram: 326 57% 48%;
+    --google: 217 89% 61%;
+    --apple: 0 0% 0%;
   }
 
   .dark {
@@ -83,6 +89,12 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    
+    /* Social Media Brand Colors - Dark Mode */
+    --facebook: 214 89% 60%;
+    --instagram: 326 57% 55%;
+    --google: 217 89% 70%;
+    --apple: 0 0% 100%;
   }
 }
 
@@ -95,4 +107,21 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+}
+
+/* Social media branded buttons */
+.btn-facebook {
+  @apply bg-facebook-500 text-white hover:bg-facebook-600;
+}
+
+.btn-instagram {
+  @apply bg-instagram-500 text-white hover:bg-instagram-600;
+}
+
+.btn-google {
+  @apply bg-google-500 text-white hover:bg-google-600;
+}
+
+.btn-apple {
+  @apply bg-apple-500 text-white hover:bg-apple-600;
 }

@@ -11,7 +11,11 @@ import {
   XCircle,
   MessageSquare,
   Webhook,
-  Cog
+  Cog,
+  CreditCard,
+  Facebook,
+  Instagram,
+  Globe
 } from "lucide-react";
 
 interface IntegrationCardProps {
@@ -70,6 +74,102 @@ const IntegrationCard = ({
   </Card>
 );
 
+const PaymentIntegrationCard = ({ 
+  title, 
+  description, 
+  icon, 
+  isConnected, 
+  onConnect, 
+  onDisconnect 
+}: IntegrationCardProps) => (
+  <Card>
+    <CardHeader className="pb-2">
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div className={`flex items-center justify-center h-12 w-12 rounded-md ${isConnected ? 'bg-primary/10' : 'bg-muted'}`}>
+            {icon}
+          </div>
+          <div>
+            <CardTitle className="text-lg">{title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
+          </div>
+        </div>
+        {isConnected ? (
+          <div className="flex items-center text-emerald-500 gap-1">
+            <CheckCircle className="h-4 w-4" />
+            <span className="text-xs">Connecté</span>
+          </div>
+        ) : (
+          <div className="flex items-center text-muted-foreground gap-1">
+            <XCircle className="h-4 w-4" />
+            <span className="text-xs">Non connecté</span>
+          </div>
+        )}
+      </div>
+    </CardHeader>
+    <CardContent>
+      {isConnected ? (
+        <Button variant="outline" onClick={onDisconnect} className="w-full">
+          Déconnecter
+        </Button>
+      ) : (
+        <Button onClick={onConnect} className="w-full">
+          Connecter
+        </Button>
+      )}
+    </CardContent>
+  </Card>
+);
+
+const SocialIntegrationCard = ({ 
+  title, 
+  description, 
+  icon, 
+  isConnected, 
+  onConnect, 
+  onDisconnect,
+  iconBgColor = "bg-primary/10",
+  iconColor = "text-primary"
+}: IntegrationCardProps & { iconBgColor?: string, iconColor?: string }) => (
+  <Card>
+    <CardHeader className="pb-2">
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <div className={`flex items-center justify-center h-12 w-12 rounded-md ${iconBgColor}`}>
+            <div className={iconColor}>{icon}</div>
+          </div>
+          <div>
+            <CardTitle className="text-lg">{title}</CardTitle>
+            <CardDescription>{description}</CardDescription>
+          </div>
+        </div>
+        {isConnected ? (
+          <div className="flex items-center text-emerald-500 gap-1">
+            <CheckCircle className="h-4 w-4" />
+            <span className="text-xs">Connecté</span>
+          </div>
+        ) : (
+          <div className="flex items-center text-muted-foreground gap-1">
+            <XCircle className="h-4 w-4" />
+            <span className="text-xs">Non connecté</span>
+          </div>
+        )}
+      </div>
+    </CardHeader>
+    <CardContent>
+      {isConnected ? (
+        <Button variant="outline" onClick={onDisconnect} className="w-full">
+          Déconnecter
+        </Button>
+      ) : (
+        <Button onClick={onConnect} className="w-full" className="w-full">
+          Connecter
+        </Button>
+      )}
+    </CardContent>
+  </Card>
+);
+
 const IntegrationSettings = () => {
   const [googleConnected, setGoogleConnected] = useState(false);
   const [microsoftConnected, setMicrosoftConnected] = useState(false);
@@ -77,6 +177,15 @@ const IntegrationSettings = () => {
   const [zapierConnected, setZapierConnected] = useState(false);
   const [zapierWebhook, setZapierWebhook] = useState("");
   const [customApiKey, setCustomApiKey] = useState("");
+  
+  // Payment integrations
+  const [stripeConnected, setStripeConnected] = useState(false);
+  const [paypalConnected, setPaypalConnected] = useState(false);
+  
+  // Social integrations
+  const [googleMyBusinessConnected, setGoogleMyBusinessConnected] = useState(false);
+  const [facebookConnected, setFacebookConnected] = useState(false);
+  const [instagramConnected, setInstagramConnected] = useState(false);
 
   const handleGoogleConnect = () => {
     setGoogleConnected(true);
@@ -101,6 +210,31 @@ const IntegrationSettings = () => {
     
     setZapierConnected(true);
     toast.success("Connecté à Zapier");
+  };
+  
+  const handleStripeConnect = () => {
+    setStripeConnected(true);
+    toast.success("Connecté à Stripe");
+  };
+  
+  const handlePaypalConnect = () => {
+    setPaypalConnected(true);
+    toast.success("Connecté à PayPal");
+  };
+  
+  const handleGoogleMyBusinessConnect = () => {
+    setGoogleMyBusinessConnected(true);
+    toast.success("Connecté à Google My Business");
+  };
+  
+  const handleFacebookConnect = () => {
+    setFacebookConnected(true);
+    toast.success("Connecté à Facebook");
+  };
+  
+  const handleInstagramConnect = () => {
+    setInstagramConnected(true);
+    toast.success("Connecté à Instagram");
   };
 
   const handleSaveApiKey = () => {
@@ -137,6 +271,33 @@ const IntegrationSettings = () => {
             isConnected={microsoftConnected}
             onConnect={handleMicrosoftConnect}
             onDisconnect={() => setMicrosoftConnected(false)}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Intégrations de paiement</CardTitle>
+          <CardDescription>
+            Connectez vos méthodes de paiement pour recevoir des paiements en ligne.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <PaymentIntegrationCard
+            title="Stripe"
+            description="Acceptez les paiements par carte de crédit."
+            icon={<CreditCard className="h-8 w-8 text-indigo-600" />}
+            isConnected={stripeConnected}
+            onConnect={handleStripeConnect}
+            onDisconnect={() => setStripeConnected(false)}
+          />
+          <PaymentIntegrationCard
+            title="PayPal"
+            description="Acceptez les paiements via PayPal."
+            icon={<CreditCard className="h-8 w-8 text-skyblue-600" />}
+            isConnected={paypalConnected}
+            onConnect={handlePaypalConnect}
+            onDisconnect={() => setPaypalConnected(false)}
           />
         </CardContent>
       </Card>
@@ -207,6 +368,49 @@ const IntegrationSettings = () => {
               </div>
             </CardContent>
           </Card>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Intégrations réseaux sociaux et plateformes</CardTitle>
+          <CardDescription>
+            Connectez vos plateformes pour faciliter la réservation de vos clients.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <SocialIntegrationCard
+            title="Google My Business"
+            description="Ajoutez un bouton de réservation sur votre fiche Google."
+            icon={<Globe className="h-8 w-8" />}
+            isConnected={googleMyBusinessConnected}
+            onConnect={handleGoogleMyBusinessConnect}
+            onDisconnect={() => setGoogleMyBusinessConnected(false)}
+            iconBgColor="bg-red-50"
+            iconColor="text-red-500"
+          />
+          
+          <SocialIntegrationCard
+            title="Facebook"
+            description="Intégrez vos réservations à votre page Facebook."
+            icon={<Facebook className="h-8 w-8" />}
+            isConnected={facebookConnected}
+            onConnect={handleFacebookConnect}
+            onDisconnect={() => setFacebookConnected(false)}
+            iconBgColor="bg-blue-50"
+            iconColor="text-blue-600"
+          />
+          
+          <SocialIntegrationCard
+            title="Instagram"
+            description="Ajoutez un lien de réservation dans votre bio Instagram."
+            icon={<Instagram className="h-8 w-8" />}
+            isConnected={instagramConnected}
+            onConnect={handleInstagramConnect}
+            onDisconnect={() => setInstagramConnected(false)}
+            iconBgColor="bg-pink-50"
+            iconColor="text-pink-500"
+          />
         </CardContent>
       </Card>
 

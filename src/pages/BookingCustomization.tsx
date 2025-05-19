@@ -25,6 +25,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Switch,
+  Badge,
+  Slider,
+} from "@/components/ui/button";
+import {
   Facebook,
   Instagram,
   Link as LinkIcon,
@@ -33,16 +38,27 @@ import {
   Image as ImageIcon,
   Copy,
   Check,
+  Users,
+  User,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
+import { Switch } from "@/components/ui/switch";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const BookingCustomization = () => {
   const [primaryColor, setPrimaryColor] = useState("#6366f1");
   const [activeTab, setActiveTab] = useState("appearance");
   const [bookingLink, setBookingLink] = useState("https://bookwise.app/r/johndoe");
   const [copied, setCopied] = useState(false);
+  
+  // New settings for coach/instructor mode
+  const [businessType, setBusinessType] = useState("individual"); // individual, coach, business
+  const [allowGroupBookings, setAllowGroupBookings] = useState(false);
+  const [maxGroupSize, setMaxGroupSize] = useState(10);
+  const [defaultSessionType, setDefaultSessionType] = useState("private");
   
   const handleCopyLink = () => {
     navigator.clipboard.writeText(bookingLink);
@@ -55,6 +71,14 @@ const BookingCustomization = () => {
     setPrimaryColor(color);
     // Dans une vraie app, cela mettrait à jour la couleur dans la base de données
     toast.success('Couleur principale mise à jour');
+  };
+  
+  const handleBusinessTypeChange = (type: string) => {
+    setBusinessType(type);
+    if (type === "individual") {
+      setAllowGroupBookings(false);
+    }
+    toast.success(`Type de profil configuré: ${type === "individual" ? "Auto-entrepreneur" : type === "coach" ? "Coach/Professeur" : "Entreprise"}`);
   };
 
   return (
@@ -69,13 +93,153 @@ const BookingCustomization = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="profile">Profil</TabsTrigger>
               <TabsTrigger value="appearance">Apparence</TabsTrigger>
               <TabsTrigger value="sharing">Partage</TabsTrigger>
               <TabsTrigger value="embed">Intégration</TabsTrigger>
             </TabsList>
             
             <div className="mt-6">
+              <TabsContent value="profile" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Type de profil</CardTitle>
+                    <CardDescription>
+                      Configurez le type de profil qui correspond à votre activité
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <RadioGroup 
+                        value={businessType} 
+                        onValueChange={handleBusinessTypeChange}
+                        className="grid grid-cols-1 md:grid-cols-3 gap-4"
+                      >
+                        <div className={`flex flex-col border rounded-lg p-4 cursor-pointer ${businessType === "individual" ? "ring-2 ring-primary" : ""}`}>
+                          <RadioGroupItem value="individual" id="individual" className="sr-only" />
+                          <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 mb-4 mx-auto">
+                            <User className="h-6 w-6 text-primary" />
+                          </div>
+                          <h3 className="font-medium text-center">Auto-entrepreneur</h3>
+                          <p className="text-sm text-muted-foreground text-center mt-2">
+                            Pour les professionnels qui reçoivent un client à la fois
+                          </p>
+                        </div>
+                        
+                        <div className={`flex flex-col border rounded-lg p-4 cursor-pointer ${businessType === "coach" ? "ring-2 ring-primary" : ""}`}>
+                          <RadioGroupItem value="coach" id="coach" className="sr-only" />
+                          <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 mb-4 mx-auto">
+                            <Users className="h-6 w-6 text-primary" />
+                          </div>
+                          <h3 className="font-medium text-center">Coach / Professeur</h3>
+                          <p className="text-sm text-muted-foreground text-center mt-2">
+                            Pour les cours et séances pouvant accueillir plusieurs clients
+                          </p>
+                        </div>
+                        
+                        <div className={`flex flex-col border rounded-lg p-4 cursor-pointer ${businessType === "business" ? "ring-2 ring-primary" : ""}`}>
+                          <RadioGroupItem value="business" id="business" className="sr-only" />
+                          <div className="flex items-center justify-center h-12 w-12 rounded-full bg-primary/10 mb-4 mx-auto">
+                            <Globe className="h-6 w-6 text-primary" />
+                          </div>
+                          <h3 className="font-medium text-center">Entreprise</h3>
+                          <p className="text-sm text-muted-foreground text-center mt-2">
+                            Pour les entreprises avec plusieurs employés ou prestataires
+                          </p>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {(businessType === "coach" || businessType === "business") && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Options de groupe</CardTitle>
+                      <CardDescription>
+                        Configurez les options pour les réservations de groupe
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label htmlFor="group-booking-toggle" className="font-medium">
+                            Autoriser les réservations de groupe
+                          </Label>
+                          <p className="text-sm text-muted-foreground">
+                            Permettre à plusieurs clients de réserver le même créneau
+                          </p>
+                        </div>
+                        <Switch
+                          id="group-booking-toggle"
+                          checked={allowGroupBookings}
+                          onCheckedChange={setAllowGroupBookings}
+                        />
+                      </div>
+                      
+                      {allowGroupBookings && (
+                        <>
+                          <div className="space-y-4">
+                            <div>
+                              <Label htmlFor="default-session-type">Type de séance par défaut</Label>
+                              <Select 
+                                value={defaultSessionType}
+                                onValueChange={setDefaultSessionType}
+                              >
+                                <SelectTrigger className="mt-2">
+                                  <SelectValue placeholder="Sélectionnez le type de séance par défaut" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="private">Privée (un seul client)</SelectItem>
+                                  <SelectItem value="group">Groupe (plusieurs clients)</SelectItem>
+                                  <SelectItem value="hybrid">Hybride (choix du client)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <Label>Nombre maximum de personnes par séance</Label>
+                            <div className="flex items-center gap-4">
+                              <span className="text-sm font-medium">1</span>
+                              <Slider
+                                value={[maxGroupSize]}
+                                onValueChange={(value) => setMaxGroupSize(value[0])}
+                                min={1}
+                                max={50}
+                                step={1}
+                                className="flex-1"
+                              />
+                              <span className="text-sm font-medium w-8 text-right">{maxGroupSize}</span>
+                            </div>
+                            {maxGroupSize > 20 && (
+                              <p className="text-xs text-amber-500">
+                                Attention: Un grand nombre de participants peut affecter la qualité de votre service.
+                              </p>
+                            )}
+                          </div>
+                          
+                          <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <Label className="font-medium">
+                                  Afficher la disponibilité des places
+                                </Label>
+                                <p className="text-sm text-muted-foreground">
+                                  Montrer le nombre de places restantes pour chaque créneau
+                                </p>
+                              </div>
+                              <Switch defaultChecked={true} />
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+              
               <TabsContent value="appearance" className="space-y-6">
                 <Card>
                   <CardHeader>
@@ -394,6 +558,14 @@ const BookingCustomization = () => {
                       <div className="border rounded p-3 text-sm cursor-pointer hover:bg-accent">
                         Coaching personnalisé
                       </div>
+                      
+                      {businessType === "coach" && allowGroupBookings && (
+                        <div className="mt-2">
+                          <Badge variant="outline" className="text-xs">
+                            {maxGroupSize} places disponibles
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                     
                     <Button 
