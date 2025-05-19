@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,11 +24,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Switch,
-  Badge,
-  Slider,
-} from "@/components/ui/button";
-import {
   Facebook,
   Instagram,
   Link as LinkIcon,
@@ -47,6 +41,8 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from "@/components/ui/switch";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 
 const BookingCustomization = () => {
   const [primaryColor, setPrimaryColor] = useState("#6366f1");
