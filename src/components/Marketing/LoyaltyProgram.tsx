@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { 
   Card, 
@@ -69,9 +70,9 @@ import {
   Tag, 
   Trash, 
   TrendingUp, 
-  Users 
+  Users,
+  CalendarIcon 
 } from 'lucide-react';
-import { CalendarIcon } from '@radix-ui/react-icons';
 import {
   Bar,
   BarChart,
