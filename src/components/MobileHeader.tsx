@@ -23,34 +23,38 @@ interface MobileHeaderProps {
 
 export function MobileHeader({ onHelpClick, userData }: MobileHeaderProps) {
   return (
-    <div className="md:hidden bg-white border-b border-gray-200 p-4 sticky top-0 z-10 flex justify-between items-center">
+    <div className="md:hidden bg-white border-b border-gray-200 p-4 sticky top-0 z-10 flex justify-between items-center shadow-sm">
       <h2 className="text-indigo-600 text-xl font-bold">Reservatoo</h2>
       <div className="flex items-center space-x-2">
         <Button 
           variant="ghost" 
           size="icon"
           onClick={onHelpClick}
+          className="hover:bg-indigo-50"
+          aria-label="Aide"
         >
-          <HelpCircle className="h-5 w-5" />
+          <HelpCircle className="h-5 w-5 text-indigo-600" />
         </Button>
         
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="hover:bg-indigo-50" aria-label="Menu">
+              <Menu className="h-5 w-5 text-indigo-600" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72">
+          <SheetContent side="left" className="w-72 p-0">
             <div className="flex flex-col h-full">
-              <div className="p-4 border-b border-gray-200">
+              <div className="p-4 border-b border-gray-200 bg-indigo-50">
                 <h2 className="text-indigo-600 text-xl font-bold">Reservatoo</h2>
               </div>
               
-              <div className="p-4 flex-grow">
+              <div className="p-4 flex-grow overflow-y-auto">
                 <MainNavigation />
               </div>
               
-              <UserProfileDropdown user={userData} variant="mobile" />
+              <div className="border-t border-gray-200">
+                <UserProfileDropdown user={userData} variant="mobile" />
+              </div>
             </div>
           </SheetContent>
         </Sheet>

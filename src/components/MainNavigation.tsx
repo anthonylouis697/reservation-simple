@@ -14,8 +14,7 @@ import {
   Tag,
   CreditCard,
   Bell,
-  Gift,
-  FileSpreadsheet
+  Gift
 } from 'lucide-react';
 import { 
   Tooltip,
@@ -73,7 +72,7 @@ const navItems: NavItem[] = [
     name: "Marketing",
     href: "/marketing",
     icon: Bell,
-    description: "Notifications, emails et promotions"
+    description: "Notifications, promotions et fidélité"
   },
   {
     name: "Statistiques",
@@ -121,17 +120,34 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
     if (location.pathname === path) return true;
     
     // Consider child paths as active for the parent navigation item
-    // For example, if we're on /services/123, the Services nav item should be active
     if (path !== '/dashboard' && location.pathname.startsWith(path)) return true;
     
     return false;
+  };
+
+  const handleNavigation = (href: string) => {
+    // Une petite animation pour améliorer l'expérience utilisateur
+    if (mobile) {
+      const element = document.getElementById(href);
+      if (element) {
+        element.classList.add('animate-pulse');
+        setTimeout(() => {
+          element.classList.remove('animate-pulse');
+          navigate(href);
+        }, 150);
+      } else {
+        navigate(href);
+      }
+    } else {
+      navigate(href);
+    }
   };
 
   return (
     <TooltipProvider>
       <div className={cn(
         "flex",
-        mobile ? "flex-row justify-around w-full overflow-x-auto" : "flex-col space-y-2 overflow-y-auto max-h-[calc(100vh-200px)]"
+        mobile ? "flex-row justify-around w-full overflow-x-auto pb-safe" : "flex-col space-y-2 overflow-y-auto max-h-[calc(100vh-200px)]"
       )}>
         {navItems.map((item) => {
           const isActive = isPathActive(item.href);
@@ -140,20 +156,22 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
             <Tooltip key={item.name} delayDuration={300}>
               <TooltipTrigger asChild>
                 <Button 
+                  id={item.href}
                   variant={isActive ? "default" : "ghost"} 
                   className={cn(
                     mobile ? "flex flex-col items-center py-2 h-auto" : "w-full justify-start text-left",
                     isActive ? "bg-primary text-primary-foreground" : "",
+                    mobile && "rounded-md px-2",
                     item.href === "/visibility-boost" && firstTimeUser ? "animate-pulse ring-2 ring-primary" : ""
                   )}
-                  onClick={() => navigate(item.href)}
+                  onClick={() => handleNavigation(item.href)}
                 >
                   <item.icon className={cn(
                     "mr-2 h-4 w-4", 
                     mobile && "mr-0 h-5 w-5 mb-1"
                   )} />
                   <span className={cn(
-                    mobile && "text-xs"
+                    mobile && "text-xs font-medium"
                   )}>{item.name}</span>
                 </Button>
               </TooltipTrigger>
@@ -167,32 +185,27 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
           );
         })}
 
-        {/* Help button */}
-        <Tooltip delayDuration={300}>
-          <TooltipTrigger asChild>
-            <Button 
-              variant="ghost" 
-              className={cn(
-                mobile ? "flex flex-col items-center py-2 h-auto" : "w-full justify-start text-left mt-auto"
-              )}
-              onClick={() => navigate("/help")}
-            >
-              <HelpCircle className={cn(
-                "mr-2 h-4 w-4", 
-                mobile && "mr-0 h-5 w-5 mb-1"
-              )} />
-              <span className={cn(
-                mobile && "text-xs"
-              )}>Aide</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side={mobile ? "top" : "right"}>
-            <div className="flex flex-col">
-              <span className="font-medium">Centre d'aide</span>
-              <span className="text-xs text-muted-foreground">Trouvez des réponses à vos questions</span>
-            </div>
-          </TooltipContent>
-        </Tooltip>
+        {/* Hide Help button on mobile since we have it in the header */}
+        {!mobile && (
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start text-left mt-auto"
+                onClick={() => navigate("/help")}
+              >
+                <HelpCircle className="mr-2 h-4 w-4" />
+                <span>Aide</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              <div className="flex flex-col">
+                <span className="font-medium">Centre d'aide</span>
+                <span className="text-xs text-muted-foreground">Trouvez des réponses à vos questions</span>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        )}
       </div>
     </TooltipProvider>
   );

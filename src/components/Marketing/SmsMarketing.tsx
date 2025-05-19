@@ -1,208 +1,171 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Send, Plus, Calendar, Users, ArrowUpRight, X } from 'lucide-react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useToast } from '@/hooks/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-const mockCampaigns = [
-  {
-    id: 1,
-    name: 'Promotion de printemps',
-    status: 'Programmé',
-    date: '15/06/2025',
-    audience: '142 contacts',
-    openRate: null
-  },
-  {
-    id: 2,
-    name: 'Rappel rendez-vous',
-    status: 'Actif',
-    date: '10/06/2025',
-    audience: '87 contacts',
-    openRate: '76%'
-  },
-  {
-    id: 3,
-    name: 'Anniversaires clients',
-    status: 'Terminé',
-    date: '03/06/2025',
-    audience: '34 contacts',
-    openRate: '92%'
-  },
-  {
-    id: 4,
-    name: 'Offre fidélité',
-    status: 'Brouillon',
-    date: '-',
-    audience: '205 contacts (estimé)',
-    openRate: null
-  }
-];
-
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case 'Actif':
-      return <Badge className="bg-green-500 hover:bg-green-600">Actif</Badge>;
-    case 'Terminé':
-      return <Badge variant="outline" className="text-gray-500 border-gray-300">Terminé</Badge>;
-    case 'Programmé':
-      return <Badge className="bg-blue-500 hover:bg-blue-600">Programmé</Badge>;
-    default:
-      return <Badge variant="outline" className="bg-gray-100 text-gray-500 hover:bg-gray-200">Brouillon</Badge>;
-  }
-};
+import { MessageCircle, Send, UserCheck, Plus, Users, ArrowRight, Calendar } from 'lucide-react';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
 export const SmsMarketing = () => {
-  const [activeTab, setActiveTab] = useState('campaigns');
-  const [smsText, setSmsText] = useState('');
-  const { toast } = useToast();
+  const [smsContent, setSmsContent] = useState('');
+  const [characterCount, setCharacterCount] = useState(0);
   
-  const handleCreateCampaign = () => {
-    toast({
-      title: "Nouvelle campagne SMS",
-      description: "Le formulaire de création de campagne SMS s'ouvrira bientôt.",
-    });
+  // Simuler les clients pour la sélection
+  const totalClients = 387;
+  const selectedClients = 0;
+  
+  // Simuler les campagnes passées
+  const pastCampaigns = [
+    { id: 1, name: 'Rappel de rendez-vous Décembre', date: '01/12/2023', recipients: 245, opened: 198 },
+    { id: 2, name: 'Promotion de Noël', date: '15/12/2023', recipients: 387, opened: 301 },
+    { id: 3, name: 'Bonne année 2024', date: '02/01/2024', recipients: 380, opened: 335 },
+    { id: 4, name: 'Nouveaux services de printemps', date: '15/03/2024', recipients: 392, opened: 289 }
+  ];
+  
+  const handleSmsContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const content = e.target.value;
+    setSmsContent(content);
+    setCharacterCount(content.length);
   };
   
-  const handleSendTest = () => {
-    if (!smsText.trim()) {
-      toast({
-        title: "Erreur",
-        description: "Veuillez saisir un message",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    toast({
-      title: "SMS de test envoyé",
-      description: "Le SMS de test a été envoyé avec succès.",
-    });
-  };
+  const messageLimit = 160;
+  const numberOfMessages = Math.ceil(characterCount / messageLimit);
   
   return (
-    <div className="space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-2 w-[400px]">
-          <TabsTrigger value="campaigns">Campagnes SMS</TabsTrigger>
-          <TabsTrigger value="new-message">Nouveau message</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="campaigns" className="space-y-4 pt-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-semibold">Campagnes SMS</h2>
-              <p className="text-muted-foreground">Gérez vos envois de SMS promotionnels et notifications</p>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2 space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MessageCircle className="h-5 w-5" />
+              Nouveau message SMS
+            </CardTitle>
+            <CardDescription>
+              Créez et envoyez un message SMS à vos clients
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="campaign-name">Nom de la campagne</Label>
+              <Input id="campaign-name" placeholder="ex: Promotion de printemps" />
             </div>
-            <Button onClick={handleCreateCampaign}>
-              <Plus className="mr-2 h-4 w-4" /> Nouvelle campagne
-            </Button>
-          </div>
-          
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nom de la campagne</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Audience</TableHead>
-                  <TableHead>Taux d'ouverture</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {mockCampaigns.map((campaign) => (
-                  <TableRow key={campaign.id}>
-                    <TableCell className="font-medium">{campaign.name}</TableCell>
-                    <TableCell>{getStatusBadge(campaign.status)}</TableCell>
-                    <TableCell>{campaign.date}</TableCell>
-                    <TableCell>{campaign.audience}</TableCell>
-                    <TableCell>{campaign.openRate || '-'}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="icon">
-                        <ArrowUpRight className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="new-message" className="space-y-4 pt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Créer un nouveau SMS</CardTitle>
-              <CardDescription>
-                Composez et envoyez un message SMS à vos clients
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="recipients">Destinataires</Label>
-                <div className="flex gap-2">
-                  <Input id="recipients" placeholder="Entrez un numéro de téléphone" />
-                  <Button variant="outline" className="shrink-0">
-                    <Users className="h-4 w-4 mr-2" />
-                    Sélectionner
-                  </Button>
-                </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="sms-content">Contenu du message</Label>
+              <Textarea 
+                id="sms-content" 
+                placeholder="Saisissez votre message..." 
+                className="min-h-[150px]"
+                value={smsContent}
+                onChange={handleSmsContentChange}
+              />
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>{characterCount} caractères</span>
+                <span>{numberOfMessages} message{numberOfMessages > 1 ? 's' : ''} ({numberOfMessages * 0.07}€)</span>
               </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <Label htmlFor="sms-content">Contenu du message</Label>
-                  <span className="text-xs text-muted-foreground">
-                    {smsText.length}/160 caractères
-                  </span>
-                </div>
-                <Textarea 
-                  id="sms-content" 
-                  placeholder="Tapez votre message ici..." 
-                  className="h-32"
-                  value={smsText}
-                  onChange={(e) => setSmsText(e.target.value)}
-                />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Destinataires</Label>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="px-3 py-1">
+                  <UserCheck className="h-3.5 w-3.5 mr-1" />
+                  <span>{selectedClients} sélectionné{selectedClients > 1 ? 's' : ''}</span>
+                </Badge>
+                <Button variant="outline" size="sm" className="gap-1">
+                  <Users className="h-3.5 w-3.5" />
+                  <span>Sélectionner ({totalClients})</span>
+                </Button>
               </div>
-              
-              <div className="space-y-2">
-                <Label>Programmer l'envoi</Label>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="w-full">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Choisir une date
-                  </Button>
-                </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Programmation</Label>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" className="gap-1">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span>Programmer l'envoi</span>
+                </Button>
               </div>
-            </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => setSmsText('')}>
-                <X className="h-4 w-4 mr-2" />
-                Annuler
+            </div>
+            
+            <div className="pt-4 flex justify-end">
+              <Button disabled={characterCount === 0} className="gap-2">
+                <Send className="h-4 w-4" />
+                <span>Envoyer le message</span>
               </Button>
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={handleSendTest}>
-                  <MessageCircle className="h-4 w-4 mr-2" />
-                  Tester
-                </Button>
-                <Button onClick={() => alert('Fonctionnalité à venir')}>
-                  <Send className="h-4 w-4 mr-2" />
-                  Envoyer
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Historique des campagnes</CardTitle>
+            <CardDescription>Vos dernières campagnes SMS</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {pastCampaigns.map((campaign) => (
+              <div key={campaign.id} className="flex items-center justify-between p-3 border rounded-md hover:bg-muted/40 transition-colors">
+                <div className="space-y-1">
+                  <p className="font-medium">{campaign.name}</p>
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Calendar className="h-3.5 w-3.5 mr-1.5" />
+                    <span>{campaign.date}</span>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end">
+                  <div className="text-sm font-medium">{campaign.opened} / {campaign.recipients}</div>
+                  <div className="text-xs text-muted-foreground">ouvertures</div>
+                </div>
+                <Button variant="ghost" size="icon">
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
-            </CardFooter>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            ))}
+            
+            <Button variant="outline" className="w-full">
+              <Plus className="h-4 w-4 mr-2" />
+              Voir tout l'historique
+            </Button>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Statistiques SMS</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-4 border rounded-md text-center">
+                <div className="text-2xl font-bold text-indigo-600">78%</div>
+                <div className="text-sm text-muted-foreground">Taux d'ouverture</div>
+              </div>
+              <div className="p-4 border rounded-md text-center">
+                <div className="text-2xl font-bold text-indigo-600">12%</div>
+                <div className="text-sm text-muted-foreground">Taux de clic</div>
+              </div>
+              <div className="p-4 border rounded-md text-center">
+                <div className="text-2xl font-bold text-indigo-600">1481</div>
+                <div className="text-sm text-muted-foreground">SMS envoyés</div>
+              </div>
+              <div className="p-4 border rounded-md text-center">
+                <div className="text-2xl font-bold text-indigo-600">387</div>
+                <div className="text-sm text-muted-foreground">Contacts SMS</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

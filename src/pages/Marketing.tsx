@@ -3,18 +3,15 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { FileSpreadsheet, Mail, MessageCircle, Tag, Bell, Users, Award } from 'lucide-react';
-import { MarketingCampaigns } from '@/components/Marketing/MarketingCampaigns';
-import { EmailTemplates } from '@/components/Marketing/EmailTemplates';
+import { FileSpreadsheet, Tag, Bell, Award, MessageCircle } from 'lucide-react';
 import { PromotionCodes } from '@/components/Marketing/PromotionCodes';
-import { CustomerSegments } from '@/components/Marketing/CustomerSegments';
 import { LoyaltyProgram } from '@/components/Marketing/LoyaltyProgram';
 import { SmsMarketing } from '@/components/Marketing/SmsMarketing';
 import { Notifications } from '@/components/Marketing/Notifications';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
 const Marketing = () => {
-  const [activeTab, setActiveTab] = useState('campaigns');
+  const [activeTab, setActiveTab] = useState('promotions');
   
   return (
     <AppLayout>
@@ -36,7 +33,7 @@ const Marketing = () => {
             <div>
               <h1 className="text-2xl font-bold tracking-tight">Marketing</h1>
               <p className="text-muted-foreground">
-                Gérez vos campagnes marketing, emails et promotions
+                Gérez vos promotions, notifications et programme de fidélité
               </p>
             </div>
             <div className="flex items-center space-x-2">
@@ -45,7 +42,7 @@ const Marketing = () => {
                 Exporter les données
               </Button>
               <Button className="text-xs md:text-sm whitespace-nowrap">
-                Nouvelle campagne
+                Nouvelle promotion
               </Button>
             </div>
           </div>
@@ -56,36 +53,12 @@ const Marketing = () => {
             <div className="overflow-x-auto">
               <TabsList className="w-full md:w-auto h-auto p-0 bg-transparent">
                 <TabsTrigger
-                  value="campaigns"
-                  className="py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                >
-                  <Mail className="w-4 h-4 mr-2" />
-                  <span className="hidden md:inline">Campagnes</span>
-                  <span className="md:hidden">Camp.</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="email-templates"
-                  className="py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                >
-                  <FileSpreadsheet className="w-4 h-4 mr-2" />
-                  <span className="hidden md:inline">Templates d'emails</span>
-                  <span className="md:hidden">Templates</span>
-                </TabsTrigger>
-                <TabsTrigger
                   value="promotions"
                   className="py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
                 >
                   <Tag className="w-4 h-4 mr-2" />
                   <span className="hidden md:inline">Codes promo</span>
                   <span className="md:hidden">Promo</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="segments"
-                  className="py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  <span className="hidden md:inline">Segments clients</span>
-                  <span className="md:hidden">Segments</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="sms"
@@ -116,17 +89,8 @@ const Marketing = () => {
           </div>
           
           <div className="mt-6">
-            <TabsContent value="campaigns" className="space-y-6 m-0">
-              <MarketingCampaigns />
-            </TabsContent>
-            <TabsContent value="email-templates" className="space-y-6 m-0">
-              <EmailTemplates />
-            </TabsContent>
             <TabsContent value="promotions" className="space-y-6 m-0">
               <PromotionCodes />
-            </TabsContent>
-            <TabsContent value="segments" className="space-y-6 m-0">
-              <CustomerSegments />
             </TabsContent>
             <TabsContent value="sms" className="space-y-6 m-0">
               <SmsMarketing />
