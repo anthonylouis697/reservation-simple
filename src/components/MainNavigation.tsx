@@ -1,4 +1,3 @@
-
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,13 @@ import {
   Users, 
   Star,
   HelpCircle,
-  Info
+  ScrollText,
+  BarChart3,
+  Tag,
+  CreditCard,
+  Bell,
+  Gift,
+  FileSpreadsheet
 } from 'lucide-react';
 import { 
   Tooltip,
@@ -46,10 +51,46 @@ const navItems: NavItem[] = [
     description: "Base de données de vos clients et prospects"
   },
   {
+    name: "Services",
+    href: "/services",
+    icon: Tag,
+    description: "Gérez vos services et tarifs"
+  },
+  {
+    name: "Événements",
+    href: "/events",
+    icon: ScrollText,
+    description: "Créez et gérez vos événements et ateliers"
+  },
+  {
+    name: "Paiements",
+    href: "/payments",
+    icon: CreditCard,
+    description: "Suivez vos revenus et configurez les paiements"
+  },
+  {
+    name: "Marketing",
+    href: "/marketing",
+    icon: Bell,
+    description: "Notifications, emails et promotions"
+  },
+  {
+    name: "Statistiques",
+    href: "/statistics",
+    icon: BarChart3,
+    description: "Analysez votre activité et vos performances"
+  },
+  {
     name: "Visibilité",
     href: "/visibility-boost",
     icon: Star,
     description: "Augmentez votre visibilité sur les plateformes partenaires"
+  },
+  {
+    name: "Cartes cadeaux",
+    href: "/gift-cards",
+    icon: Gift,
+    description: "Créez et gérez des cartes cadeaux"
   },
   {
     name: "Paramètres",
@@ -78,7 +119,7 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
     <TooltipProvider>
       <div className={cn(
         "flex",
-        mobile ? "flex-row justify-around w-full" : "flex-col space-y-2"
+        mobile ? "flex-row justify-around w-full overflow-x-auto" : "flex-col space-y-2 overflow-y-auto max-h-[calc(100vh-200px)]"
       )}>
         {navItems.map((item) => {
           const isActive = location.pathname === item.href;
