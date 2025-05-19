@@ -1,42 +1,60 @@
 
-import { Calendar, Clock, Users, Globe, RefreshCw, Bell } from 'lucide-react';
+import { Calendar, Clock, Users, Globe, RefreshCw, Bell, CreditCard, Settings, Star } from 'lucide-react';
 
 const features = [
   {
     id: 1,
     name: 'Calendrier intuitif',
-    description: 'Interface de calendrier claire et intuitive pour visualiser et gérer vos disponibilités en quelques clics.',
+    description: 'Interface de calendrier claire et intuitive avec vues quotidienne, hebdomadaire et mensuelle pour une gestion optimale de votre temps.',
     icon: Calendar,
   },
   {
     id: 2,
     name: 'Réservations 24/7',
-    description: 'Permettez à vos clients de réserver à tout moment, même en dehors des heures d\'ouverture.',
+    description: 'Permettez à vos clients de réserver à tout moment, même en dehors des heures d\'ouverture, pour ne jamais manquer une opportunité.',
     icon: Clock,
   },
   {
     id: 3,
     name: 'Gestion des clients',
-    description: 'Base de données clients complète avec historique des rendez-vous et préférences personnelles.',
+    description: 'Base de données clients complète avec historique des rendez-vous, préférences personnelles et suivi des communications.',
     icon: Users,
   },
   {
     id: 4,
     name: 'Site de réservation personnalisé',
-    description: 'Page de réservation personnalisable qui s\'intègre parfaitement à votre image de marque.',
+    description: 'Page de réservation entièrement personnalisable qui s\'intègre parfaitement à votre image de marque et à votre site web existant.',
     icon: Globe,
   },
   {
     id: 5,
     name: 'Synchronisation multi-plateforme',
-    description: 'Synchronisez avec Google Calendar, Outlook et autres plateformes pour éviter les conflits de planning.',
+    description: 'Synchronisation automatique avec Google Calendar, Outlook et autres plateformes pour éviter les conflits de planning.',
     icon: RefreshCw,
   },
   {
     id: 6,
     name: 'Notifications automatiques',
-    description: 'Rappels automatiques par email et SMS pour réduire les absences et les retards.',
+    description: 'Rappels automatiques par email et SMS pour réduire les absences et les retards de vos clients.',
     icon: Bell,
+  },
+  {
+    id: 7,
+    name: 'Paiements en ligne',
+    description: 'Intégration avec Stripe et PayPal pour accepter les paiements et acomptes en ligne lors de la réservation.',
+    icon: CreditCard,
+  },
+  {
+    id: 8,
+    name: 'Options de personnalisation',
+    description: 'Adaptez les paramètres de l\'outil à votre entreprise: profil, disponibilité, notifications et bien plus.',
+    icon: Settings,
+  },
+  {
+    id: 9,
+    name: 'Boost de visibilité',
+    description: 'Augmentez votre visibilité et vos revenus en vous connectant aux meilleures plateformes du marché.',
+    icon: Star,
   },
 ];
 
@@ -50,7 +68,7 @@ const Features = () => {
             Une meilleure façon de gérer vos réservations
           </p>
           <p className="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
-            Découvrez comment BookWise transforme votre gestion de réservations avec des outils puissants et faciles à utiliser.
+            Découvrez comment Reservatoo transforme votre gestion de réservations avec des outils puissants et faciles à utiliser.
           </p>
         </div>
 

@@ -24,7 +24,7 @@ const Hero = () => {
                 <span className="block text-indigo-600 xl:inline">réservations en ligne</span>
               </h1>
               <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0">
-                BookWise est une plateforme complète qui vous permet de gérer vos rendez-vous, réservations et disponibilités en toute simplicité. Augmentez votre efficacité et offrez une expérience fluide à vos clients.
+                Reservatoo est une plateforme complète qui vous permet de gérer vos rendez-vous, réservations et disponibilités en toute simplicité. Augmentez votre efficacité et offrez une expérience fluide à vos clients.
               </p>
               <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
                 <div className="rounded-md shadow">

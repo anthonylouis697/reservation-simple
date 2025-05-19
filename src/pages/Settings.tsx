@@ -22,7 +22,7 @@ const Settings = () => {
         <div className="flex flex-col space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">Paramètres</h1>
           <p className="text-muted-foreground">
-            Gérez vos paramètres et préférences de compte BookWise.
+            Gérez vos paramètres et préférences de compte Reservatoo.
           </p>
         </div>
         

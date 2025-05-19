@@ -9,7 +9,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
-            <Link to="/" className="text-indigo-600 text-xl font-bold">BookWise</Link>
+            <Link to="/" className="text-indigo-600 text-xl font-bold">Reservatoo</Link>
             <p className="mt-2 text-sm text-gray-500">
               La plateforme de réservation qui simplifie la gestion de vos rendez-vous et optimise votre temps.
             </p>
@@ -44,13 +44,18 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/#pricing" className="text-base text-gray-500 hover:text-indigo-600">
-                  Tarifs
+                <Link to="/#screenshots" className="text-base text-gray-500 hover:text-indigo-600">
+                  Captures d'écran
                 </Link>
               </li>
               <li>
-                <Link to="/signup" className="text-base text-gray-500 hover:text-indigo-600">
-                  S'inscrire
+                <Link to="/#testimonials" className="text-base text-gray-500 hover:text-indigo-600">
+                  Témoignages
+                </Link>
+              </li>
+              <li>
+                <Link to="/#pricing" className="text-base text-gray-500 hover:text-indigo-600">
+                  Tarifs
                 </Link>
               </li>
             </ul>
@@ -80,7 +85,7 @@ const Footer = () => {
         
         <div className="mt-12 border-t border-gray-200 pt-8">
           <p className="text-base text-gray-400 text-center">
-            &copy; {currentYear} BookWise. Tous droits réservés.
+            &copy; {currentYear} Reservatoo. Tous droits réservés.
           </p>
         </div>
       </div>
