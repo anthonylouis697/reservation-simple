@@ -22,6 +22,12 @@ import Marketing from "./pages/Marketing";
 import GiftCards from "./pages/GiftCards";
 import Payments from "./pages/Payments";
 
+// Account management pages
+import ProfilePage from "./pages/Account/ProfilePage";
+import TeamPage from "./pages/Account/TeamPage";
+import BillingPage from "./pages/Account/BillingPage";
+import SecurityPage from "./pages/Account/SecurityPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -47,6 +53,13 @@ const App = () => (
           <Route path="/marketing" element={<Marketing />} />
           <Route path="/gift-cards" element={<GiftCards />} />
           <Route path="/payments" element={<Payments />} />
+          
+          {/* Account management routes */}
+          <Route path="/account" element={<ProfilePage />} />
+          <Route path="/account/team" element={<TeamPage />} />
+          <Route path="/account/billing" element={<BillingPage />} />
+          <Route path="/account/security" element={<SecurityPage />} />
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
