@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarIcon, Check, Filter, ChevronDown, X } from 'lucide-react';
+import { ArrowLeft, Filter, ChevronDown, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -105,6 +106,10 @@ const CalendarPage = () => {
     });
   };
 
+  const handleGoBack = () => {
+    navigate('/dashboard');
+  };
+
   const toggleStatusFilter = (status: 'confirmed' | 'pending' | 'cancelled') => {
     setFilters(prev => {
       if (prev.status.includes(status)) {
@@ -140,9 +145,14 @@ const CalendarPage = () => {
   return (
     <div className="flex flex-col h-full space-y-4 p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold">Calendrier</h1>
-          <p className="text-muted-foreground">Gérez vos rendez-vous et votre agenda</p>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={handleGoBack} className="h-9 w-9">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">Calendrier</h1>
+            <p className="text-muted-foreground">Gérez vos rendez-vous et votre agenda</p>
+          </div>
         </div>
         
         <div className="flex flex-col md:flex-row gap-2">
@@ -241,6 +251,7 @@ const CalendarPage = () => {
           appointments={filteredAppointments}
           onAddAppointment={handleAddAppointment}
           onViewAppointment={handleViewAppointment}
+          defaultView="week"
         />
       </div>
 

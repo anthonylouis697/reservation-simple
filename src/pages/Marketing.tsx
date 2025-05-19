@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { FileSpreadsheet, Mail, MessageCircle, Tag, Bell, Users, Award, Gift } from 'lucide-react';
+import { FileSpreadsheet, Mail, MessageCircle, Tag, Bell, Users, Award } from 'lucide-react';
 import { MarketingCampaigns } from '@/components/Marketing/MarketingCampaigns';
 import { EmailTemplates } from '@/components/Marketing/EmailTemplates';
 import { PromotionCodes } from '@/components/Marketing/PromotionCodes';
@@ -11,7 +11,6 @@ import { CustomerSegments } from '@/components/Marketing/CustomerSegments';
 import { LoyaltyProgram } from '@/components/Marketing/LoyaltyProgram';
 import { SmsMarketing } from '@/components/Marketing/SmsMarketing';
 import { Notifications } from '@/components/Marketing/Notifications';
-import { GiftCards } from '@/components/Marketing/GiftCards';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
 const Marketing = () => {
@@ -97,14 +96,6 @@ const Marketing = () => {
                   <span className="md:hidden">SMS</span>
                 </TabsTrigger>
                 <TabsTrigger
-                  value="gift-cards"
-                  className="py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
-                >
-                  <Gift className="w-4 h-4 mr-2" />
-                  <span className="hidden md:inline">Cartes Cadeaux</span>
-                  <span className="md:hidden">Cadeaux</span>
-                </TabsTrigger>
-                <TabsTrigger
                   value="notifications"
                   className="py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
                 >
@@ -139,9 +130,6 @@ const Marketing = () => {
             </TabsContent>
             <TabsContent value="sms" className="space-y-6 m-0">
               <SmsMarketing />
-            </TabsContent>
-            <TabsContent value="gift-cards" className="space-y-6 m-0">
-              <GiftCards />
             </TabsContent>
             <TabsContent value="notifications" className="space-y-6 m-0">
               <Notifications />

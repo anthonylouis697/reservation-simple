@@ -26,6 +26,7 @@ interface CalendarViewProps {
   onAddAppointment?: () => void;
   onViewAppointment?: (appointment: Appointment) => void;
   onEditAppointment?: (appointment: Appointment) => void;
+  defaultView?: 'day' | 'week' | 'month';
 }
 
 const CalendarView = ({
@@ -33,9 +34,10 @@ const CalendarView = ({
   onAddAppointment,
   onViewAppointment,
   onEditAppointment,
+  defaultView = 'week'
 }: CalendarViewProps) => {
   const [date, setDate] = useState<Date>(new Date());
-  const [view, setView] = useState<'day' | 'week' | 'month'>('month');
+  const [view, setView] = useState<'day' | 'week' | 'month'>(defaultView);
   const [weekStartDate, setWeekStartDate] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
   
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStartDate, i));
