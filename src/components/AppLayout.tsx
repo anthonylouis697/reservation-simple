@@ -1,4 +1,3 @@
-
 import { ReactNode, useState } from "react";
 import { MainNavigation } from "@/components/MainNavigation";
 import { useNavigate } from "react-router-dom";
@@ -96,7 +95,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                   <span>Facturation</span>
                   {user.subscription.plan !== "Free" && (
                     <DropdownMenuShortcut>
-                      <Badge variant="outline" size="sm" className="ml-auto text-[10px] h-4">
+                      <Badge variant="outline" className="ml-auto text-[10px] h-4">
                         {user.subscription.plan}
                       </Badge>
                     </DropdownMenuShortcut>
