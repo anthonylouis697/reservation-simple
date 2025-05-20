@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { 
   BookingStep, 
@@ -7,7 +6,7 @@ import {
   BookingPageSettings
 } from '../types';
 import { 
-  defaultSteps, 
+  defaultBookingSteps, 
   defaultTemplates, 
   defaultCustomTexts 
 } from '../constants/defaultData';
@@ -43,7 +42,7 @@ export const useBookingPageState = () => {
 
   // État pour les étapes de réservation
   const [steps, setSteps] = useState<BookingStep[]>(
-    savedSettings?.steps || defaultSteps
+    savedSettings?.steps || defaultBookingSteps
   );
 
   // État pour les informations de l'entreprise

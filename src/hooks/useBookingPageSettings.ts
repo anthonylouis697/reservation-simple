@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { BookingPageSettings, BookingPageSettingsForDB, BookingStep, BookingLayoutType, BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
-import { defaultSteps as defaultBookingSteps, defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
+import { defaultBookingSteps, defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
 import { Json } from '@/integrations/supabase/types';
 
 // Hook to manage booking page settings
