@@ -7,6 +7,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  DragEndEvent
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -20,6 +21,7 @@ import { BookingStep } from '../types';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Move } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface SortableStepProps {
   step: BookingStep;
@@ -81,17 +83,18 @@ export const SortableStepList = ({ steps, setSteps, onStepChange }: SortableStep
   );
   
   // Fonction pour gérer le drag and drop
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
-    if (active.id !== over.id) {
-      // Fix: Create a new array directly instead of passing a function to setSteps
+    if (over && active.id !== over.id) {
       const oldIndex = steps.findIndex((item) => item.id === active.id);
       const newIndex = steps.findIndex((item) => item.id === over.id);
-      const newSteps = arrayMove(steps, oldIndex, newIndex);
       
-      // Now we're passing an array directly, not a function
-      setSteps(newSteps);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newSteps = arrayMove(steps, oldIndex, newIndex);
+        setSteps(newSteps);
+        toast.success("Ordre des étapes mis à jour");
+      }
     }
   };
   

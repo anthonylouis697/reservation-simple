@@ -15,7 +15,6 @@ import Settings from "./pages/Settings";
 import CalendarPage from "./pages/CalendarPage";
 import Services from "./pages/Services";
 import NotFound from "./pages/NotFound";
-import VisibilityBoostPage from "./components/VisibilityBoost/VisibilityBoostPage";
 import HelpCenter from "./pages/HelpCenter";
 import Events from "./pages/Events";
 import Statistics from "./pages/Statistics";
@@ -26,7 +25,6 @@ import Payments from "./pages/Payments";
 // Visibilité pages
 import Visibility from "./pages/Visibility";
 import BookingPage from "./pages/BookingPage";
-import SocialIntegration from "./pages/SocialIntegration";
 import AdditionalServices from "./pages/AdditionalServices";
 
 // Account management pages
@@ -63,9 +61,7 @@ const App = () => {
             {/* Visibilité routes */}
             <Route path="/visibility" element={<Visibility />} />
             <Route path="/visibility/booking-page" element={<BookingPage />} />
-            <Route path="/visibility/social-integration" element={<SocialIntegration />} />
             <Route path="/visibility/additional-services" element={<AdditionalServices />} />
-            <Route path="/visibility-boost" element={<VisibilityBoostPage />} />
             
             <Route path="/events" element={<Events />} />
             <Route path="/help" element={<HelpCenter />} />

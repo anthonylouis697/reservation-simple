@@ -20,22 +20,12 @@ export const visibilityTabs: VisibilityTab[] = [
   },
   {
     id: "booking-page",
-    title: "Page de réservation",
+    title: "Personnalisation",
     href: "/visibility/booking-page"
   },
   {
-    id: "social-integration",
-    title: "Intégrations sociales",
-    href: "/visibility/social-integration"
-  },
-  {
-    id: "visibility-boost",
-    title: "Boost de visibilité",
-    href: "/visibility-boost"
-  },
-  {
     id: "additional-services",
-    title: "Services additionnels",
+    title: "Boost de visibilité",
     href: "/visibility/additional-services"
   }
 ];
@@ -69,8 +59,6 @@ export function useVisibilityNavigation() {
   const getCurrentTab = () => {
     if (location.pathname === "/visibility") return "main";
     if (location.pathname.includes("/booking-page")) return "booking-page";
-    if (location.pathname.includes("/social-integration")) return "social-integration";
-    if (location.pathname.includes("/visibility-boost") || location.pathname === "/visibility-boost") return "visibility-boost";
     if (location.pathname.includes("/additional-services")) return "additional-services";
     return "main";
   };

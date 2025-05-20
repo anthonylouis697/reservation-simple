@@ -1,3 +1,4 @@
+
 import { Helmet } from "react-helmet";
 import { AppLayout } from "@/components/AppLayout";
 import { VisibilityNavigation, useVisibilityNavigation } from "@/components/Visibility/VisibilityNavigation";
@@ -10,13 +11,19 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 import { Link as LinkIcon, Share, Star, DollarSign, Globe, Pencil } from "lucide-react";
 
 export default function AdditionalServices() {
   const { currentTab } = useVisibilityNavigation();
-  const navigate = useNavigate();
+
+  const handleServiceRequest = (serviceName: string) => {
+    toast.success(`Votre demande pour le service "${serviceName}" a été envoyée. Nous vous contacterons rapidement.`);
+  };
+  
+  const handleServiceInfo = (serviceName: string) => {
+    toast.info(`Des informations détaillées sur "${serviceName}" vous ont été envoyées par email.`);
+  };
 
   const additionalServices = [
     {
@@ -52,14 +59,14 @@ export default function AdditionalServices() {
   return (
     <AppLayout>
       <Helmet>
-        <title>Services Additionnels - Reservatoo</title>
+        <title>Boost de visibilité - Reservatoo</title>
       </Helmet>
 
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Visibilité et Croissance</h1>
+          <h1 className="text-2xl font-bold">Page de réservation</h1>
           <p className="text-muted-foreground mt-1">
-            Développez votre présence en ligne et augmentez vos revenus
+            Personnalisez votre page de réservation et augmentez votre visibilité en ligne
           </p>
         </div>
 
@@ -67,9 +74,9 @@ export default function AdditionalServices() {
         <VisibilityNavigation currentTab={currentTab} />
 
         <div>
-          <h2 className="text-xl font-semibold mb-4">Services Additionnels</h2>
+          <h2 className="text-xl font-semibold mb-4">Boost de visibilité</h2>
           <p className="text-muted-foreground mb-6">
-            Boostez votre activité avec nos services professionnels sur mesure
+            Augmentez votre présence en ligne et gagnez de nouveaux clients avec nos services professionnels
           </p>
           
           <Card>
@@ -93,18 +100,40 @@ export default function AdditionalServices() {
                     <CardContent>
                       <div className="font-bold text-lg text-primary">{service.price}</div>
                     </CardContent>
-                    <CardFooter>
+                    <CardFooter className="flex flex-col gap-2">
                       <Button 
-                        onClick={() => navigate("/visibility/additional-services")}
+                        onClick={() => handleServiceRequest(service.title)}
                         className="w-full"
                       >
-                        En savoir plus
+                        Demander ce service
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => handleServiceInfo(service.title)}
+                        className="w-full"
+                      >
+                        Plus d'informations
                       </Button>
                     </CardFooter>
                   </Card>
                 ))}
               </div>
             </CardContent>
+            <CardFooter className="border-t pt-4">
+              <div className="w-full space-y-4">
+                <h3 className="text-lg font-medium">Contactez-nous pour un accompagnement personnalisé</h3>
+                <p className="text-muted-foreground">
+                  Notre équipe est à votre disposition pour vous conseiller et vous proposer la solution la plus adaptée à vos besoins.
+                </p>
+                <Button 
+                  size="lg"
+                  onClick={() => toast.success("Notre équipe vous contactera dans les plus brefs délais.")}
+                  className="w-full md:w-auto"
+                >
+                  Demander un rendez-vous conseil gratuit
+                </Button>
+              </div>
+            </CardFooter>
           </Card>
         </div>
       </div>

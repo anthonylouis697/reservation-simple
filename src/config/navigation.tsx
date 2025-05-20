@@ -116,34 +116,22 @@ export const navItems: NavItem[] = [
     description: "Analysez votre activité et vos performances"
   },
   {
-    name: "Visibilité",
+    name: "Page de réservation",
     href: "/visibility",
-    icon: Star,
-    description: "Augmentez votre présence en ligne et vos revenus",
+    icon: Link,
+    description: "Personnalisez votre page de réservation en ligne",
     subItems: [
       {
-        name: "Page de réservation",
+        name: "Personnalisation",
         href: "/visibility/booking-page",
-        icon: Link,
-        description: "Gérez votre page de réservation et partagez-la"
-      },
-      {
-        name: "Intégrations sociales",
-        href: "/visibility/social-integration",
-        icon: Share,
-        description: "Intégrez votre agenda sur les réseaux sociaux"
+        icon: Pencil,
+        description: "Configurez l'apparence de votre page de réservation"
       },
       {
         name: "Boost de visibilité",
-        href: "/visibility-boost",
-        icon: Star,
-        description: "Augmentez votre visibilité sur les plateformes partenaires"
-      },
-      {
-        name: "Services additionnels",
         href: "/visibility/additional-services",
-        icon: DollarSign,
-        description: "Boostez vos revenus avec des services supplémentaires"
+        icon: Star,
+        description: "Boostez votre présence en ligne avec des services additionnels"
       }
     ]
   },
