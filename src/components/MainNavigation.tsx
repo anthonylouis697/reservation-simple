@@ -1,4 +1,3 @@
-
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { Button } from '@/components/ui/button';
@@ -62,10 +61,80 @@ const navItems: NavItem[] = [
     description: "Base de données de vos clients et prospects"
   },
   {
-    name: "Services",
+    name: "Offres",
     href: "/services",
     icon: Tag,
-    description: "Gérez vos services et tarifs"
+    description: "Gérez vos services et tarifs",
+    subItems: [
+      {
+        name: "Offres & Catégories",
+        href: "/services",
+        icon: Tag,
+        description: "Gérez vos services et leurs catégories"
+      },
+      {
+        name: "Ressources",
+        href: "/services?tab=resources",
+        icon: Pencil,
+        description: "Gérez les ressources nécessaires à vos offres"
+      }
+    ]
+  },
+  {
+    name: "Événements",
+    href: "/events",
+    icon: ScrollText,
+    description: "Créez et gérez vos événements et ateliers"
+  },
+  {
+    name: "Paiements",
+    href: "/payments",
+    icon: CreditCard,
+    description: "Suivez vos revenus et configurez les paiements"
+  },
+  {
+    name: "Marketing",
+    href: "/marketing",
+    icon: Bell,
+    description: "Notifications, promotions et fidélité",
+    subItems: [
+      {
+        name: "Codes promo",
+        href: "/marketing?tab=promotions",
+        icon: Tag,
+        description: "Créez et gérez vos codes promotionnels"
+      },
+      {
+        name: "SMS Marketing",
+        href: "/marketing?tab=sms",
+        icon: Bell,
+        description: "Envoyez des SMS à vos clients"
+      },
+      {
+        name: "Notifications",
+        href: "/marketing?tab=notifications",
+        icon: Bell,
+        description: "Gérez les notifications automatiques"
+      },
+      {
+        name: "Programme fidélité",
+        href: "/marketing?tab=loyalty",
+        icon: Star,
+        description: "Configurez votre programme de fidélité"
+      },
+      {
+        name: "Cartes cadeaux",
+        href: "/marketing?tab=gift-cards",
+        icon: Gift,
+        description: "Créez et gérez des cartes cadeaux"
+      }
+    ]
+  },
+  {
+    name: "Statistiques",
+    href: "/statistics",
+    icon: BarChart3,
+    description: "Analysez votre activité et vos performances"
   },
   {
     name: "Visibilité",
@@ -98,36 +167,6 @@ const navItems: NavItem[] = [
         description: "Boostez vos revenus avec des services supplémentaires"
       }
     ]
-  },
-  {
-    name: "Événements",
-    href: "/events",
-    icon: ScrollText,
-    description: "Créez et gérez vos événements et ateliers"
-  },
-  {
-    name: "Paiements",
-    href: "/payments",
-    icon: CreditCard,
-    description: "Suivez vos revenus et configurez les paiements"
-  },
-  {
-    name: "Marketing",
-    href: "/marketing",
-    icon: Bell,
-    description: "Notifications, promotions et fidélité"
-  },
-  {
-    name: "Statistiques",
-    href: "/statistics",
-    icon: BarChart3,
-    description: "Analysez votre activité et vos performances"
-  },
-  {
-    name: "Cartes cadeaux",
-    href: "/gift-cards",
-    icon: Gift,
-    description: "Créez et gérez des cartes cadeaux"
   },
   {
     name: "Paramètres",

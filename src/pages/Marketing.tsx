@@ -3,11 +3,12 @@ import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { FileSpreadsheet, Tag, Bell, Award, MessageCircle } from 'lucide-react';
+import { FileSpreadsheet, Tag, Bell, Award, MessageCircle, Gift } from 'lucide-react';
 import { PromotionCodes } from '@/components/Marketing/PromotionCodes';
 import { LoyaltyProgram } from '@/components/Marketing/LoyaltyProgram';
 import { SmsMarketing } from '@/components/Marketing/SmsMarketing';
 import { Notifications } from '@/components/Marketing/Notifications';
+import { GiftCards } from '@/components/Marketing/GiftCards';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
 const Marketing = () => {
@@ -84,6 +85,14 @@ const Marketing = () => {
                   <span className="hidden md:inline">Programme de fidélité</span>
                   <span className="md:hidden">Fidélité</span>
                 </TabsTrigger>
+                <TabsTrigger
+                  value="gift-cards"
+                  className="py-3 rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent"
+                >
+                  <Gift className="w-4 h-4 mr-2" />
+                  <span className="hidden md:inline">Cartes cadeaux</span>
+                  <span className="md:hidden">Cadeaux</span>
+                </TabsTrigger>
               </TabsList>
             </div>
           </div>
@@ -100,6 +109,9 @@ const Marketing = () => {
             </TabsContent>
             <TabsContent value="loyalty" className="space-y-6 m-0">
               <LoyaltyProgram />
+            </TabsContent>
+            <TabsContent value="gift-cards" className="space-y-6 m-0">
+              <GiftCards />
             </TabsContent>
           </div>
         </Tabs>

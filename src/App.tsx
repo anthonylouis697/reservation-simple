@@ -22,7 +22,6 @@ import Events from "./pages/Events";
 import Statistics from "./pages/Statistics";
 import Clients from "./pages/Clients";
 import Marketing from "./pages/Marketing";
-import GiftCards from "./pages/GiftCards";
 import Payments from "./pages/Payments";
 
 // Visibilité pages
@@ -76,7 +75,6 @@ const App = () => {
             <Route path="/clients" element={<Clients />} />
             <Route path="/services" element={<Services />} />
             <Route path="/marketing" element={<Marketing />} />
-            <Route path="/gift-cards" element={<GiftCards />} />
             <Route path="/payments" element={<Payments />} />
             
             {/* Account management routes */}
