@@ -49,11 +49,11 @@ const Settings = () => {
           </TabsList>
           
           <div className="mt-6">
-            <TabsContent value="business" className="space-y-4">
+            <TabsContent value="business">
               <BusinessSettings />
             </TabsContent>
             
-            <TabsContent value="availability" className="space-y-4">
+            <TabsContent value="availability">
               <AvailabilitySettings />
             </TabsContent>
           </div>

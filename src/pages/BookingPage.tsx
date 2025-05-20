@@ -11,6 +11,7 @@ import { BookingPageCustomization } from "@/components/Visibility/BookingPage/Bo
 
 export default function BookingPage() {
   const { currentTab } = useVisibilityNavigation();
+  const [activeTab, setActiveTab] = useState("link");
   const [customUrl] = useState("votre-nom");
   const bookingUrl = `https://reservatoo.com/book/${customUrl}`;
 
@@ -38,7 +39,7 @@ export default function BookingPage() {
           </p>
         </div>
         
-        <Tabs defaultValue="link" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="link">Lien</TabsTrigger>
             <TabsTrigger value="qrcode">QR Code</TabsTrigger>
