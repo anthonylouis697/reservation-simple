@@ -5,14 +5,14 @@ import { SocialLoginButtons } from './SocialLoginButtons';
 import { EmailPasswordForm } from './EmailPasswordForm';
 import { AuthFormHeader } from './AuthFormHeader';
 import { AuthFormFooter } from './AuthFormFooter';
-import { useAuthFormHandlers } from './useAuthFormHandlers';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AuthFormProps {
   type: 'login' | 'signup';
 }
 
 const AuthForm = ({ type }: AuthFormProps) => {
-  const { isLoading, handleSubmit, handleSocialAuth } = useAuthFormHandlers(type);
+  const { isLoading } = useAuth();
   
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -21,10 +21,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <SocialLoginButtons 
-            isLoading={isLoading} 
-            onSocialAuth={handleSocialAuth} 
-          />
+          <SocialLoginButtons isLoading={isLoading} />
           
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -37,11 +34,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
             </div>
           </div>
           
-          <EmailPasswordForm 
-            type={type}
-            isLoading={isLoading}
-            onSubmit={handleSubmit}
-          />
+          <EmailPasswordForm type={type} />
         </div>
       </CardContent>
       <CardFooter className="flex justify-center">

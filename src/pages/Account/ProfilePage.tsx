@@ -2,6 +2,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useState, useEffect } from "react";
 import AccountLayout from "@/components/Account/AccountLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,9 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const profileFormSchema = z.object({
   name: z.string().min(2, { message: "Le nom doit contenir au moins 2 caractères" }),
@@ -24,29 +27,151 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function ProfilePage() {
-  // Mock initial data - in a real app this would come from API
-  const defaultValues: ProfileFormValues = {
-    name: "Thomas Martin",
-    email: "thomas@example.com",
-    phone: "+33 6 12 34 56 78",
-    company: "Santé & Bien-être",
-    jobTitle: "Thérapeute",
-    bio: "Spécialiste en massages thérapeutiques et relaxation depuis plus de 10 ans.",
-  };
-  
+  const { user, profile } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      company: "",
+      jobTitle: "",
+      bio: "",
+    },
     mode: "onChange",
   });
   
-  function onSubmit(data: ProfileFormValues) {
-    toast({
-      title: "Profil mis à jour",
-      description: "Vos informations ont été enregistrées avec succès.",
-    });
-    console.log(data);
+  // Charger les données du profil
+  useEffect(() => {
+    if (profile) {
+      form.reset({
+        name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
+        email: profile.email || user?.email || '',
+        phone: profile.phone || '',
+        company: profile.company || '',
+        jobTitle: profile.job_title || '',
+        bio: profile.bio || '',
+      });
+      
+      if (profile.avatar_url) {
+        setAvatarUrl(profile.avatar_url);
+      }
+    }
+  }, [profile, user, form]);
+
+  async function onSubmit(data: ProfileFormValues) {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      // Séparer le nom complet en prénom et nom
+      const nameParts = data.name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      // Mettre à jour le profil
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          first_name: firstName,
+          last_name: lastName,
+          email: data.email,
+          phone: data.phone || null,
+          company: data.company || null,
+          job_title: data.jobTitle || null,
+          bio: data.bio || null,
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Profil mis à jour avec succès");
+    } catch (error: any) {
+      toast.error(`Erreur: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
   }
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setIsLoading(true);
+    try {
+      // Créer un nom de fichier unique
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      // Uploader le fichier
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Obtenir l'URL publique
+      const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      const newAvatarUrl = data.publicUrl;
+      setAvatarUrl(newAvatarUrl);
+
+      // Mettre à jour le profil avec la nouvelle URL d'avatar
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: newAvatarUrl })
+        .eq('id', user.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      toast.success("Photo de profil mise à jour");
+    } catch (error: any) {
+      toast.error(`Erreur: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAvatarDelete = async () => {
+    if (!user || !avatarUrl) return;
+    
+    setIsLoading(true);
+    try {
+      // Mettre à jour le profil pour supprimer l'URL de l'avatar
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: null })
+        .eq('id', user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      setAvatarUrl(null);
+      toast.success("Photo de profil supprimée");
+    } catch (error: any) {
+      toast.error(`Erreur: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getInitials = () => {
+    if (!profile) return "?";
+    return `${profile.first_name?.[0] || ''}${profile.last_name?.[0] || ''}`;
+  };
 
   return (
     <AccountLayout>
@@ -60,12 +185,30 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="flex items-center gap-6">
             <Avatar className="h-20 w-20">
-              <AvatarImage src="https://i.pravatar.cc/100?img=32" />
-              <AvatarFallback className="text-lg">TM</AvatarFallback>
+              <AvatarImage src={avatarUrl || ""} />
+              <AvatarFallback className="text-lg">{getInitials()}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col gap-2 sm:flex-row">
-              <Button>Changer la photo</Button>
-              <Button variant="outline">Supprimer</Button>
+              <Button disabled={isLoading}>
+                <label htmlFor="avatar-upload" className="cursor-pointer">
+                  {isLoading ? "Chargement..." : "Changer la photo"}
+                  <input
+                    id="avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                    disabled={isLoading}
+                  />
+                </label>
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={handleAvatarDelete} 
+                disabled={isLoading || !avatarUrl}
+              >
+                Supprimer
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -88,7 +231,7 @@ export default function ProfilePage() {
                       <FormItem>
                         <FormLabel>Nom complet</FormLabel>
                         <FormControl>
-                          <Input placeholder="Votre nom" {...field} />
+                          <Input placeholder="Votre nom" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -101,7 +244,7 @@ export default function ProfilePage() {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="email@example.com" {...field} />
+                          <Input placeholder="email@example.com" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -116,7 +259,7 @@ export default function ProfilePage() {
                       <FormItem>
                         <FormLabel>Téléphone</FormLabel>
                         <FormControl>
-                          <Input placeholder="+33 6 00 00 00 00" {...field} />
+                          <Input placeholder="+33 6 00 00 00 00" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -132,7 +275,7 @@ export default function ProfilePage() {
                       <FormItem>
                         <FormLabel>Entreprise</FormLabel>
                         <FormControl>
-                          <Input placeholder="Nom de l'entreprise" {...field} />
+                          <Input placeholder="Nom de l'entreprise" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -145,7 +288,7 @@ export default function ProfilePage() {
                       <FormItem>
                         <FormLabel>Fonction</FormLabel>
                         <FormControl>
-                          <Input placeholder="Votre fonction" {...field} />
+                          <Input placeholder="Votre fonction" {...field} disabled={isLoading} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -163,6 +306,7 @@ export default function ProfilePage() {
                           placeholder="Présentez-vous en quelques mots..." 
                           className="resize-none h-20" 
                           {...field} 
+                          disabled={isLoading}
                         />
                       </FormControl>
                       <FormDescription>
@@ -174,7 +318,9 @@ export default function ProfilePage() {
                 />
               </CardContent>
               <CardFooter className="flex justify-end">
-                <Button type="submit">Enregistrer</Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? "Enregistrement..." : "Enregistrer"}
+                </Button>
               </CardFooter>
             </Card>
           </form>

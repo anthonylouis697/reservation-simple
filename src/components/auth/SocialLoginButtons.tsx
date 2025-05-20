@@ -2,21 +2,44 @@
 import { Apple, Facebook } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface SocialLoginButtonsProps {
   isLoading: boolean;
-  onSocialAuth: (provider: string) => void;
 }
 
-export const SocialLoginButtons = ({ isLoading, onSocialAuth }: SocialLoginButtonsProps) => {
+export const SocialLoginButtons = ({ isLoading }: SocialLoginButtonsProps) => {
+  const [isSocialLoading, setIsSocialLoading] = useState<string | null>(null);
+
+  const handleSocialAuth = async (provider: 'google' | 'apple' | 'facebook') => {
+    setIsSocialLoading(provider);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error: any) {
+      toast.error(`Échec de la connexion avec ${provider}: ${error.message}`);
+    } finally {
+      setIsSocialLoading(null);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 gap-3">
       <Button 
         type="button" 
         variant="outline" 
         className="flex items-center justify-center gap-2"
-        onClick={() => onSocialAuth('Google')}
-        disabled={isLoading}
+        onClick={() => handleSocialAuth('google')}
+        disabled={isLoading || isSocialLoading !== null}
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5">
           <path
@@ -36,29 +59,29 @@ export const SocialLoginButtons = ({ isLoading, onSocialAuth }: SocialLoginButto
             fill="#EA4335"
           />
         </svg>
-        Continuer avec Google
+        {isSocialLoading === 'google' ? 'Chargement...' : 'Continuer avec Google'}
       </Button>
       
       <Button 
         type="button" 
         variant="outline" 
         className="flex items-center justify-center gap-2"
-        onClick={() => onSocialAuth('Apple')}
-        disabled={isLoading}
+        onClick={() => handleSocialAuth('apple')}
+        disabled={isLoading || isSocialLoading !== null}
       >
         <Apple className="h-5 w-5" />
-        Continuer avec Apple
+        {isSocialLoading === 'apple' ? 'Chargement...' : 'Continuer avec Apple'}
       </Button>
       
       <Button 
         type="button" 
         variant="outline" 
         className="flex items-center justify-center gap-2"
-        onClick={() => onSocialAuth('Facebook')}
-        disabled={isLoading}
+        onClick={() => handleSocialAuth('facebook')}
+        disabled={isLoading || isSocialLoading !== null}
       >
         <Facebook className="h-5 w-5" fill="currentColor" />
-        Continuer avec Facebook
+        {isSocialLoading === 'facebook' ? 'Chargement...' : 'Continuer avec Facebook'}
       </Button>
     </div>
   );

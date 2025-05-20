@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from '@/contexts/AuthContext';
+import RequireAuth from '@/components/auth/RequireAuth';
 import Dashboard from './pages/Dashboard';
 import Clients from './pages/Clients';
 import Services from './pages/Services';
@@ -27,47 +29,53 @@ import SocialIntegration from './pages/SocialIntegration';
 import Welcome from './pages/Welcome';
 import PublicBooking from './pages/PublicBooking';
 import Reservations from './pages/Reservations';
+import ResetPassword from './pages/ResetPassword';
 
 function App() {
   return (
     <Router>
-      <Routes>
-        {/* Routes publiques */}
-        <Route path="/" element={<Index />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/welcome" element={<Welcome />} />
-        <Route path="/booking/:businessSlug" element={<PublicBooking />} />
+      <AuthProvider>
+        <Routes>
+          {/* Routes publiques */}
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/booking/:businessSlug" element={<PublicBooking />} />
 
-        {/* Routes nécessitant une authentification */}
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/clients" element={<Clients />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/calendar" element={<CalendarPage />} />
-        <Route path="/reservations" element={<Reservations />} />
-        <Route path="/visibility" element={<Visibility />} />
-        <Route path="/visibility/booking-page" element={<BookingPage />} />
-        <Route path="/visibility/additional-services" element={<AdditionalServices />} />
-        <Route path="/visibility/social-integration" element={<SocialIntegration />} />
-        <Route path="/statistics" element={<Statistics />} />
-        <Route path="/events" element={<Events />} />
-        <Route path="/marketing" element={<Marketing />} />
-        <Route path="/payments" element={<Payments />} />
-        <Route path="/gift-cards" element={<GiftCards />} />
-        <Route path="/help" element={<HelpCenter />} />
+          {/* Route de bienvenue (semi-protégée) */}
+          <Route path="/welcome" element={<Welcome />} />
 
-        {/* Pages de paramètres */}
-        <Route path="/settings/*" element={<Settings />} />
+          {/* Routes nécessitant une authentification */}
+          <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+          <Route path="/clients" element={<RequireAuth><Clients /></RequireAuth>} />
+          <Route path="/services" element={<RequireAuth><Services /></RequireAuth>} />
+          <Route path="/calendar" element={<RequireAuth><CalendarPage /></RequireAuth>} />
+          <Route path="/reservations" element={<RequireAuth><Reservations /></RequireAuth>} />
+          <Route path="/visibility" element={<RequireAuth><Visibility /></RequireAuth>} />
+          <Route path="/visibility/booking-page" element={<RequireAuth><BookingPage /></RequireAuth>} />
+          <Route path="/visibility/additional-services" element={<RequireAuth><AdditionalServices /></RequireAuth>} />
+          <Route path="/visibility/social-integration" element={<RequireAuth><SocialIntegration /></RequireAuth>} />
+          <Route path="/statistics" element={<RequireAuth><Statistics /></RequireAuth>} />
+          <Route path="/events" element={<RequireAuth><Events /></RequireAuth>} />
+          <Route path="/marketing" element={<RequireAuth><Marketing /></RequireAuth>} />
+          <Route path="/payments" element={<RequireAuth><Payments /></RequireAuth>} />
+          <Route path="/gift-cards" element={<RequireAuth><GiftCards /></RequireAuth>} />
+          <Route path="/help" element={<RequireAuth><HelpCenter /></RequireAuth>} />
 
-        {/* Pages de compte */}
-        <Route path="/account/profile" element={<ProfilePage />} />
-        <Route path="/account/security" element={<SecurityPage />} />
-        <Route path="/account/billing" element={<BillingPage />} />
-        <Route path="/account/team" element={<TeamPage />} />
-        
-        {/* Route 404 */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* Pages de paramètres */}
+          <Route path="/settings/*" element={<RequireAuth><Settings /></RequireAuth>} />
+
+          {/* Pages de compte */}
+          <Route path="/account/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
+          <Route path="/account/security" element={<RequireAuth><SecurityPage /></RequireAuth>} />
+          <Route path="/account/billing" element={<RequireAuth><BillingPage /></RequireAuth>} />
+          <Route path="/account/team" element={<RequireAuth><TeamPage /></RequireAuth>} />
+          
+          {/* Route 404 */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AuthProvider>
     </Router>
   );
 }
