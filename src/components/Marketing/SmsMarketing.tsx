@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -46,10 +45,10 @@ export const SmsMarketing = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MessageCircle className="h-5 w-5" />
-              Nouveau message SMS
+              Nouvelle campagne SMS
             </CardTitle>
             <CardDescription>
-              Créez et envoyez un message SMS à vos clients
+              Créez et envoyez une campagne SMS à vos clients
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

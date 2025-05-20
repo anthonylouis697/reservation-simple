@@ -7,6 +7,7 @@ import { VisibilityNavigation, useVisibilityNavigation } from "@/components/Visi
 import { LinkShareSection } from "@/components/Visibility/BookingPage/LinkShareSection";
 import { QrCodeSection } from "@/components/Visibility/BookingPage/QrCodeSection";
 import { SocialNetworkSection } from "@/components/Visibility/BookingPage/SocialNetworkSection";
+import { BookingPageCustomization } from "@/components/Visibility/BookingPage/BookingPageCustomization";
 
 export default function BookingPage() {
   const { currentTab } = useVisibilityNavigation();
@@ -38,10 +39,11 @@ export default function BookingPage() {
         </div>
         
         <Tabs defaultValue="link" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="link">Lien</TabsTrigger>
             <TabsTrigger value="qrcode">QR Code</TabsTrigger>
             <TabsTrigger value="social">Réseaux sociaux</TabsTrigger>
+            <TabsTrigger value="customize">Personnaliser</TabsTrigger>
           </TabsList>
           
           <TabsContent value="link" className="space-y-4 mt-4">
@@ -54,6 +56,10 @@ export default function BookingPage() {
           
           <TabsContent value="social" className="space-y-4 mt-4">
             <SocialNetworkSection bookingUrl={bookingUrl} />
+          </TabsContent>
+          
+          <TabsContent value="customize" className="space-y-4 mt-4">
+            <BookingPageCustomization />
           </TabsContent>
         </Tabs>
       </div>

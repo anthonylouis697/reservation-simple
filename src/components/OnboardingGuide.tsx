@@ -58,7 +58,10 @@ export function OnboardingGuide() {
     // Vérifier si l'utilisateur a déjà vu l'onboarding
     const hasSeenOnboarding = localStorage.getItem('hasCompletedOnboarding');
     if (!hasSeenOnboarding) {
+      // Uniquement afficher le guide lors du premier chargement de l'application
       setOpen(true);
+      // Marquer comme vu immédiatement pour éviter qu'il réapparaisse lors des clics
+      localStorage.setItem('hasCompletedOnboarding', 'true');
     }
   }, []);
 
@@ -73,13 +76,11 @@ export function OnboardingGuide() {
       }
     } else {
       // Fin de l'onboarding
-      localStorage.setItem('hasCompletedOnboarding', 'true');
       setOpen(false);
     }
   };
 
   const handleSkip = () => {
-    localStorage.setItem('hasCompletedOnboarding', 'true');
     setOpen(false);
   };
 
