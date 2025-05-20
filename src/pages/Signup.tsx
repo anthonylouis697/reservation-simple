@@ -1,7 +1,6 @@
-
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import AuthForm from '@/components/AuthForm';
+import AuthForm from '@/components/auth/AuthForm';
 
 const Signup = () => {
   return (
