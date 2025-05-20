@@ -84,6 +84,7 @@ export const useBookingPageState = () => {
     return new Promise((resolve, reject) => {
       try {
         const settings: BookingPageSettings = {
+          businessId: savedSettings?.businessId || 'default-business-id', // Add businessId with default value
           selectedTemplate,
           primaryColor,
           secondaryColor,
@@ -112,6 +113,7 @@ export const useBookingPageState = () => {
       }
     });
   }, [
+    savedSettings?.businessId,
     selectedTemplate,
     primaryColor,
     secondaryColor,

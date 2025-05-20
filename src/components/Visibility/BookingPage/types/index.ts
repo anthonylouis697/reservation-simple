@@ -13,6 +13,21 @@ export type Json =
 
 export type BookingPageSettingsDB = Database['public']['Tables']['booking_page_settings']['Row'];
 
+// Template type definition
+export interface BookingTemplate {
+  id: string;
+  name: string;
+  description: string;
+  preview: string;
+  colors: {
+    primary: string;
+    secondary: string;
+    background: string;
+    text: string;
+  };
+  style: string;
+}
+
 // App types for BookingStep
 export interface BookingStep {
   id: string;
@@ -21,7 +36,12 @@ export interface BookingStep {
   enabled: boolean;
   position: number;
   icon?: LucideIcon;
+  name: string; // Added name property
+  customLabel?: string; // Added customLabel property
 }
+
+// Layout type
+export type BookingLayoutType = "stepped" | "allinone";
 
 // App types for Custom Texts
 export interface BookingCustomTexts {
@@ -33,6 +53,11 @@ export interface BookingCustomTexts {
   dateSelectionDescription: string;
   clientInfoTitle: string;
   clientInfoDescription: string;
+  selectServiceLabel: string; // Added missing property
+  selectDateLabel: string; // Added missing property
+  selectTimeLabel: string; // Added missing property
+  clientInfoLabel: string; // Added missing property
+  paymentMethodLabel: string; // Added missing property
 }
 
 // App types
@@ -50,9 +75,45 @@ export interface BookingPageSettings {
   bookingButtonText: string;
   showConfirmation: boolean;
   confirmationMessage?: string;
-  layoutType: "stepped" | "allinone";
+  layoutType: BookingLayoutType;
   steps: BookingStep[];
   customTexts: BookingCustomTexts;
+}
+
+// Context type
+export interface BookingPageContextType {
+  templates: BookingTemplate[];
+  selectedTemplate: string;
+  setSelectedTemplate: (template: string) => void;
+  primaryColor: string;
+  setPrimaryColor: (color: string) => void;
+  secondaryColor: string;
+  setSecondaryColor: (color: string) => void;
+  buttonCorners: "rounded" | "squared" | "pill";
+  setButtonCorners: (corners: "rounded" | "squared" | "pill") => void;
+  steps: BookingStep[];
+  setSteps: (steps: BookingStep[]) => void;
+  handleStepChange: (id: string, enabled: boolean) => void;
+  updateStepLabel: (id: string, label: string) => void;
+  businessName: string;
+  setBusinessName: (name: string) => void;
+  welcomeMessage: string;
+  setWelcomeMessage: (message: string) => void;
+  logo: string | null;
+  setLogo: (logo: string | null) => void;
+  customUrl: string;
+  setCustomUrl: (url: string) => void;
+  bookingButtonText: string;
+  setBookingButtonText: (text: string) => void;
+  showConfirmation: boolean;
+  setShowConfirmation: (show: boolean) => void;
+  confirmationMessage: string;
+  setConfirmationMessage: (message: string) => void;
+  layoutType: BookingLayoutType;
+  setLayoutType: (type: BookingLayoutType) => void;
+  customTexts: BookingCustomTexts;
+  updateCustomText: (key: keyof BookingCustomTexts, value: string) => void;
+  saveBookingPageSettings: () => Promise<void>;
 }
 
 // Helper types for conversion

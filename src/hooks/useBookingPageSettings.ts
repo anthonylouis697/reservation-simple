@@ -149,23 +149,10 @@ export const useBookingPageSettings = (businessId?: string) => {
         businessId // Ensure businessId is included
       });
 
-      // Remove steps and custom_texts from dbSettings to avoid type issues
-      // We'll handle them separately
-      const { steps, custom_texts, ...restDbSettings } = dbSettings;
-
-      // Prepare the final object for upsert, with appropriately typed fields
-      const formattedSettings = {
-        ...restDbSettings,
-        // Ensure business_id is set
-        business_id: businessId,
-        // Convert complex objects to JSON strings for database storage
-        steps: JSON.stringify(updatedSettings.steps || []),
-        custom_texts: JSON.stringify(updatedSettings.customTexts || {})
-      };
-
+      // Prepare the final object for upsert
       const { error } = await supabase
         .from('booking_page_settings')
-        .upsert(formattedSettings)
+        .upsert(dbSettings)
         .eq('business_id', businessId);
 
       if (error) {

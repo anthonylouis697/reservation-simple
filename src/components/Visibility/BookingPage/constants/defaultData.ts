@@ -47,10 +47,42 @@ export const defaultTemplates: BookingTemplate[] = [
 
 // Define the default booking steps without JSX
 export const defaultSteps: BookingStep[] = [
-  { id: 'service', name: 'Choix du service', icon: FileCheck, enabled: true },
-  { id: 'date', name: 'Date et horaire', icon: CalendarCheck, enabled: true },
-  { id: 'client', name: 'Informations client', icon: UserCircle, enabled: true },
-  { id: 'payment', name: 'Paiement', icon: CreditCard, enabled: true },
+  { 
+    id: 'service', 
+    title: 'Choix du service', 
+    name: 'Choix du service',
+    description: 'Sélectionnez le service qui vous convient',
+    enabled: true, 
+    position: 0,
+    icon: FileCheck 
+  },
+  { 
+    id: 'date', 
+    title: 'Date et horaire',
+    name: 'Date et horaire',
+    description: 'Choisissez une date et un horaire disponible',
+    enabled: true, 
+    position: 1,
+    icon: CalendarCheck 
+  },
+  { 
+    id: 'client', 
+    title: 'Informations client',
+    name: 'Informations client',
+    description: 'Fournissez vos informations personnelles',
+    enabled: true, 
+    position: 2,
+    icon: UserCircle 
+  },
+  { 
+    id: 'payment', 
+    title: 'Paiement',
+    name: 'Paiement',
+    description: 'Effectuez votre paiement',
+    enabled: true, 
+    position: 3,
+    icon: CreditCard 
+  }
 ];
 
 // Define the default custom texts
@@ -60,4 +92,12 @@ export const defaultCustomTexts: BookingCustomTexts = {
   selectTimeLabel: 'Sélectionnez un horaire',
   clientInfoLabel: 'Vos informations',
   paymentMethodLabel: 'Méthode de paiement',
+  confirmationTitle: 'Réservation confirmée',
+  confirmationMessage: 'Merci pour votre réservation ! Nous avons bien reçu votre demande.',
+  serviceSelectionTitle: 'Sélection du service',
+  serviceSelectionDescription: 'Choisissez le service qui vous convient',
+  dateSelectionTitle: 'Sélection de la date',
+  dateSelectionDescription: 'Choisissez une date et un horaire disponible',
+  clientInfoTitle: 'Vos informations',
+  clientInfoDescription: 'Veuillez fournir vos coordonnées'
 };
