@@ -94,7 +94,7 @@ const NotificationTemplateEditor: React.FC<NotificationTemplateEditorProps> = ({
       recipientType: formData.recipientType as "client" | "employee" | "admin",
       notificationType: formData.notificationType as NotificationTemplate["notificationType"],
       triggerType: formData.triggerType as "immediate" | "scheduled",
-      scheduledTime: formData.scheduledTime,
+      scheduledTime: formData.scheduledTime || 24,
       scheduledTimeUnit: formData.scheduledTimeUnit as "minutes" | "hours" | "days" | undefined,
       scheduledTimeRelative: formData.scheduledTimeRelative as "before" | "after" | undefined,
       appointmentStatus: formData.appointmentStatus as AppointmentStatus[],
