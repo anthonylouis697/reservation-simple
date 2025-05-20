@@ -6,6 +6,7 @@ import type { NavItem as NavItemType } from '@/types/navigation';
 import { 
   Tooltip,
   TooltipContent,
+  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 

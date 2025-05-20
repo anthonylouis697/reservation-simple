@@ -11,6 +11,7 @@ import Testimonials from '@/components/Testimonials';
 import Screenshots from '@/components/Screenshots';
 import Industries from '@/components/Industries';
 import WhyChooseUs from '@/components/WhyChooseUs';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 const Index = () => {
   const location = useLocation();
@@ -53,19 +54,21 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar showDashboardLink={!!user} />
-      <main className="flex-grow">
-        <Hero />
-        <Features />
-        <Industries />
-        <Screenshots />
-        <WhyChooseUs />
-        <Testimonials />
-        <Pricing />
-      </main>
-      <Footer />
-    </div>
+    <TooltipProvider>
+      <div className="min-h-screen flex flex-col">
+        <Navbar showDashboardLink={!!user} />
+        <main className="flex-grow">
+          <Hero />
+          <Features />
+          <Industries />
+          <Screenshots />
+          <WhyChooseUs />
+          <Testimonials />
+          <Pricing />
+        </main>
+        <Footer />
+      </div>
+    </TooltipProvider>
   );
 };
 

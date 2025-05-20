@@ -117,23 +117,31 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
         mobile ? "flex-row justify-around w-full overflow-x-auto pb-safe" : "flex-col space-y-2 overflow-y-auto max-h-[calc(100vh-200px)]"
       )}>
         {/* Ajout du lien vers l'accueil */}
-        {!mobile && <HomeNavItem />}
+        {!mobile && (
+          <TooltipProvider>
+            <HomeNavItem />
+          </TooltipProvider>
+        )}
         
         {navItems.map((item) => (
           <div key={item.title} className="w-full">
-            <NavItem
-              item={item}
-              mobile={mobile}
-              isFirstTimeUser={firstTimeUser}
-              handleNavigation={handleNavigation}
-            />
+            <TooltipProvider>
+              <NavItem
+                item={item}
+                mobile={mobile}
+                isFirstTimeUser={firstTimeUser}
+                handleNavigation={handleNavigation}
+              />
+            </TooltipProvider>
           </div>
         ))}
 
         {/* Hide Help button on mobile since we have it in the header */}
         {!mobile && (
           <>
-            <HelpNavItem />
+            <TooltipProvider>
+              <HelpNavItem />
+            </TooltipProvider>
             <Button 
               variant="ghost"
               className="w-full justify-start text-left text-red-500 hover:text-red-600 hover:bg-red-50"
