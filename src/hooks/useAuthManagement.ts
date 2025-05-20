@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,8 +11,9 @@ export const useAuthManagement = () => {
   
   /**
    * Signs up a new user
+   * @returns boolean indicating if sign up and sign in was successful
    */
-  const signUp = async (email: string, password: string, options?: { first_name?: string; last_name?: string }) => {
+  const signUp = async (email: string, password: string, options?: { first_name?: string; last_name?: string }): Promise<boolean> => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -39,6 +41,7 @@ export const useAuthManagement = () => {
       if (!data.session) {
         toast.success('Inscription réussie ! Vérifiez votre email pour confirmer votre compte.');
         navigate('/login');
+        return false;
       } else {
         // L'utilisateur est créé et connecté immédiatement
         toast.success('Inscription réussie !');
@@ -48,7 +51,8 @@ export const useAuthManagement = () => {
           await createDefaultBusiness(data.user.id, options?.first_name, options?.last_name);
         }
         
-        navigate('/dashboard');
+        console.log("Inscription et connexion réussies, prêt pour redirection");
+        return true;
       }
     } catch (error: any) {
       // Gérer les erreurs spécifiques
@@ -61,6 +65,7 @@ export const useAuthManagement = () => {
       }
       console.error('Sign up error:', error);
       throw error; // Propagation de l'erreur pour gestion dans le composant
+      return false;
     } finally {
       setIsLoading(false);
     }

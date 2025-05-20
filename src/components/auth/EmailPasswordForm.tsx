@@ -30,13 +30,19 @@ export const EmailPasswordForm = ({ type }: EmailPasswordFormProps) => {
     try {
       if (type === 'login') {
         await signIn(email, password);
+        // La redirection sera gérée par l'écouteur d'état d'authentification dans AuthContext
       } else {
-        await signUp(email, password, { first_name: firstName, last_name: lastName });
-        // No need to navigate here - this will be handled by AuthContext
+        const result = await signUp(email, password, { first_name: firstName, last_name: lastName });
+        // Si la fonction retourne true, ça veut dire que l'inscription a réussi et l'utilisateur est connecté
+        if (result === true) {
+          console.log("Redirection vers le dashboard après inscription réussie");
+          navigate('/dashboard');
+        }
+        // Si result n'est pas true, signUp a déjà géré la notification à l'utilisateur
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Form submission error:", error);
-      // Error handling is already in signIn/signUp functions
+      setError(error.message || "Une erreur s'est produite lors du traitement de votre demande");
     }
   };
 
