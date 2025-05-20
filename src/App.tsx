@@ -31,56 +31,53 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { BusinessProvider } from '@/contexts/BusinessContext';
 import PublicBooking from '@/pages/PublicBooking';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { TooltipProvider } from '@/components/ui/tooltip';
 
 function App() {
   return (
     <Router>
       <ErrorBoundary>
-        <TooltipProvider>
-          <AuthProvider>
-            <BusinessProvider>
-              <Routes>
-                {/* Public routes - accessible to everyone including authenticated users */}
-                <Route path="/" element={<Index />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/booking/:businessSlug" element={<PublicBooking />} />
-                
-                {/* Protected routes */}
-                <Route path="/welcome" element={<RequireAuth><Welcome /></RequireAuth>} />
-                <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
-                <Route path="/calendar" element={<RequireAuth><CalendarPage /></RequireAuth>} />
-                <Route path="/clients" element={<RequireAuth><ClientsPage /></RequireAuth>} />
-                <Route path="/services" element={<RequireAuth><Services /></RequireAuth>} />
-                <Route path="/reservations" element={<RequireAuth><Reservations /></RequireAuth>} />
-                <Route path="/statistics" element={<RequireAuth><Statistics /></RequireAuth>} />
-                <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
-                <Route path="/booking-page" element={<RequireAuth><BookingPage /></RequireAuth>} />
-                <Route path="/booking-customization" element={<RequireAuth><BookingCustomization /></RequireAuth>} />
-                <Route path="/visibility-boost" element={<RequireAuth><Visibility /></RequireAuth>} />
-                <Route path="/marketing" element={<RequireAuth><Marketing /></RequireAuth>} />
-                <Route path="/additional-services" element={<RequireAuth><AdditionalServices /></RequireAuth>} />
-                <Route path="/payments" element={<RequireAuth><Payments /></RequireAuth>} />
-                <Route path="/events" element={<RequireAuth><Events /></RequireAuth>} />
-                
-                {/* Account routes */}
-                <Route path="/account" element={<RequireAuth><AccountLayout><Outlet /></AccountLayout></RequireAuth>}>
-                  <Route index element={<ProfilePage />} />
-                  <Route path="profile" element={<ProfilePage />} />
-                  <Route path="billing" element={<BillingPage />} />
-                  <Route path="security" element={<SecurityPage />} />
-                  <Route path="team" element={<TeamPage />} />
-                </Route>
-                
-                {/* 404 */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <Toaster position="top-right" />
-            </BusinessProvider>
-          </AuthProvider>
-        </TooltipProvider>
+        <AuthProvider>
+          <BusinessProvider>
+            <Routes>
+              {/* Public routes - accessible to everyone including authenticated users */}
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/booking/:businessSlug" element={<PublicBooking />} />
+              
+              {/* Protected routes */}
+              <Route path="/welcome" element={<RequireAuth><Welcome /></RequireAuth>} />
+              <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+              <Route path="/calendar" element={<RequireAuth><CalendarPage /></RequireAuth>} />
+              <Route path="/clients" element={<RequireAuth><ClientsPage /></RequireAuth>} />
+              <Route path="/services" element={<RequireAuth><Services /></RequireAuth>} />
+              <Route path="/reservations" element={<RequireAuth><Reservations /></RequireAuth>} />
+              <Route path="/statistics" element={<RequireAuth><Statistics /></RequireAuth>} />
+              <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+              <Route path="/booking-page" element={<RequireAuth><BookingPage /></RequireAuth>} />
+              <Route path="/booking-customization" element={<RequireAuth><BookingCustomization /></RequireAuth>} />
+              <Route path="/visibility-boost" element={<RequireAuth><Visibility /></RequireAuth>} />
+              <Route path="/marketing" element={<RequireAuth><Marketing /></RequireAuth>} />
+              <Route path="/additional-services" element={<RequireAuth><AdditionalServices /></RequireAuth>} />
+              <Route path="/payments" element={<RequireAuth><Payments /></RequireAuth>} />
+              <Route path="/events" element={<RequireAuth><Events /></RequireAuth>} />
+              
+              {/* Account routes */}
+              <Route path="/account" element={<RequireAuth><AccountLayout><Outlet /></AccountLayout></RequireAuth>}>
+                <Route index element={<ProfilePage />} />
+                <Route path="profile" element={<ProfilePage />} />
+                <Route path="billing" element={<BillingPage />} />
+                <Route path="security" element={<SecurityPage />} />
+                <Route path="team" element={<TeamPage />} />
+              </Route>
+              
+              {/* 404 */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Toaster position="top-right" />
+          </BusinessProvider>
+        </AuthProvider>
       </ErrorBoundary>
     </Router>
   );

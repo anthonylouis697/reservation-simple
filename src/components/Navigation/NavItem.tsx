@@ -53,33 +53,35 @@ export function NavItem({
   };
 
   return (
-    <Tooltip key={item.title} delayDuration={300}>
-      <TooltipTrigger asChild>
-        <Button 
-          id={item.href}
-          variant={isActive ? "default" : "ghost"} 
-          className={cn(
-            mobile ? "flex flex-col items-center py-2 h-auto" : "w-full justify-start text-left",
-            isActive ? "bg-primary text-primary-foreground" : "",
-            mobile && "rounded-md px-2",
-            item.href === "/visibility-boost" && isFirstTimeUser ? "animate-pulse ring-2 ring-primary" : "",
-            disabled && "opacity-50 cursor-not-allowed"
-          )}
-          onClick={onClick}
-          disabled={disabled}
-        >
-          {item.icon && item.icon}
-          <span className={cn(
-            mobile && "text-xs font-medium"
-          )}>{item.title}</span>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side={mobile ? "top" : "right"}>
-        <div className="flex flex-col">
-          <span className="font-medium">{item.title}</span>
-          <span className="text-xs text-muted-foreground">{item.description || item.title}</span>
-        </div>
-      </TooltipContent>
-    </Tooltip>
+    <TooltipProvider>
+      <Tooltip key={item.title} delayDuration={300}>
+        <TooltipTrigger asChild>
+          <Button 
+            id={item.href}
+            variant={isActive ? "default" : "ghost"} 
+            className={cn(
+              mobile ? "flex flex-col items-center py-2 h-auto" : "w-full justify-start text-left",
+              isActive ? "bg-primary text-primary-foreground" : "",
+              mobile && "rounded-md px-2",
+              item.href === "/visibility-boost" && isFirstTimeUser ? "animate-pulse ring-2 ring-primary" : "",
+              disabled && "opacity-50 cursor-not-allowed"
+            )}
+            onClick={onClick}
+            disabled={disabled}
+          >
+            {item.icon && item.icon}
+            <span className={cn(
+              mobile && "text-xs font-medium"
+            )}>{item.title}</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side={mobile ? "top" : "right"}>
+          <div className="flex flex-col">
+            <span className="font-medium">{item.title}</span>
+            <span className="text-xs text-muted-foreground">{item.description || item.title}</span>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

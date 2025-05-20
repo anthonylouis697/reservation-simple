@@ -118,30 +118,24 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
       )}>
         {/* Ajout du lien vers l'accueil */}
         {!mobile && (
-          <TooltipProvider>
-            <HomeNavItem />
-          </TooltipProvider>
+          <HomeNavItem />
         )}
         
         {navItems.map((item) => (
           <div key={item.title} className="w-full">
-            <TooltipProvider>
-              <NavItem
-                item={item}
-                mobile={mobile}
-                isFirstTimeUser={firstTimeUser}
-                handleNavigation={handleNavigation}
-              />
-            </TooltipProvider>
+            <NavItem
+              item={item}
+              mobile={mobile}
+              isFirstTimeUser={firstTimeUser}
+              handleNavigation={handleNavigation}
+            />
           </div>
         ))}
 
         {/* Hide Help button on mobile since we have it in the header */}
         {!mobile && (
           <>
-            <TooltipProvider>
-              <HelpNavItem />
-            </TooltipProvider>
+            <HelpNavItem />
             <Button 
               variant="ghost"
               className="w-full justify-start text-left text-red-500 hover:text-red-600 hover:bg-red-50"

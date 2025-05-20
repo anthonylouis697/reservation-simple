@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { Calendar, UserPlus, Settings, BarChart3, Tag } from "lucide-react";
 import { QuickActionProps } from "./QuickAction";
 
