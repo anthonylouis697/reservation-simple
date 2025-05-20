@@ -26,13 +26,21 @@ export const SocialLoginButtons = ({ isLoading }: SocialLoginButtonsProps) => {
       });
 
       if (error) {
-        throw error;
+        // Check specifically for the "provider not enabled" error
+        if (error.message.includes('provider is not enabled')) {
+          toast.error(`Le fournisseur ${provider} n'est pas activé. Veuillez utiliser une autre méthode de connexion ou contacter l'administrateur.`);
+        } else {
+          toast.error(`Échec de la connexion avec ${provider}: ${error.message}`);
+        }
+        console.error(`Authentication error with ${provider}:`, error);
+        setIsSocialLoading(null);
+        return;
       }
 
-      // Pas besoin de redirection ici car l'OAuth gère cela automatiquement
-      // et la redirection vers le dashboard est spécifiée dans redirectTo
+      // Success is handled by the redirect
     } catch (error: any) {
       toast.error(`Échec de la connexion avec ${provider}: ${error.message}`);
+      console.error(`Unexpected error with ${provider}:`, error);
       setIsSocialLoading(null);
     }
   };

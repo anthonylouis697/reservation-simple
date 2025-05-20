@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface EmailPasswordFormProps {
   type: 'login' | 'signup';
@@ -17,15 +18,22 @@ export const EmailPasswordForm = ({ type }: EmailPasswordFormProps) => {
   const [lastName, setLastName] = useState('');
   const { signIn, signUp, isLoading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const from = (location.state as any)?.from || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (type === 'login') {
-      await signIn(email, password);
-    } else {
-      await signUp(email, password, { first_name: firstName, last_name: lastName });
+    try {
+      if (type === 'login') {
+        await signIn(email, password);
+      } else {
+        await signUp(email, password, { first_name: firstName, last_name: lastName });
+        // No need to navigate here - this will be handled by AuthContext
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      // Error handling is already in signIn/signUp functions
     }
   };
 
@@ -91,6 +99,7 @@ export const EmailPasswordForm = ({ type }: EmailPasswordFormProps) => {
           onChange={(e) => setPassword(e.target.value)}
           required
           disabled={isLoading}
+          minLength={6}
         />
       </div>
       

@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
 interface AuthContextType {
   session: Session | null;
@@ -26,49 +27,123 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Function to create a default business for new users
+  const createDefaultBusiness = async (userId: string, firstName: string = "", lastName: string = "") => {
+    try {
+      // Generate a random slug for the business
+      const randomSlug = `business-${uuidv4().substring(0, 8)}`;
+      const businessName = firstName && lastName 
+        ? `${firstName} ${lastName}`
+        : "Mon entreprise";
+
+      const { data, error } = await supabase
+        .from('businesses')
+        .insert([{
+          owner_id: userId,
+          name: businessName,
+          slug: randomSlug,
+          description: "Ma description d'entreprise"
+        }])
+        .select('id')
+        .single();
+
+      if (error) {
+        console.error('Erreur lors de la création de l\'entreprise:', error);
+        return null;
+      }
+
+      // Create default booking page settings
+      if (data) {
+        const { error: settingsError } = await supabase
+          .from('booking_page_settings')
+          .insert([{
+            business_id: data.id,
+            business_name: businessName,
+            custom_url: randomSlug
+          }]);
+
+        if (settingsError) {
+          console.error('Erreur lors de la création des paramètres de réservation:', settingsError);
+        }
+      }
+
+      return data?.id;
+    } catch (error) {
+      console.error('Erreur:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
-    // Fonction pour charger le profil utilisateur
+    // Function to load user profile and ensure business exists
     const loadUserProfile = async (userId: string) => {
       try {
-        const { data, error } = await supabase
+        // Load profile
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', userId)
           .maybeSingle();
 
-        if (error) {
-          console.error('Erreur lors du chargement du profil:', error);
-        } else if (data) {
-          setProfile(data);
+        if (profileError) {
+          console.error('Erreur lors du chargement du profil:', profileError);
+          return;
+        }
+
+        // Set profile data if found
+        if (profileData) {
+          setProfile(profileData);
+
+          // Check if user has a business
+          const { data: businessData, error: businessError } = await supabase
+            .from('businesses')
+            .select('id')
+            .eq('owner_id', userId)
+            .maybeSingle();
+
+          if (businessError) {
+            console.error('Erreur lors de la vérification de l\'entreprise:', businessError);
+            return;
+          }
+
+          // Create a default business if none exists
+          if (!businessData) {
+            await createDefaultBusiness(userId, profileData.first_name, profileData.last_name);
+          }
         }
       } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Erreur lors du chargement du profil:', error);
       }
     };
 
-    // Écouteur de changement d'état d'authentification
+    // Auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        console.log('Auth event:', event, 'Session:', currentSession);
+      async (event, currentSession) => {
+        console.log('Auth event:', event, 'Session:', currentSession?.user?.id);
+        
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
-        // Si l'utilisateur est connecté, charger son profil
+        // If user is logged in, load profile
         if (currentSession?.user) {
-          // Utiliser setTimeout pour éviter les deadlocks potentiels
+          // Defer profile loading to prevent deadlocks
           setTimeout(() => {
             loadUserProfile(currentSession.user.id);
           }, 0);
           
-          // Si l'utilisateur est sur la page d'accueil, login ou signup, rediriger vers dashboard
+          // Redirect logic for authenticated users
+          // Only redirect to dashboard if user is on login/signup pages
           if (['/login', '/signup', '/'].includes(location.pathname)) {
             navigate('/dashboard');
           }
         } else {
           setProfile(null);
           
-          // Si l'utilisateur n'est pas connecté et est sur une page protégée, rediriger vers login
-          const isProtectedRoute = !['/', '/login', '/signup', '/reset-password'].includes(location.pathname);
+          // Redirect to login if on a protected route
+          const isProtectedRoute = !['/', '/login', '/signup', '/reset-password', '/booking'].some(
+            path => location.pathname === path || location.pathname.startsWith('/booking/')
+          );
+          
           if (isProtectedRoute) {
             navigate('/login', { state: { from: location.pathname } });
           }
@@ -78,22 +153,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Vérifier s'il y a une session existante au chargement
+    // Initial session check
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      console.log('Initial session check:', currentSession);
+      console.log('Initial session check:', currentSession?.user?.id);
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       
       if (currentSession?.user) {
-        loadUserProfile(currentSession.user.id);
+        // Defer profile loading
+        setTimeout(() => {
+          loadUserProfile(currentSession.user.id);
+        }, 0);
         
-        // Si l'utilisateur est sur la page d'accueil, login ou signup, rediriger vers dashboard
+        // Redirect logic for the initial check
         if (['/login', '/signup', '/'].includes(location.pathname)) {
           navigate('/dashboard');
         }
       } else {
-        // Si l'utilisateur n'est pas connecté et est sur une page protégée, rediriger vers login
-        const isProtectedRoute = !['/', '/login', '/signup', '/reset-password'].includes(location.pathname);
+        // Handle non-authenticated state
+        const isProtectedRoute = !['/', '/login', '/signup', '/reset-password', '/booking'].some(
+          path => location.pathname === path || location.pathname.startsWith('/booking/')
+        );
+        
         if (isProtectedRoute) {
           navigate('/login', { state: { from: location.pathname } });
         }
@@ -102,11 +183,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
     });
 
-    // Nettoyer l'abonnement
+    // Cleanup subscription
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, location]);
+  }, [navigate, location.pathname]);
 
   const signUp = async (email: string, password: string, options?: { first_name?: string; last_name?: string }) => {
     setIsLoading(true);
@@ -129,13 +210,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (!data.session) {
         toast.success('Inscription réussie ! Vérifiez votre email pour confirmer votre compte.');
-        navigate('/welcome');
+        navigate('/login');
       } else {
+        // User was created and immediately signed in
         toast.success('Inscription réussie !');
+        
+        // Create default business if needed
+        if (data.user) {
+          await createDefaultBusiness(data.user.id, options?.first_name, options?.last_name);
+        }
+        
         navigate('/dashboard');
       }
     } catch (error: any) {
-      toast.error(error.message || 'Une erreur est survenue lors de l\'inscription.');
+      // Handle specific errors
+      if (error.message?.includes('User already registered')) {
+        toast.error('Cet email est déjà utilisé. Veuillez vous connecter.');
+      } else {
+        toast.error(error.message || 'Une erreur est survenue lors de l\'inscription.');
+      }
+      console.error('Sign up error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -144,7 +238,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
@@ -154,9 +248,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       toast.success('Connexion réussie !');
-      // La redirection sera gérée par l'écouteur onAuthStateChange
+      // Redirection handled by the auth state listener
     } catch (error: any) {
-      toast.error(error.message || 'Une erreur est survenue lors de la connexion.');
+      // Handle specific error messages
+      if (error.message?.includes('Email not confirmed')) {
+        toast.error('Veuillez confirmer votre email avant de vous connecter.');
+      } else if (error.message?.includes('Invalid login credentials')) {
+        toast.error('Email ou mot de passe incorrect.');
+      } else {
+        toast.error(error.message || 'Une erreur est survenue lors de la connexion.');
+      }
+      console.error('Sign in error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -164,6 +266,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      setIsLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) {
         throw error;
@@ -173,6 +276,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       navigate('/');
     } catch (error: any) {
       toast.error(error.message || 'Une erreur est survenue lors de la déconnexion.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
