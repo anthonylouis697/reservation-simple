@@ -13,7 +13,6 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
 import CalendarPage from "./pages/CalendarPage";
-import BookingCustomization from "./pages/BookingCustomization";
 import Services from "./pages/Services";
 import NotFound from "./pages/NotFound";
 import VisibilityBoostPage from "./components/VisibilityBoost/VisibilityBoostPage";
@@ -60,7 +59,6 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/calendar" element={<CalendarPage />} />
-            <Route path="/booking-customization" element={<BookingCustomization />} />
             
             {/* Visibilité routes */}
             <Route path="/visibility" element={<Visibility />} />

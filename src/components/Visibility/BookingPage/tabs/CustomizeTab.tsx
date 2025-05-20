@@ -43,6 +43,11 @@ export function CustomizeTab() {
     }
   };
   
+  // Couleurs prédéfinies pour faciliter la sélection
+  const colorPresets = [
+    "#9b87f5", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"
+  ];
+  
   return (
     <div className="space-y-6">
       {/* Sélection de modèle */}
@@ -110,23 +115,35 @@ export function CustomizeTab() {
           <div className="space-y-2">
             <Label htmlFor="primary-color">Couleur principale</Label>
             <div className="flex gap-3 items-center">
-              <Input 
-                type="color" 
-                id="primary-color" 
-                value={primaryColor} 
-                onChange={(e) => setPrimaryColor(e.target.value)} 
-                className="w-12 h-10 p-1 cursor-pointer"
-              />
-              <Input 
-                type="text" 
-                value={primaryColor} 
-                onChange={(e) => setPrimaryColor(e.target.value)} 
-                className="w-32"
-              />
-              <div 
-                className="h-8 w-8 rounded-full border"
-                style={{ backgroundColor: primaryColor }}
-              ></div>
+              <div className="flex flex-wrap gap-2">
+                {colorPresets.map(color => (
+                  <button
+                    key={color}
+                    className={`w-8 h-8 rounded-full border ${
+                      primaryColor === color ? "ring-2 ring-offset-2 ring-primary" : ""
+                    }`}
+                    style={{ backgroundColor: color }}
+                    onClick={() => setPrimaryColor(color)}
+                    aria-label={`Couleur ${color}`}
+                  />
+                ))}
+              </div>
+              
+              <div className="flex items-center gap-2 ml-2">
+                <Input 
+                  type="color" 
+                  id="primary-color" 
+                  value={primaryColor} 
+                  onChange={(e) => setPrimaryColor(e.target.value)} 
+                  className="w-12 h-10 p-1 cursor-pointer"
+                />
+                <Input 
+                  type="text" 
+                  value={primaryColor} 
+                  onChange={(e) => setPrimaryColor(e.target.value)} 
+                  className="w-32"
+                />
+              </div>
             </div>
           </div>
           
