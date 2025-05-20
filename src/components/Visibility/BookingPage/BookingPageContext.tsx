@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { BookingStep, BookingTemplate } from './types';
+import { BookingStep, BookingTemplate, BookingLayoutType, BookingCustomTexts } from './types';
 import { CalendarCheck, UserCircle, CreditCard, FileCheck } from 'lucide-react';
 
 interface BookingPageContextType {
@@ -24,13 +24,19 @@ interface BookingPageContextType {
   handleStepChange: (id: string, enabled: boolean) => void;
   customUrl: string;
   setCustomUrl: (url: string) => void;
-  // Nouvelles propriétés ajoutées
+  // Propriétés existantes
   bookingButtonText: string;
   setBookingButtonText: (text: string) => void;
   showConfirmation: boolean;
   setShowConfirmation: (show: boolean) => void;
   confirmationMessage: string;
   setConfirmationMessage: (message: string) => void;
+  // Nouvelles propriétés
+  layoutType: BookingLayoutType;
+  setLayoutType: (type: BookingLayoutType) => void;
+  customTexts: BookingCustomTexts;
+  updateCustomText: (key: keyof BookingCustomTexts, value: string) => void;
+  updateStepLabel: (id: string, label: string) => void;
 }
 
 const BookingPageContext = createContext<BookingPageContextType | undefined>(undefined);
@@ -103,10 +109,37 @@ export function BookingPageProvider({ children }: BookingPageProviderProps) {
   const [logo, setLogo] = useState<string | null>(null);
   const [customUrl, setCustomUrl] = useState<string>('votre-nom');
   
-  // Nouvelles propriétés ajoutées
+  // Propriétés existantes
   const [bookingButtonText, setBookingButtonText] = useState<string>('Réserver maintenant');
   const [showConfirmation, setShowConfirmation] = useState<boolean>(true);
   const [confirmationMessage, setConfirmationMessage] = useState<string>('Merci pour votre réservation ! Nous avons bien reçu votre demande.');
+  
+  // Nouvelles propriétés
+  const [layoutType, setLayoutType] = useState<BookingLayoutType>('stepped');
+  const [customTexts, setCustomTexts] = useState<BookingCustomTexts>({
+    selectServiceLabel: 'Sélectionnez un service',
+    selectDateLabel: 'Sélectionnez une date',
+    selectTimeLabel: 'Sélectionnez un horaire',
+    clientInfoLabel: 'Vos informations',
+    paymentMethodLabel: 'Méthode de paiement',
+  });
+
+  // Fonction pour mettre à jour les textes personnalisés
+  const updateCustomText = (key: keyof BookingCustomTexts, value: string) => {
+    setCustomTexts(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+  
+  // Fonction pour mettre à jour le label d'une étape
+  const updateStepLabel = (id: string, label: string) => {
+    setSteps(currentSteps =>
+      currentSteps.map(step =>
+        step.id === id ? { ...step, customLabel: label } : step
+      )
+    );
+  };
 
   // Fonction pour gérer le changement d'activation d'une étape
   const handleStepChange = (id: string, enabled: boolean) => {
@@ -140,13 +173,19 @@ export function BookingPageProvider({ children }: BookingPageProviderProps) {
         handleStepChange,
         customUrl,
         setCustomUrl,
-        // Nouvelles propriétés ajoutées
+        // Propriétés existantes
         bookingButtonText,
         setBookingButtonText,
         showConfirmation,
         setShowConfirmation,
         confirmationMessage,
         setConfirmationMessage,
+        // Nouvelles propriétés
+        layoutType,
+        setLayoutType,
+        customTexts,
+        updateCustomText,
+        updateStepLabel,
       }}
     >
       {children}

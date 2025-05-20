@@ -1,187 +1,160 @@
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
-import { Move, Type, Check, CheckCheck, ArrowUp } from 'lucide-react';
 import { useBookingPage } from '../BookingPageContext';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
 import { SortableStepList } from '../components/SortableStepList';
+import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
+import { Pencil, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 
 export function StepsTab() {
-  const { 
-    businessName,
-    setBusinessName,
-    welcomeMessage,
-    setWelcomeMessage,
+  const {
+    steps,
+    setSteps,
+    handleStepChange,
     bookingButtonText,
     setBookingButtonText,
     showConfirmation,
     setShowConfirmation,
     confirmationMessage,
     setConfirmationMessage,
-    steps,
-    setSteps
+    updateStepLabel,
   } = useBookingPage();
+
+  const [editingStepId, setEditingStepId] = useState<string | null>(null);
+  const [tempStepName, setTempStepName] = useState<string>('');
   
-  const [hasSaved, setHasSaved] = useState(false);
+  // Démarrer l'édition d'un label
+  const startEditing = (stepId: string, currentName: string) => {
+    setEditingStepId(stepId);
+    setTempStepName(currentName);
+  };
   
-  // Fonction pour changer l'état d'activation d'une étape
-  const handleStepChange = (id: string, enabled: boolean) => {
-    setSteps(steps.map(step => step.id === id ? { ...step, enabled } : step));
-    setHasSaved(false);
-    
-    // Show toast to indicate change
-    if (enabled) {
-      toast.success(`Étape "${steps.find(s => s.id === id)?.name}" activée`);
-    } else {
-      toast.info(`Étape "${steps.find(s => s.id === id)?.name}" désactivée`);
+  // Valider l'édition d'un label
+  const saveStepName = () => {
+    if (editingStepId) {
+      updateStepLabel(editingStepId, tempStepName);
+      setEditingStepId(null);
+      setTempStepName('');
+      toast.success('Nom de l\'étape mis à jour');
     }
   };
   
-  // Handle save changes
-  const handleSave = () => {
-    setHasSaved(true);
-    toast.success("Configuration sauvegardée avec succès");
+  // Annuler l'édition
+  const cancelEditing = () => {
+    setEditingStepId(null);
+    setTempStepName('');
   };
-  
+
   return (
     <div className="space-y-6">
-      {/* Configuration des étapes */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Move className="h-4 w-4" />
-            Ordre des étapes
-          </CardTitle>
-          <CardDescription>
-            Personnalisez l'expérience de réservation en gérant les étapes que vos clients devront suivre
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <SortableStepList steps={steps} setSteps={setSteps} onStepChange={handleStepChange} />
-        </CardContent>
-      </Card>
+        <CardContent className="pt-6 space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">Étapes de réservation</Label>
+              <Badge variant="outline">Glissez pour réorganiser</Badge>
+            </div>
 
-      {/* Textes personnalisés */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Type className="h-4 w-4" />
-            Textes personnalisés
-          </CardTitle>
-          <CardDescription>
-            Personnalisez les textes de votre page de réservation
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SortableStepList
+              steps={steps}
+              setSteps={setSteps}
+              renderStep={(step) => (
+                <div className="flex items-center justify-between py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="text-primary mt-0.5">
+                      {step.icon}
+                    </div>
+                    {editingStepId === step.id ? (
+                      <div className="flex gap-2 items-center">
+                        <Input
+                          value={tempStepName}
+                          onChange={(e) => setTempStepName(e.target.value)}
+                          className="h-8 w-48"
+                          autoFocus
+                        />
+                        <button
+                          onClick={saveStepName}
+                          className="text-green-600 hover:bg-green-50 p-1 rounded-full"
+                          title="Valider"
+                        >
+                          <Check className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={cancelEditing}
+                          className="text-red-600 hover:bg-red-50 p-1 rounded-full"
+                          title="Annuler"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span>{step.customLabel || step.name}</span>
+                        <button
+                          onClick={() => startEditing(step.id, step.customLabel || step.name)}
+                          className="text-muted-foreground hover:text-primary p-1 rounded-full hover:bg-muted"
+                          title="Modifier le nom"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <Switch
+                    checked={step.enabled}
+                    onCheckedChange={(checked) => handleStepChange(step.id, checked)}
+                  />
+                </div>
+              )}
+            />
+          </div>
+          
+          <div className="bg-accent/20 p-4 rounded-lg space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="business-name" className="flex items-center gap-1">
-                Nom de l'entreprise
-                <div className="text-xs text-primary bg-primary/10 rounded-full px-2 py-0.5">Obligatoire</div>
+              <Label htmlFor="booking-button-text" className="text-sm">
+                Texte du bouton de réservation
               </Label>
               <Input 
-                id="business-name" 
-                value={businessName} 
-                onChange={(e) => setBusinessName(e.target.value)} 
-                className="transition-all border-primary/30 focus-visible:border-primary/50"
-                placeholder="Nom de votre entreprise"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="button-text" className="flex items-center gap-1">
-                Texte du bouton
-                <div className="text-xs text-primary bg-primary/10 rounded-full px-2 py-0.5">Obligatoire</div>
-              </Label>
-              <Input 
-                id="button-text" 
-                value={bookingButtonText} 
-                onChange={(e) => setBookingButtonText(e.target.value)} 
-                className="transition-all border-primary/30 focus-visible:border-primary/50"
+                id="booking-button-text"
+                value={bookingButtonText}
+                onChange={(e) => setBookingButtonText(e.target.value)}
                 placeholder="Réserver maintenant"
+                className="max-w-md"
               />
             </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="welcome-message" className="flex items-center gap-1">
-              Message de bienvenue
-              <div className="text-xs text-primary bg-primary/10 rounded-full px-2 py-0.5">Obligatoire</div>
-            </Label>
-            <Textarea 
-              id="welcome-message" 
-              value={welcomeMessage} 
-              onChange={(e) => setWelcomeMessage(e.target.value)} 
-              rows={2}
-              className="transition-all border-primary/30 focus-visible:border-primary/50"
-              placeholder="Bienvenue sur notre page de réservation"
-            />
-          </div>
-          
-          <div 
-            className={cn(
-              "flex items-center justify-between p-4 rounded-lg border transition-all",
-              showConfirmation ? "bg-primary/5 border-primary/20" : "bg-background"
-            )}
-          >
-            <div>
-              <Label htmlFor="show-confirmation" className="text-base">Message de confirmation</Label>
-              <p className="text-sm text-muted-foreground">
-                Affiche un message de remerciement après la réservation
-              </p>
-            </div>
-            <Switch 
-              id="show-confirmation" 
-              checked={showConfirmation} 
-              onCheckedChange={setShowConfirmation} 
-            />
-          </div>
-          
-          {showConfirmation && (
-            <div className="space-y-2 pl-4 border-l-2 border-primary/20">
-              <Label htmlFor="confirmation-message">Texte du message de confirmation</Label>
-              <Textarea 
-                id="confirmation-message" 
-                value={confirmationMessage} 
-                onChange={(e) => setConfirmationMessage(e.target.value)} 
-                rows={3}
-                className="transition-all"
-                placeholder="Merci pour votre réservation ! Nous avons bien reçu votre demande."
+
+            <div className="flex items-center space-x-4">
+              <Switch
+                id="show-confirmation"
+                checked={showConfirmation}
+                onCheckedChange={setShowConfirmation}
               />
-              <div className="text-xs flex items-center gap-1 text-muted-foreground">
-                <CheckCheck className="h-3 w-3" />
-                <span>Ce message sera affiché après que le client ait complété sa réservation</span>
+              <Label htmlFor="show-confirmation" className="font-medium text-sm">
+                Afficher une confirmation
+              </Label>
+            </div>
+
+            {showConfirmation && (
+              <div className="space-y-2 pt-2">
+                <Label htmlFor="confirmation-message" className="text-sm">
+                  Message de confirmation
+                </Label>
+                <Input
+                  id="confirmation-message"
+                  value={confirmationMessage}
+                  onChange={(e) => setConfirmationMessage(e.target.value)}
+                  placeholder="Merci pour votre réservation !"
+                  className="max-w-md"
+                />
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </CardContent>
       </Card>
-      
-      <div className="flex justify-between items-center">
-        <div className="text-sm text-muted-foreground">
-          {hasSaved ? (
-            <span className="flex items-center gap-1 text-green-600">
-              <Check className="h-4 w-4" />
-              Modifications sauvegardées
-            </span>
-          ) : (
-            <span>Modifications non sauvegardées</span>
-          )}
-        </div>
-        <Button 
-          onClick={handleSave}
-          className="gap-2"
-        >
-          <ArrowUp className="h-4 w-4" />
-          Enregistrer les modifications
-        </Button>
-      </div>
     </div>
   );
 }

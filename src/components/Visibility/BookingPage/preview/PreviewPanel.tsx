@@ -6,6 +6,7 @@ import { useBookingPage } from '../BookingPageContext';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { BookingStep } from '../types';
+import { useMemo } from 'react';
 
 export function PreviewPanel() {
   const {
@@ -18,7 +19,9 @@ export function PreviewPanel() {
     buttonCorners,
     templates,
     steps,
-    bookingButtonText
+    bookingButtonText,
+    layoutType,
+    customTexts
   } = useBookingPage();
 
   // Récupérer le template sélectionné
@@ -51,7 +54,7 @@ export function PreviewPanel() {
   };
 
   // Only get enabled steps
-  const enabledSteps = steps.filter(step => step.enabled);
+  const enabledSteps = useMemo(() => steps.filter(step => step.enabled), [steps]);
   
   // Generate step UI based on the step type
   const renderStepPreview = (step: BookingStep, isActive: boolean = false) => {
@@ -59,7 +62,7 @@ export function PreviewPanel() {
       case 'service':
         return (
           <div className="space-y-2">
-            <Label className="text-xs">Sélectionnez un service</Label>
+            <Label className="text-xs">{step.customLabel || customTexts.selectServiceLabel}</Label>
             <div 
               className={cn(
                 "border rounded p-2 text-sm cursor-pointer",
@@ -73,12 +76,12 @@ export function PreviewPanel() {
       case 'date':
         return (
           <div className="space-y-2">
-            <Label className="text-xs">Sélectionnez une date</Label>
+            <Label className="text-xs">{step.customLabel || customTexts.selectDateLabel}</Label>
             <div className="border rounded p-2 text-sm text-center">
               [Calendrier]
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">Sélectionnez un horaire</Label>
+              <Label className="text-xs">{customTexts.selectTimeLabel}</Label>
               <div className="flex flex-wrap gap-1 text-xs">
                 <div 
                   className={`py-1 px-2 ${getButtonClasses()} text-white cursor-pointer`}
@@ -99,7 +102,7 @@ export function PreviewPanel() {
       case 'client':
         return (
           <div className="space-y-2">
-            <Label className="text-xs">Vos informations</Label>
+            <Label className="text-xs">{step.customLabel || customTexts.clientInfoLabel}</Label>
             <div className="space-y-1">
               <div className="h-6 bg-gray-100 rounded mb-1"></div>
               <div className="h-6 bg-gray-100 rounded"></div>
@@ -109,7 +112,7 @@ export function PreviewPanel() {
       case 'payment':
         return (
           <div className="space-y-2">
-            <Label className="text-xs">Méthode de paiement</Label>
+            <Label className="text-xs">{step.customLabel || customTexts.paymentMethodLabel}</Label>
             <div className="flex gap-2">
               <div className="h-10 w-14 bg-gray-100 rounded flex items-center justify-center text-xs">VISA</div>
               <div className="h-10 w-14 bg-gray-100 rounded flex items-center justify-center text-xs">MC</div>
@@ -161,24 +164,44 @@ export function PreviewPanel() {
               </p>
             </div>
             
-            {/* Progress Steps */}
-            {enabledSteps.length > 0 && (
-              <div className="flex justify-between items-center mb-4 text-xs">
-                {enabledSteps.map((step, index) => (
-                  <div key={step.id} className="flex flex-col items-center">
-                    <div 
-                      className={`w-6 h-6 rounded-full flex items-center justify-center mb-1 ${index === 0 ? "bg-primary text-white" : "border"}`}
-                    >
-                      {index === 0 ? "1" : index + 1}
+            {/* Different layout types */}
+            {layoutType === 'stepped' ? (
+              <>
+                {/* Progress Steps for stepped layout */}
+                {enabledSteps.length > 0 && (
+                  <div className="flex justify-between items-center mb-4 text-xs">
+                    {enabledSteps.map((step, index) => (
+                      <div key={step.id} className="flex flex-col items-center">
+                        <div 
+                          className={`w-6 h-6 rounded-full flex items-center justify-center mb-1 ${index === 0 ? "bg-primary text-white" : "border"}`}
+                        >
+                          {index === 0 ? "1" : index + 1}
+                        </div>
+                        <span className="text-[10px]">{step.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Active Step (showing first enabled step) */}
+                {enabledSteps.length > 0 && renderStepPreview(enabledSteps[0], true)}
+              </>
+            ) : (
+              /* All-in-one layout: Show all steps */
+              <div className="space-y-6 py-2">
+                {enabledSteps.map((step) => (
+                  <div key={step.id} className="border-b pb-4 last:border-b-0 last:pb-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="bg-accent rounded-full w-4 h-4 flex items-center justify-center">
+                        {step.icon}
+                      </div>
+                      <span className="text-sm font-medium">{step.name}</span>
                     </div>
-                    <span className="text-[10px]">{step.name}</span>
+                    {renderStepPreview(step, true)}
                   </div>
                 ))}
               </div>
             )}
-            
-            {/* Active Step (showing first enabled step) */}
-            {enabledSteps.length > 0 && renderStepPreview(enabledSteps[0], true)}
             
             <Button 
               className={`w-full text-xs h-8 mt-4 ${getButtonClasses()}`} 
