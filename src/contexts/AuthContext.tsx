@@ -29,97 +29,95 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const location = useLocation();
   const { isLoading: authLoading, signUp, signIn, signOut, resetPassword } = useAuthManagement();
 
+  // Configuration de l'écouteur d'état d'authentification
   useEffect(() => {
-    console.log("AuthProvider useEffect running, current path:", location.pathname);
-    console.log("Auth state at mount:", { hasUser: !!user, isLoading });
+    console.log("AuthProvider initializing, current path:", location.pathname);
     
-    // Auth state listener
+    // D'abord, configurer l'écouteur d'état d'authentification pour détecter les changements
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
+      async (event, currentSession) => {
         console.log('Auth event:', event, 'Session:', currentSession?.user?.id);
         
+        // Mise à jour des états de base (session et user)
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
-        // If user is logged in, load profile
+        // Si l'utilisateur est connecté, charger son profil
         if (currentSession?.user) {
-          console.log("User is authenticated, current path:", location.pathname);
+          console.log("Auth state change: User is authenticated");
           
-          // Defer profile loading to prevent deadlocks
+          // Important : utiliser setTimeout pour éviter les deadlocks avec Supabase
           setTimeout(() => {
-            loadUserProfile(currentSession.user.id).then(({ profile: userProfile }) => {
-              setProfile(userProfile);
-              setIsLoading(false);
-            });
+            loadUserProfile(currentSession.user.id)
+              .then(({ profile: userProfile }) => {
+                setProfile(userProfile);
+                setIsLoading(false);
+              })
+              .catch(error => {
+                console.error("Error loading profile:", error);
+                setIsLoading(false);
+              });
           }, 0);
           
-          // Redirect logic for authenticated users - Only redirect to dashboard if user is on login/signup
+          // Redirection si sur login/signup et déjà authentifié
           if (['/login', '/signup'].includes(location.pathname)) {
-            console.log("Redirecting authenticated user to dashboard from", location.pathname);
+            console.log("Redirecting authenticated user from login/signup to dashboard");
             navigate('/dashboard');
           }
         } else {
-          console.log("No user session detected");
+          console.log("Auth state change: No user session");
           setProfile(null);
-          
-          // Redirect to login if on a protected route
-          const isProtectedRoute = !['/', '/login', '/signup', '/reset-password', '/booking'].some(
-            path => location.pathname === path || location.pathname.startsWith('/booking/')
-          );
-          
-          if (isProtectedRoute) {
-            console.log("Redirecting unauthenticated user to login from protected route:", location.pathname);
-            navigate('/login', { state: { from: location.pathname } });
-          }
           setIsLoading(false);
+          
+          // La redirection vers /login pour les routes protégées est gérée par le composant RequireAuth
         }
       }
     );
 
-    // Initial session check
+    // Vérification initiale de la session
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
       console.log('Initial session check:', currentSession?.user?.id);
+      
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       
       if (currentSession?.user) {
         console.log("Initial check: User is authenticated");
         
-        // Defer profile loading
+        // Important : utiliser setTimeout pour éviter les deadlocks avec Supabase
         setTimeout(() => {
-          loadUserProfile(currentSession.user.id).then(({ profile: userProfile }) => {
-            setProfile(userProfile);
-            setIsLoading(false);
-          });
+          loadUserProfile(currentSession.user.id)
+            .then(({ profile: userProfile }) => {
+              setProfile(userProfile);
+              setIsLoading(false);
+            })
+            .catch(error => {
+              console.error("Error loading profile:", error);
+              setIsLoading(false);
+            });
         }, 0);
         
-        // Redirect logic for the initial check - Only redirect to dashboard if user is on login/signup
+        // Redirection logique pour la vérification initiale
         if (['/login', '/signup'].includes(location.pathname)) {
           console.log("Initial check: Redirecting to dashboard");
           navigate('/dashboard');
         }
       } else {
         console.log("Initial check: No authenticated user");
-        // Handle non-authenticated state
-        const isProtectedRoute = !['/', '/login', '/signup', '/reset-password', '/booking'].some(
-          path => location.pathname === path || location.pathname.startsWith('/booking/')
-        );
-        
-        if (isProtectedRoute) {
-          console.log("Initial check: Redirecting to login");
-          navigate('/login', { state: { from: location.pathname } });
-        }
         setIsLoading(false);
       }
+    }).catch(error => {
+      console.error("Error checking session:", error);
+      setIsLoading(false);
     });
 
-    // Cleanup subscription
+    // Nettoyage de l'abonnement
     return () => {
       subscription.unsubscribe();
     };
   }, [navigate, location.pathname]);
 
-  // Notify user of authentication status via console
+  // Log d'état d'authentification
   useEffect(() => {
     if (user && !isLoading) {
       console.log("User is authenticated:", user.email);

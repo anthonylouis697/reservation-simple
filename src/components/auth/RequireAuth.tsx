@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface RequireAuthProps {
   children: React.ReactNode;
@@ -13,7 +14,17 @@ const RequireAuth = ({ children }: RequireAuthProps) => {
   const location = useLocation();
 
   useEffect(() => {
+    console.log("RequireAuth check:", { user: !!user, isLoading, path: location.pathname });
+    
+    // Seulement rediriger si le chargement est terminé et qu'il n'y a pas d'utilisateur
     if (!isLoading && !user) {
+      console.log("Redirecting to login from:", location.pathname);
+      
+      // On affiche un message pour informer l'utilisateur
+      if (location.pathname !== '/') {
+        toast.error('Vous devez être connecté pour accéder à cette page');
+      }
+      
       // Stocker l'URL d'origine pour y revenir après la connexion
       navigate('/login', { state: { from: location.pathname } });
     }
