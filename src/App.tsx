@@ -33,9 +33,9 @@ import PublicBooking from '@/pages/PublicBooking';
 
 function App() {
   return (
-    <AuthProvider>
-      <BusinessProvider>
-        <Router>
+    <Router>
+      <AuthProvider>
+        <BusinessProvider>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
@@ -73,10 +73,10 @@ function App() {
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </Router>
-        <Toaster position="top-right" />
-      </BusinessProvider>
-    </AuthProvider>
+          <Toaster position="top-right" />
+        </BusinessProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

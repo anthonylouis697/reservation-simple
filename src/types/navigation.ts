@@ -1,12 +1,12 @@
 
-import { ReactNode } from 'react';
+import { ReactNode } from "react";
 
-export type NavItem = {
+export interface NavItem {
   title: string;
   href: string;
   icon: ReactNode;
   description?: string;
+  subItems?: NavItem[];
   isAction?: boolean;
   alwaysAccessible?: boolean;
-  subItems?: NavItem[];
 }

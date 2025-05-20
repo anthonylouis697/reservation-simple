@@ -17,10 +17,13 @@ const Index = () => {
   // Scroll to section on hash change
   useEffect(() => {
     if (location.hash) {
-      const element = document.getElementById(location.hash.substring(1));
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-      }
+      // Petit délai pour assurer que le composant est monté
+      setTimeout(() => {
+        const element = document.getElementById(location.hash.substring(1));
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
     } else {
       window.scrollTo(0, 0);
     }

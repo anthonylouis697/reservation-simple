@@ -6,7 +6,8 @@ import { navigationConfig } from "@/config/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BusinessSelector } from "./BusinessSelector";
 import { useBusiness } from "@/contexts/BusinessContext";
-import { NavItem, HelpNavItem } from "./MainNavigation";
+import { NavItem } from "./Navigation/NavItem";
+import { HelpNavItem } from "./MainNavigation";
 
 export function DesktopSidebar() {
   const { pathname } = useLocation();
@@ -16,6 +17,11 @@ export function DesktopSidebar() {
   // Function to handle navigation
   const handleNavigation = (href: string) => {
     window.location.href = href;
+  };
+
+  // Check if navigation items should be disabled
+  const isItemDisabled = (item) => {
+    return !item.alwaysAccessible && !currentBusiness;
   };
 
   return (
@@ -42,9 +48,8 @@ export function DesktopSidebar() {
               <NavItem 
                 key={index} 
                 item={item}
-                mobile={false}
-                isFirstTimeUser={false}
                 handleNavigation={handleNavigation}
+                disabled={isItemDisabled(item)}
               />
             ))}
           </div>
@@ -61,9 +66,8 @@ export function DesktopSidebar() {
                   <NavItem 
                     key={index} 
                     item={item}
-                    mobile={false}
-                    isFirstTimeUser={false}
                     handleNavigation={handleNavigation}
+                    disabled={isItemDisabled(item)}
                   />
                 ))}
               </div>
@@ -82,9 +86,8 @@ export function DesktopSidebar() {
                   <NavItem 
                     key={index} 
                     item={item}
-                    mobile={false}
-                    isFirstTimeUser={false}
                     handleNavigation={handleNavigation}
+                    disabled={isItemDisabled(item)}
                   />
                 ))}
               </div>
@@ -98,8 +101,6 @@ export function DesktopSidebar() {
                   <NavItem 
                     key={index} 
                     item={item}
-                    mobile={false}
-                    isFirstTimeUser={false}
                     handleNavigation={handleNavigation}
                   />
                 ))}
