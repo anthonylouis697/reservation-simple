@@ -45,12 +45,12 @@ export const defaultTemplates: BookingTemplate[] = [
   }
 ];
 
-// Define the default booking steps
+// Define the default booking steps without JSX
 export const defaultSteps: BookingStep[] = [
-  { id: 'service', name: 'Choix du service', icon: <FileCheck size={16} />, enabled: true },
-  { id: 'date', name: 'Date et horaire', icon: <CalendarCheck size={16} />, enabled: true },
-  { id: 'client', name: 'Informations client', icon: <UserCircle size={16} />, enabled: true },
-  { id: 'payment', name: 'Paiement', icon: <CreditCard size={16} />, enabled: true },
+  { id: 'service', name: 'Choix du service', icon: FileCheck, enabled: true },
+  { id: 'date', name: 'Date et horaire', icon: CalendarCheck, enabled: true },
+  { id: 'client', name: 'Informations client', icon: UserCircle, enabled: true },
+  { id: 'payment', name: 'Paiement', icon: CreditCard, enabled: true },
 ];
 
 // Define the default custom texts
