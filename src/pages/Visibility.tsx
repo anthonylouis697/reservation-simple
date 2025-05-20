@@ -10,23 +10,14 @@ import {
   CardTitle 
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useNavigate } from "react-router-dom";
+import { TabsContent } from "@/components/ui/tabs";
 import { Link as LinkIcon, Share, Star, DollarSign, Globe, Pencil } from "lucide-react";
+import { VisibilityNavigation, useVisibilityNavigation, visibilityTabs } from "@/components/Visibility/VisibilityNavigation";
 
 export default function Visibility() {
   const navigate = useNavigate();
-  const location = useLocation();
-  
-  // Extract the current tab from the URL or default to the first one
-  const getCurrentTab = () => {
-    if (location.pathname === "/visibility") return "main";
-    if (location.pathname.includes("/booking-page")) return "booking-page";
-    if (location.pathname.includes("/social-integration")) return "social-integration";
-    if (location.pathname.includes("/visibility-boost") || location.pathname === "/visibility-boost") return "visibility-boost";
-    if (location.pathname.includes("/additional-services")) return "additional-services";
-    return "main";
-  };
+  const { currentTab } = useVisibilityNavigation();
   
   const visibilityOptions = [
     {
@@ -94,15 +85,6 @@ export default function Visibility() {
     }
   ];
 
-  const handleTabChange = (value: string) => {
-    const option = visibilityOptions.find(opt => opt.id === value);
-    if (option) {
-      navigate(option.href);
-    } else if (value === "main") {
-      navigate("/visibility");
-    }
-  };
-
   return (
     <AppLayout>
       <Helmet>
@@ -118,98 +100,83 @@ export default function Visibility() {
         </div>
 
         {/* Sub-navigation tabs */}
-        <Tabs value={getCurrentTab()} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="w-full justify-start mb-6 overflow-x-auto">
-            <TabsTrigger value="main">Vue d'ensemble</TabsTrigger>
-            {visibilityOptions.map(option => (
-              <TabsTrigger key={option.id} value={option.id}>
-                {option.title}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+        <VisibilityNavigation currentTab={currentTab} />
 
-          <TabsContent value="main">
-            {/* Original Visibility page content */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {visibilityOptions.slice(0, 3).map((option, index) => (
-                <Card key={index} className="hover:shadow-md transition-all">
-                  <CardHeader className="pb-2">
-                    <div className={`w-12 h-12 rounded-full ${option.color} flex items-center justify-center mb-2`}>
-                      {option.icon}
-                    </div>
-                    <CardTitle>{option.title}</CardTitle>
-                    <CardDescription>{option.description}</CardDescription>
-                  </CardHeader>
-                  <CardFooter>
-                    <Button 
-                      onClick={() => navigate(option.href)}
-                      className="w-full"
-                    >
-                      Accéder
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-
-            <div className="mt-8">
-              <h2 className="text-xl font-semibold flex items-center gap-2 mb-4">
-                <DollarSign className="h-5 w-5 text-green-600" />
-                Services additionnels
-              </h2>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Boostez votre activité avec nos services professionnels</CardTitle>
-                  <CardDescription>
-                    Des solutions clés en main pour augmenter votre visibilité et vos revenus
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {additionalServices.map((service, index) => (
-                      <Card key={index} className="border-2 hover:border-primary transition-all">
-                        <CardHeader className="pb-2">
-                          <div className={`w-12 h-12 rounded-full ${service.color} flex items-center justify-center`}>
-                            {service.icon}
-                          </div>
-                          <CardTitle className="text-lg mt-1">{service.title}</CardTitle>
-                          <CardDescription className="h-12">{service.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="font-bold text-lg text-primary">{service.price}</div>
-                        </CardContent>
-                        <CardFooter>
-                          <Button 
-                            onClick={() => navigate("/visibility/additional-services")}
-                            className="w-full"
-                          >
-                            En savoir plus
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    ))}
+        <TabsContent value="main">
+          {/* Original Visibility page content */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {visibilityOptions.slice(0, 3).map((option, index) => (
+              <Card key={index} className="hover:shadow-md transition-all">
+                <CardHeader className="pb-2">
+                  <div className={`w-12 h-12 rounded-full ${option.color} flex items-center justify-center mb-2`}>
+                    {option.icon}
                   </div>
-                </CardContent>
-                <CardFooter className="flex justify-center border-t pt-4">
+                  <CardTitle>{option.title}</CardTitle>
+                  <CardDescription>{option.description}</CardDescription>
+                </CardHeader>
+                <CardFooter>
                   <Button 
-                    onClick={() => navigate("/visibility/additional-services")}
-                    variant="outline"
-                    size="lg"
+                    onClick={() => navigate(option.href)}
+                    className="w-full"
                   >
-                    Voir tous les services disponibles
+                    Accéder
                   </Button>
                 </CardFooter>
               </Card>
-            </div>
-          </TabsContent>
+            ))}
+          </div>
 
-          {/* These TabsContent sections are empty because they navigate to separate pages */}
-          <TabsContent value="booking-page"></TabsContent>
-          <TabsContent value="social-integration"></TabsContent>
-          <TabsContent value="visibility-boost"></TabsContent>
-          <TabsContent value="additional-services"></TabsContent>
-        </Tabs>
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold flex items-center gap-2 mb-4">
+              <DollarSign className="h-5 w-5 text-green-600" />
+              Services additionnels
+            </h2>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Boostez votre activité avec nos services professionnels</CardTitle>
+                <CardDescription>
+                  Des solutions clés en main pour augmenter votre visibilité et vos revenus
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {additionalServices.map((service, index) => (
+                    <Card key={index} className="border-2 hover:border-primary transition-all">
+                      <CardHeader className="pb-2">
+                        <div className={`w-12 h-12 rounded-full ${service.color} flex items-center justify-center`}>
+                          {service.icon}
+                        </div>
+                        <CardTitle className="text-lg mt-1">{service.title}</CardTitle>
+                        <CardDescription className="h-12">{service.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="font-bold text-lg text-primary">{service.price}</div>
+                      </CardContent>
+                      <CardFooter>
+                        <Button 
+                          onClick={() => navigate("/visibility/additional-services")}
+                          className="w-full"
+                        >
+                          En savoir plus
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+              <CardFooter className="flex justify-center border-t pt-4">
+                <Button 
+                  onClick={() => navigate("/visibility/additional-services")}
+                  variant="outline"
+                  size="lg"
+                >
+                  Voir tous les services disponibles
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </TabsContent>
       </div>
     </AppLayout>
   );
