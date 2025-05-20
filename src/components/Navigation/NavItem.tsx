@@ -9,11 +9,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { 
-  Collapsible, 
-  CollapsibleContent, 
-  CollapsibleTrigger 
-} from "@/components/ui/collapsible";
 
 interface NavItemProps {
   item: NavItemType;
@@ -47,55 +42,10 @@ export function NavItem({
   const isActive = isPathActive(item.href);
   const hasSubItems = item.subItems && item.subItems.length > 0;
   
-  if (hasSubItems) {
-    return (
-      <Collapsible open={isExpanded} onOpenChange={() => toggleExpanded(item.href)}>
-        <CollapsibleTrigger asChild>
-          <Button 
-            id={item.href}
-            variant={isActive ? "default" : "ghost"} 
-            className={cn(
-              "w-full justify-between text-left",
-              mobile ? "flex items-center py-2 h-auto" : "w-full justify-between text-left",
-              isActive ? "bg-primary text-primary-foreground" : "",
-              mobile && "rounded-md px-2",
-              item.href === "/visibility-boost" && isFirstTimeUser ? "animate-pulse ring-2 ring-primary" : ""
-            )}
-          >
-            <div className="flex items-center">
-              <item.icon className={cn("mr-2 h-4 w-4", mobile && "h-5 w-5")} />
-              <span className={cn(mobile && "text-sm font-medium")}>{item.name}</span>
-            </div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={cn("h-4 w-4 transition-transform", isExpanded ? "transform rotate-180" : "")}
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="pl-6 space-y-1 mt-1">
-          {item.subItems?.map((subItem) => (
-            <SubNavItem
-              key={subItem.name}
-              subItem={subItem}
-              mobile={mobile}
-              isPathActive={isPathActive}
-              handleNavigation={handleNavigation}
-            />
-          ))}
-        </CollapsibleContent>
-      </Collapsible>
-    );
-  }
+  // Pour les éléments avec des sous-menus, on détermine l'URL à utiliser
+  const navigationUrl = hasSubItems ? 
+    (item.subItems && item.subItems.length > 0 ? item.subItems[0].href : item.href) : 
+    item.href;
 
   return (
     <Tooltip key={item.name} delayDuration={300}>
@@ -109,7 +59,7 @@ export function NavItem({
             mobile && "rounded-md px-2",
             item.href === "/visibility-boost" && isFirstTimeUser ? "animate-pulse ring-2 ring-primary" : ""
           )}
-          onClick={() => handleNavigation(item.href)}
+          onClick={() => handleNavigation(navigationUrl)}
         >
           <item.icon className={cn(
             "mr-2 h-4 w-4", 
@@ -137,7 +87,7 @@ interface SubNavItemProps {
   handleNavigation: (href: string, hasSubItems?: boolean) => void;
 }
 
-function SubNavItem({ subItem, mobile, isPathActive, handleNavigation }: SubNavItemProps) {
+export function SubNavItem({ subItem, mobile, isPathActive, handleNavigation }: SubNavItemProps) {
   const isSubActive = isPathActive(subItem.href);
   
   return (
