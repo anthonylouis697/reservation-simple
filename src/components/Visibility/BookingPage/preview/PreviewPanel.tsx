@@ -1,7 +1,7 @@
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Eye, ImageIcon, Check } from 'lucide-react';
+import { Eye, ImageIcon } from 'lucide-react';
 import { useBookingPage } from '../BookingPageContext';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -192,17 +192,20 @@ export function PreviewPanel() {
             ) : (
               /* All-in-one layout: Show all steps */
               <div className="space-y-6 py-2">
-                {enabledSteps.map((step) => (
-                  <div key={step.id} className="border-b pb-4 last:border-b-0 last:pb-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="bg-accent rounded-full w-4 h-4 flex items-center justify-center">
-                        {step.icon && <IconComponent size={12} />}
+                {enabledSteps.map((step) => {
+                  const StepIcon = step.icon;
+                  return (
+                    <div key={step.id} className="border-b pb-4 last:border-b-0 last:pb-0">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="bg-accent rounded-full w-4 h-4 flex items-center justify-center">
+                          {step.icon && <StepIcon size={12} />}
+                        </div>
+                        <span className="text-sm font-medium">{step.name}</span>
                       </div>
-                      <span className="text-sm font-medium">{step.name}</span>
+                      {renderStepPreview(step, true)}
                     </div>
-                    {renderStepPreview(step, true)}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
             
@@ -228,3 +231,4 @@ export function PreviewPanel() {
     </Card>
   );
 }
+
