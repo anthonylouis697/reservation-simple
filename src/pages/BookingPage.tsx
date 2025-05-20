@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { AppLayout } from "@/components/AppLayout";
 import { VisibilityNavigation, useVisibilityNavigation } from "@/components/Visibility/VisibilityNavigation";
@@ -7,7 +7,7 @@ import { BookingPageCustomization } from "@/components/Visibility/BookingPage/Bo
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Check, Copy, ExternalLink } from "lucide-react";
+import { Check, Copy, ExternalLink, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useBookingPage } from "@/components/Visibility/BookingPage/BookingPageContext";
 import { BookingPageProvider } from "@/components/Visibility/BookingPage/BookingPageContext";
@@ -16,10 +16,19 @@ export default function BookingPage() {
   const { currentTab } = useVisibilityNavigation();
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Utilisation du contexte pour accéder aux données de la page de réservation
+  // Composant pour le contenu principal
   const PageContent = () => {
-    const { customUrl } = useBookingPage();
+    const { 
+      customUrl, 
+      saveBookingPageSettings, 
+      primaryColor, 
+      selectedTemplate, 
+      buttonCorners, 
+      layoutType, 
+      businessName 
+    } = useBookingPage();
     
     // URL de la page de réservation publique
     const publicBookingUrl = `${window.location.origin}/booking/${customUrl}`;
@@ -38,6 +47,20 @@ export default function BookingPage() {
       window.open(`/booking/${customUrl}`, '_blank');
     };
 
+    // Fonction pour sauvegarder les paramètres
+    const handleSaveSettings = async () => {
+      setIsSaving(true);
+      try {
+        await saveBookingPageSettings();
+        toast.success("Paramètres de la page de réservation enregistrés avec succès");
+      } catch (error) {
+        toast.error("Une erreur est survenue lors de l'enregistrement des paramètres");
+        console.error("Error saving booking page settings:", error);
+      } finally {
+        setIsSaving(false);
+      }
+    };
+
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -48,12 +71,29 @@ export default function BookingPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowPreviewDialog(true)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowPreviewDialog(true)}
+            >
               Partager
             </Button>
             <Button onClick={handleOpenPreview}>
               <ExternalLink className="mr-2 h-4 w-4" />
               Prévisualiser
+            </Button>
+            <Button 
+              variant="default"
+              onClick={handleSaveSettings}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <>Enregistrement...</>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Enregistrer
+                </>
+              )}
             </Button>
           </div>
         </div>

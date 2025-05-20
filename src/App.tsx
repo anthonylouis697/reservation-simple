@@ -26,6 +26,7 @@ import TeamPage from './pages/Account/TeamPage';
 import SocialIntegration from './pages/SocialIntegration';
 import Welcome from './pages/Welcome';
 import PublicBooking from './pages/PublicBooking';
+import Reservations from './pages/Reservations';
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
         <Route path="/clients" element={<Clients />} />
         <Route path="/services" element={<Services />} />
         <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/reservations" element={<Reservations />} />
         <Route path="/visibility" element={<Visibility />} />
         <Route path="/visibility/booking-page" element={<BookingPage />} />
         <Route path="/visibility/additional-services" element={<AdditionalServices />} />

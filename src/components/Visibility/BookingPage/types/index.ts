@@ -24,7 +24,7 @@ export type BookingStep = {
   customLabel?: string;
 };
 
-// Nouveaux types pour les modèles d'affichage
+// Types pour les modèles d'affichage
 export type BookingLayoutType = 'stepped' | 'all-in-one';
 
 export type BookingCustomTexts = {
@@ -34,6 +34,24 @@ export type BookingCustomTexts = {
   clientInfoLabel: string;
   paymentMethodLabel: string;
 };
+
+// Nouveau type pour regrouper tous les paramètres de la page de réservation
+export interface BookingPageSettings {
+  selectedTemplate: string;
+  primaryColor: string;
+  secondaryColor: string;
+  buttonCorners: 'squared' | 'rounded' | 'pill';
+  steps: BookingStep[];
+  businessName: string;
+  welcomeMessage: string;
+  logo: string | null;
+  customUrl: string;
+  bookingButtonText: string;
+  showConfirmation: boolean;
+  confirmationMessage: string;
+  layoutType: BookingLayoutType;
+  customTexts: BookingCustomTexts;
+}
 
 export interface BookingPageContextType {
   businessName: string;
@@ -69,4 +87,6 @@ export interface BookingPageContextType {
   customTexts: BookingCustomTexts;
   updateCustomText: (key: keyof BookingCustomTexts, value: string) => void;
   updateStepLabel: (id: string, label: string) => void;
+  // Fonction de sauvegarde
+  saveBookingPageSettings: () => Promise<void>;
 }

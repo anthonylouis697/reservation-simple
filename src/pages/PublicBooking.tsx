@@ -17,10 +17,22 @@ import { Check, Clock, Calendar as CalendarIcon } from 'lucide-react';
 import { Service, Category } from '@/types/service';
 import { useBookingPage } from '@/components/Visibility/BookingPage/BookingPageContext';
 import { BookingPageProvider } from '@/components/Visibility/BookingPage/BookingPageContext';
+import { createBooking, checkAvailability, BookingData } from '@/services/bookingService';
 
 // Import des données de test pour l'instant
 import { initialServices, initialCategories } from '@/mock/serviceData';
 import { getAvailableTimeSlots } from '@/utils/availability';
+
+// Fonction pour charger les paramètres de la page de réservation
+const loadBookingPageSettings = () => {
+  try {
+    const savedSettings = localStorage.getItem('bookingPageSettings');
+    return savedSettings ? JSON.parse(savedSettings) : null;
+  } catch (error) {
+    console.error('Error loading booking page settings:', error);
+    return null;
+  }
+};
 
 const BookingContent = () => {
   const { businessSlug } = useParams();
@@ -59,6 +71,8 @@ const BookingContent = () => {
 
   // État pour le succès de la réservation
   const [bookingComplete, setBookingComplete] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
+  const [isLoadingTimes, setIsLoadingTimes] = useState(false);
 
   // Filtrage des services par catégorie sélectionnée
   const filteredServices = selectedCategory
@@ -87,12 +101,37 @@ const BookingContent = () => {
   
   // Mise à jour des créneaux horaires disponibles lorsque la date est sélectionnée
   useEffect(() => {
-    if (selectedDate && selectedService) {
-      // Pour l'instant, nous utilisons une fonction factice pour obtenir les créneaux disponibles
-      const slots = getAvailableTimeSlots(selectedDate, selectedService.duration);
-      setAvailableTimes(slots);
-      setSelectedTime(null);  // Réinitialiser le temps sélectionné
-    }
+    const fetchAvailableTimes = async () => {
+      if (selectedDate && selectedService) {
+        setIsLoadingTimes(true);
+        try {
+          // Obtenir tous les créneaux potentiels
+          const allSlots = getAvailableTimeSlots(selectedDate, selectedService.duration);
+          
+          // Vérifier la disponibilité réelle de chaque créneau
+          const availabilityPromises = allSlots.map(async (slot) => {
+            const isAvailable = await checkAvailability(selectedDate, slot, selectedService.duration);
+            return { time: slot, available: isAvailable };
+          });
+          
+          const availabilityResults = await Promise.all(availabilityPromises);
+          const available = availabilityResults
+            .filter(result => result.available)
+            .map(result => result.time);
+          
+          setAvailableTimes(available);
+        } catch (error) {
+          console.error("Error fetching available times:", error);
+          toast.error("Erreur lors du chargement des horaires disponibles");
+        } finally {
+          setIsLoadingTimes(false);
+        }
+        
+        setSelectedTime(null);  // Réinitialiser le temps sélectionné
+      }
+    };
+    
+    fetchAvailableTimes();
   }, [selectedDate, selectedService]);
 
   // Fonction pour passer à l'étape suivante
@@ -135,28 +174,53 @@ const BookingContent = () => {
   };
 
   // Fonction pour soumettre la réservation
-  const handleBooking = () => {
+  const handleBooking = async () => {
     if (!selectedService || !selectedDate || !selectedTime || !clientName || !clientEmail) {
       toast.error("Informations incomplètes. Veuillez remplir tous les champs obligatoires.");
       return;
     }
 
-    // Simuler l'enregistrement de la réservation
-    console.log("Réservation enregistrée:", {
-      service: selectedService,
-      date: selectedDate,
-      time: selectedTime,
-      client: {
-        name: clientName,
-        email: clientEmail,
-        phone: clientPhone,
-        notes: clientNotes
+    setIsBooking(true);
+    
+    try {
+      // Vérifier à nouveau la disponibilité avant de finaliser
+      const isAvailable = await checkAvailability(selectedDate, selectedTime, selectedService.duration);
+      
+      if (!isAvailable) {
+        toast.error("Ce créneau n'est plus disponible. Veuillez en choisir un autre.");
+        // Retour à l'étape de sélection d'horaire
+        setCurrentStep(2);
+        setIsBooking(false);
+        return;
       }
-    });
-
-    // Afficher le message de confirmation
-    setBookingComplete(true);
-    toast.success("Votre réservation a été enregistrée avec succès!");
+      
+      // Préparer les données de réservation
+      const bookingData: BookingData = {
+        serviceId: selectedService.id,
+        date: selectedDate,
+        time: selectedTime,
+        client: {
+          name: clientName,
+          email: clientEmail,
+          phone: clientPhone || undefined,
+          notes: clientNotes || undefined
+        }
+      };
+      
+      // Enregistrer la réservation
+      const booking = await createBooking(bookingData);
+      
+      // Afficher le message de confirmation
+      setBookingComplete(true);
+      toast.success("Votre réservation a été enregistrée avec succès!");
+      
+      console.log("Réservation enregistrée:", booking);
+    } catch (error) {
+      console.error("Erreur lors de la création de la réservation:", error);
+      toast.error("Une erreur est survenue lors de la réservation. Veuillez réessayer.");
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   // Fonction pour recommencer le processus
@@ -350,25 +414,34 @@ const BookingContent = () => {
             
             <div className="flex flex-col sm:flex-row gap-6">
               <div className="flex-1">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                  {availableTimes.map((time) => (
-                    <Button
-                      key={time}
-                      variant={selectedTime === time ? "default" : "outline"}
-                      onClick={() => setSelectedTime(time)}
-                      {...(selectedTime === time ? getButtonStyle() : {})}
-                      className="w-full"
-                    >
-                      {time}
-                    </Button>
-                  ))}
-                  
-                  {availableTimes.length === 0 && (
-                    <div className="col-span-4 text-center p-6 border rounded-lg">
-                      <p>Aucun horaire disponible pour cette date. Veuillez sélectionner une autre date.</p>
+                {isLoadingTimes ? (
+                  <div className="flex justify-center items-center h-40">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                      <p>Chargement des horaires disponibles...</p>
                     </div>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    {availableTimes.map((time) => (
+                      <Button
+                        key={time}
+                        variant={selectedTime === time ? "default" : "outline"}
+                        onClick={() => setSelectedTime(time)}
+                        {...(selectedTime === time ? getButtonStyle() : {})}
+                        className="w-full"
+                      >
+                        {time}
+                      </Button>
+                    ))}
+                    
+                    {!isLoadingTimes && availableTimes.length === 0 && (
+                      <div className="col-span-4 text-center p-6 border rounded-lg">
+                        <p>Aucun horaire disponible pour cette date. Veuillez sélectionner une autre date.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               
               <div className="flex-1">
@@ -505,6 +578,7 @@ const BookingContent = () => {
             <Button
               variant="outline"
               onClick={handlePrevStep}
+              disabled={isBooking}
             >
               Précédent
             </Button>
@@ -512,9 +586,19 @@ const BookingContent = () => {
           
           <Button 
             onClick={handleNextStep}
+            disabled={isBooking}
             {...getButtonStyle()}
           >
-            {currentStep === activeSteps.length - 1 ? bookingButtonText : "Suivant"}
+            {isBooking ? (
+              <>
+                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+                Traitement...
+              </>
+            ) : currentStep === activeSteps.length - 1 ? (
+              bookingButtonText
+            ) : (
+              "Suivant"
+            )}
           </Button>
         </div>
       </div>
@@ -550,6 +634,29 @@ const BookingContent = () => {
 };
 
 const PublicBooking = () => {
+  // Charger les paramètres de réservation depuis le stockage local
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Simuler un temps de chargement pour les données
+    const timeout = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timeout);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg">Chargement de la page de réservation...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <BookingPageProvider>
       <div className="min-h-screen bg-gray-50">
