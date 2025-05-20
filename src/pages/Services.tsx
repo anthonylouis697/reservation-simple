@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useEffect } from "react";
 import { 
   PlusCircle, 
@@ -12,7 +11,8 @@ import {
   CalendarClock,
   Layers,
   ArrowLeft,
-  Pencil
+  Pencil,
+  Loader2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,9 @@ import { CategoriesManagement } from "@/components/Services/CategoriesManagement
 import { Service, Category } from "@/types/service";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useBusiness } from "@/contexts/BusinessContext";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -364,14 +367,16 @@ const OffersTab = ({
 export default function Services() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [services, setServices] = useState<Service[]>(initialServices);
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
+  const [services, setServices] = useState<Service[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [activeTab, setActiveTab] = useState("offers");
   const [searchTerm, setSearchTerm] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [viewingService, setViewingService] = useState<Service | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { currentBusiness } = useBusiness();
 
   // Determine active tab from URL query parameters
   useEffect(() => {
@@ -389,6 +394,82 @@ export default function Services() {
     setActiveTab(value);
     navigate(`/services?tab=${value}`);
   };
+
+  // Charger les services et catégories depuis Supabase
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!currentBusiness) {
+        setServices([]);
+        setCategories([]);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+
+      try {
+        // Charger les catégories
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('service_categories')
+          .select('*')
+          .eq('business_id', currentBusiness.id)
+          .order('position');
+
+        if (categoriesError) throw categoriesError;
+
+        // Convertir les données Supabase en format de l'application
+        const formattedCategories = categoriesData.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          description: cat.description || '',
+          isActive: cat.is_active,
+          order: cat.position,
+          parentId: cat.parent_id || undefined,
+          color: '#' + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0'), // Generate random color
+          imageUrl: undefined
+        }));
+
+        setCategories(formattedCategories);
+
+        // Charger les services
+        const { data: servicesData, error: servicesError } = await supabase
+          .from('services')
+          .select('*')
+          .eq('business_id', currentBusiness.id)
+          .order('position');
+
+        if (servicesError) throw servicesError;
+
+        // Convertir les données Supabase en format de l'application
+        const formattedServices = servicesData.map(svc => ({
+          id: svc.id,
+          name: svc.name,
+          description: svc.description || '',
+          isActive: svc.is_active,
+          categoryId: svc.category_id,
+          category: categoriesData.find(c => c.id === svc.category_id)?.name || 'Sans catégorie',
+          location: 'Cabinet principal', // Default value
+          capacity: 1, // Default value
+          bufferTimeBefore: 5, // Default value
+          bufferTimeAfter: 5, // Default value
+          assignedEmployees: [], // Default value
+          isRecurring: false // Default value
+        }));
+
+        setServices(formattedServices);
+      } catch (error) {
+        console.error("Erreur lors du chargement des données:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger vos données"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [currentBusiness]);
 
   // Calculate how many services are in each category
   const serviceCounts = useMemo(() => {
@@ -432,140 +513,349 @@ export default function Services() {
     setIsFormOpen(false);
   };
 
-  const handleSubmit = (serviceData: Service) => {
-    if (editingService) {
-      // Update existing service
-      setServices(services.map(s => 
-        s.id === serviceData.id ? serviceData : s
-      ));
+  const handleSubmit = async (serviceData: Service) => {
+    if (!currentBusiness) {
       toast({
-        title: "Service mis à jour",
-        description: `Le service "${serviceData.name}" a été modifié avec succès.`
+        title: "Erreur",
+        description: "Aucune entreprise sélectionnée"
       });
-    } else {
-      // Add new service with generated ID
-      const newService = {
-        ...serviceData,
-        id: Math.max(...services.map(s => parseInt(s.id, 10)), 0) + 1 + "",
-      };
-      setServices([...services, newService]);
+      return;
+    }
+
+    try {
+      if (editingService) {
+        // Mise à jour d'un service existant
+        const { error } = await supabase
+          .from('services')
+          .update({
+            name: serviceData.name,
+            description: serviceData.description || null,
+            duration: serviceData.duration,
+            price: serviceData.price,
+            is_active: serviceData.isActive,
+            category_id: serviceData.categoryId || null
+          })
+          .eq('id', serviceData.id);
+
+        if (error) throw error;
+
+        // Mettre à jour la liste des services en local
+        setServices(prev => prev.map(s => 
+          s.id === serviceData.id ? serviceData : s
+        ));
+
+        toast({
+          title: "Service mis à jour",
+          description: `Le service "${serviceData.name}" a été modifié avec succès.`
+        });
+      } else {
+        // Création d'un nouveau service
+        const { data, error } = await supabase
+          .from('services')
+          .insert({
+            business_id: currentBusiness.id,
+            name: serviceData.name,
+            description: serviceData.description || null,
+            duration: serviceData.duration,
+            price: serviceData.price,
+            is_active: serviceData.isActive,
+            category_id: serviceData.categoryId || null,
+            position: services.length // Ajout à la fin de la liste
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Ajouter le nouveau service à la liste locale
+        const newService = {
+          ...serviceData,
+          id: data.id
+        };
+        
+        setServices(prev => [...prev, newService]);
+
+        toast({
+          title: "Service créé",
+          description: `Le service "${serviceData.name}" a été ajouté avec succès.`
+        });
+      }
+
+      setIsFormOpen(false);
+    } catch (error: any) {
+      console.error('Erreur lors de l\'enregistrement du service:', error);
       toast({
-        title: "Service créé",
-        description: `Le service "${serviceData.name}" a été ajouté avec succès.`
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'enregistrement du service"
       });
     }
-    setIsFormOpen(false);
   };
 
-  const handleDeleteService = (serviceId: string) => {
-    setServices(services.filter(s => s.id !== serviceId));
-    setViewingService(null);
-    toast({
-      title: "Service supprimé",
-      description: "Le service a été supprimé avec succès."
-    });
-  };
-
-  const handleToggleStatus = (serviceId: string) => {
-    const updatedServices = services.map(s => 
-      s.id === serviceId ? { ...s, isActive: !s.isActive } : s
-    );
-    setServices(updatedServices);
-    
-    // Update viewing service if it's the one being toggled
-    if (viewingService && viewingService.id === serviceId) {
-      setViewingService({ ...viewingService, isActive: !viewingService.isActive });
+  const handleDeleteService = async (serviceId: string) => {
+    if (!window.confirm('Êtes-vous sûr de vouloir supprimer ce service ?')) {
+      return;
     }
-    
+
+    try {
+      const { error } = await supabase
+        .from('services')
+        .delete()
+        .eq('id', serviceId);
+
+      if (error) throw error;
+
+      // Mettre à jour la liste des services en local
+      setServices(prev => prev.filter(s => s.id !== serviceId));
+      setViewingService(null);
+
+      toast({
+        title: "Service supprimé",
+        description: "Le service a été supprimé avec succès."
+      });
+    } catch (error) {
+      console.error('Erreur lors de la suppression du service:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression du service"
+      });
+    }
+  };
+
+  const handleToggleStatus = async (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
-    if (service) {
+    if (!service) return;
+
+    try {
+      const { error } = await supabase
+        .from('services')
+        .update({ is_active: !service.isActive })
+        .eq('id', serviceId);
+
+      if (error) throw error;
+
+      // Mettre à jour la liste des services en local
+      setServices(prev => prev.map(s => 
+        s.id === serviceId ? { ...s, isActive: !s.isActive } : s
+      ));
+
+      // Mettre à jour le service en cours de visualisation
+      if (viewingService && viewingService.id === serviceId) {
+        setViewingService({ ...viewingService, isActive: !viewingService.isActive });
+      }
+
       const newStatus = !service.isActive;
       toast({
         title: newStatus ? "Service activé" : "Service désactivé",
         description: `Le service "${service.name}" est maintenant ${newStatus ? "actif" : "inactif"}.`
       });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du service:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la mise à jour du service"
+      });
     }
   };
 
-  const handleCancelForm = () => {
-    setIsFormOpen(false);
-    setEditingService(null);
-  };
-
-  const handleBackFromDetails = () => {
-    setViewingService(null);
-  };
-
   // Category management handlers
-  const handleAddCategory = (category: Category) => {
-    setCategories([...categories, category]);
-    toast({
-      title: "Catégorie créée",
-      description: `La catégorie "${category.name}" a été ajoutée avec succès.`
-    });
-  };
-
-  const handleUpdateCategory = (category: Category) => {
-    setCategories(categories.map(c => c.id === category.id ? category : c));
-    toast({
-      title: "Catégorie mise à jour",
-      description: `La catégorie "${category.name}" a été modifiée avec succès.`
-    });
-  };
-
-  const handleDeleteCategory = (categoryId: string) => {
-    // Get all descendant categories recursively
-    const getDescendantIds = (catId: string): string[] => {
-      const directChildren = categories.filter(c => c.parentId === catId).map(c => c.id);
-      const allDescendants = [...directChildren];
-      
-      directChildren.forEach(childId => {
-        allDescendants.push(...getDescendantIds(childId));
+  const handleAddCategory = async (category: Category) => {
+    if (!currentBusiness) {
+      toast({
+        title: "Erreur",
+        description: "Aucune entreprise sélectionnée"
       });
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('service_categories')
+        .insert({
+          business_id: currentBusiness.id,
+          name: category.name,
+          description: category.description || null,
+          is_active: category.isActive,
+          parent_id: category.parentId || null,
+          position: category.order || categories.length
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Ajouter la nouvelle catégorie à la liste locale
+      const newCategory = {
+        ...category,
+        id: data.id
+      };
       
-      return allDescendants;
-    };
-    
-    const descendantIds = getDescendantIds(categoryId);
-    const allIdsToDelete = [categoryId, ...descendantIds];
-    
-    // Remove the category and all descendants
-    setCategories(categories.filter(c => !allIdsToDelete.includes(c.id)));
-    
-    // Update services that were using these categories
-    setServices(services.map(service => 
-      allIdsToDelete.includes(service.categoryId || "") 
-        ? { ...service, categoryId: undefined } 
-        : service
-    ));
-    
-    toast({
-      title: "Catégorie supprimée",
-      description: `La catégorie et ses sous-catégories ont été supprimées avec succès.`
-    });
+      setCategories(prev => [...prev, newCategory]);
+
+      toast({
+        title: "Catégorie créée",
+        description: `La catégorie "${category.name}" a été ajoutée avec succès.`
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'ajout de la catégorie:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'ajout de la catégorie"
+      });
+    }
   };
 
-  const handleToggleCategoryStatus = (categoryId: string) => {
-    setCategories(categories.map(c => 
-      c.id === categoryId ? { ...c, isActive: !c.isActive } : c
-    ));
-    
+  const handleUpdateCategory = async (category: Category) => {
+    try {
+      const { error } = await supabase
+        .from('service_categories')
+        .update({
+          name: category.name,
+          description: category.description || null,
+          is_active: category.isActive,
+          parent_id: category.parentId || null,
+          position: category.order || 0
+        })
+        .eq('id', category.id);
+
+      if (error) throw error;
+
+      // Mettre à jour la liste des catégories en local
+      setCategories(prev => prev.map(c => c.id === category.id ? category : c));
+
+      toast({
+        title: "Catégorie mise à jour",
+        description: `La catégorie "${category.name}" a été modifiée avec succès.`
+      });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la catégorie:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la mise à jour de la catégorie"
+      });
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    try {
+      // Vérifier si la catégorie a des services associés
+      const hasServices = services.some(s => s.categoryId === categoryId);
+      if (hasServices) {
+        if (!window.confirm('Cette catégorie contient des services. La suppression va dissocier ces services de leur catégorie. Continuer ?')) {
+          return;
+        }
+        
+        // Mettre à jour les services associés
+        const { error: updateError } = await supabase
+          .from('services')
+          .update({ category_id: null })
+          .eq('category_id', categoryId);
+          
+        if (updateError) throw updateError;
+        
+        // Mettre à jour les services localement
+        setServices(prev => prev.map(service => 
+          service.categoryId === categoryId 
+            ? { ...service, categoryId: undefined, category: 'Sans catégorie' } 
+            : service
+        ));
+      }
+
+      // Vérifier si la catégorie a des enfants
+      const childCategories = categories.filter(c => c.parentId === categoryId);
+      if (childCategories.length > 0) {
+        if (!window.confirm('Cette catégorie a des sous-catégories. La suppression va également supprimer ces sous-catégories. Continuer ?')) {
+          return;
+        }
+        
+        // Supprimer les enfants
+        for (const childCat of childCategories) {
+          await handleDeleteCategory(childCat.id);
+        }
+      }
+      
+      // Supprimer la catégorie
+      const { error } = await supabase
+        .from('service_categories')
+        .delete()
+        .eq('id', categoryId);
+        
+      if (error) throw error;
+      
+      // Mettre à jour la liste des catégories en local
+      setCategories(prev => prev.filter(c => c.id !== categoryId));
+      
+      toast({
+        title: "Catégorie supprimée",
+        description: "La catégorie a été supprimée avec succès."
+      });
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la catégorie:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la suppression de la catégorie"
+      });
+    }
+  };
+
+  const handleToggleCategoryStatus = async (categoryId: string) => {
     const category = categories.find(c => c.id === categoryId);
-    if (category) {
+    if (!category) return;
+    
+    try {
+      const { error } = await supabase
+        .from('service_categories')
+        .update({ is_active: !category.isActive })
+        .eq('id', categoryId);
+        
+      if (error) throw error;
+      
+      // Mettre à jour la liste des catégories en local
+      setCategories(prev => prev.map(c => 
+        c.id === categoryId ? { ...c, isActive: !c.isActive } : c
+      ));
+      
       const newStatus = !category.isActive;
       toast({
         title: newStatus ? "Catégorie activée" : "Catégorie désactivée",
         description: `La catégorie "${category.name}" est maintenant ${newStatus ? "active" : "inactive"}.`
       });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la catégorie:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la mise à jour de la catégorie"
+      });
     }
   };
 
-  const handleReorderCategories = (updatedCategories: Category[]) => {
-    setCategories(updatedCategories);
-    toast({
-      title: "Catégories réordonnées",
-      description: "L'ordre des catégories a été mis à jour avec succès."
-    });
+  const handleReorderCategories = async (updatedCategories: Category[]) => {
+    try {
+      // Mettre à jour la position des catégories en base de données
+      for (let i = 0; i < updatedCategories.length; i++) {
+        const category = updatedCategories[i];
+        
+        const { error } = await supabase
+          .from('service_categories')
+          .update({ position: i })
+          .eq('id', category.id);
+          
+        if (error) throw error;
+      }
+      
+      // Mettre à jour la liste des catégories en local
+      setCategories(updatedCategories);
+      
+      toast({
+        title: "Catégories réordonnées",
+        description: "L'ordre des catégories a été mis à jour avec succès."
+      });
+    } catch (error) {
+      console.error('Erreur lors de la réorganisation des catégories:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de la réorganisation des catégories"
+      });
+    }
   };
   
   return (
@@ -608,7 +898,25 @@ export default function Services() {
             </div>
           </div>
 
-          {!isFormOpen && !viewingService && (
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2">Chargement des données...</span>
+            </div>
+          ) : !currentBusiness ? (
+            <div className="bg-muted/40 border rounded-lg p-8 text-center">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Tag className="h-8 w-8 text-primary/70" />
+              </div>
+              <h3 className="text-xl font-medium mb-2">Aucune entreprise sélectionnée</h3>
+              <p className="text-muted-foreground mb-4 max-w-md mx-auto">
+                Veuillez sélectionner ou créer une entreprise pour gérer vos offres et services.
+              </p>
+              <Button variant="default" onClick={() => navigate("/settings")}>
+                Gérer mes entreprises
+              </Button>
+            </div>
+          ) : (!isFormOpen && !viewingService) ? (
             <Tabs value={activeTab} onValueChange={handleTabChange}>
               <TabsList className="mb-4">
                 <TabsTrigger value="offers">Offres</TabsTrigger>
@@ -644,14 +952,17 @@ export default function Services() {
                 <ResourcesTab />
               </TabsContent>
             </Tabs>
-          )}
+          ) : null}
 
           {isFormOpen && (
             <ServiceForm 
               initialData={editingService || undefined} 
               categories={categories}
               onSubmit={handleSubmit}
-              onCancel={handleCancelForm}
+              onCancel={() => {
+                setIsFormOpen(false);
+                setEditingService(null);
+              }}
             />
           )}
 
@@ -662,7 +973,7 @@ export default function Services() {
               onEdit={() => handleEditService(viewingService)}
               onDelete={() => handleDeleteService(viewingService.id)}
               onToggleStatus={() => handleToggleStatus(viewingService.id)}
-              onBack={handleBackFromDetails}
+              onBack={() => setViewingService(null)}
             />
           )}
         </div>
