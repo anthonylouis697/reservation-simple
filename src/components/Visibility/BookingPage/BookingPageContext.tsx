@@ -24,6 +24,13 @@ interface BookingPageContextType {
   handleStepChange: (id: string, enabled: boolean) => void;
   customUrl: string;
   setCustomUrl: (url: string) => void;
+  // Nouvelles propriétés ajoutées
+  bookingButtonText: string;
+  setBookingButtonText: (text: string) => void;
+  showConfirmation: boolean;
+  setShowConfirmation: (show: boolean) => void;
+  confirmationMessage: string;
+  setConfirmationMessage: (message: string) => void;
 }
 
 const BookingPageContext = createContext<BookingPageContextType | undefined>(undefined);
@@ -95,6 +102,11 @@ export function BookingPageProvider({ children }: BookingPageProviderProps) {
   const [welcomeMessage, setWelcomeMessage] = useState<string>('Bienvenue sur notre page de réservation');
   const [logo, setLogo] = useState<string | null>(null);
   const [customUrl, setCustomUrl] = useState<string>('votre-nom');
+  
+  // Nouvelles propriétés ajoutées
+  const [bookingButtonText, setBookingButtonText] = useState<string>('Réserver maintenant');
+  const [showConfirmation, setShowConfirmation] = useState<boolean>(true);
+  const [confirmationMessage, setConfirmationMessage] = useState<string>('Merci pour votre réservation ! Nous avons bien reçu votre demande.');
 
   // Fonction pour gérer le changement d'activation d'une étape
   const handleStepChange = (id: string, enabled: boolean) => {
@@ -128,6 +140,13 @@ export function BookingPageProvider({ children }: BookingPageProviderProps) {
         handleStepChange,
         customUrl,
         setCustomUrl,
+        // Nouvelles propriétés ajoutées
+        bookingButtonText,
+        setBookingButtonText,
+        showConfirmation,
+        setShowConfirmation,
+        confirmationMessage,
+        setConfirmationMessage,
       }}
     >
       {children}
