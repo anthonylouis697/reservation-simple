@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link as LinkIcon, Share, Star, DollarSign, Globe, Pencil } from "lucide-react";
 import { VisibilityNavigation, useVisibilityNavigation, visibilityTabs } from "@/components/Visibility/VisibilityNavigation";
 
@@ -102,81 +102,84 @@ export default function Visibility() {
         {/* Sub-navigation tabs */}
         <VisibilityNavigation currentTab={currentTab} />
 
-        <TabsContent value="main">
-          {/* Original Visibility page content */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {visibilityOptions.slice(0, 3).map((option, index) => (
-              <Card key={index} className="hover:shadow-md transition-all">
-                <CardHeader className="pb-2">
-                  <div className={`w-12 h-12 rounded-full ${option.color} flex items-center justify-center mb-2`}>
-                    {option.icon}
-                  </div>
-                  <CardTitle>{option.title}</CardTitle>
-                  <CardDescription>{option.description}</CardDescription>
+        {/* Wrap TabsContent in a Tabs component */}
+        <Tabs value="main" defaultValue="main">
+          <TabsContent value="main">
+            {/* Original Visibility page content */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {visibilityOptions.slice(0, 3).map((option, index) => (
+                <Card key={index} className="hover:shadow-md transition-all">
+                  <CardHeader className="pb-2">
+                    <div className={`w-12 h-12 rounded-full ${option.color} flex items-center justify-center mb-2`}>
+                      {option.icon}
+                    </div>
+                    <CardTitle>{option.title}</CardTitle>
+                    <CardDescription>{option.description}</CardDescription>
+                  </CardHeader>
+                  <CardFooter>
+                    <Button 
+                      onClick={() => navigate(option.href)}
+                      className="w-full"
+                    >
+                      Accéder
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+
+            <div className="mt-8">
+              <h2 className="text-xl font-semibold flex items-center gap-2 mb-4">
+                <DollarSign className="h-5 w-5 text-green-600" />
+                Services additionnels
+              </h2>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle>Boostez votre activité avec nos services professionnels</CardTitle>
+                  <CardDescription>
+                    Des solutions clés en main pour augmenter votre visibilité et vos revenus
+                  </CardDescription>
                 </CardHeader>
-                <CardFooter>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {additionalServices.map((service, index) => (
+                      <Card key={index} className="border-2 hover:border-primary transition-all">
+                        <CardHeader className="pb-2">
+                          <div className={`w-12 h-12 rounded-full ${service.color} flex items-center justify-center`}>
+                            {service.icon}
+                          </div>
+                          <CardTitle className="text-lg mt-1">{service.title}</CardTitle>
+                          <CardDescription className="h-12">{service.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="font-bold text-lg text-primary">{service.price}</div>
+                        </CardContent>
+                        <CardFooter>
+                          <Button 
+                            onClick={() => navigate("/visibility/additional-services")}
+                            className="w-full"
+                          >
+                            En savoir plus
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-center border-t pt-4">
                   <Button 
-                    onClick={() => navigate(option.href)}
-                    className="w-full"
+                    onClick={() => navigate("/visibility/additional-services")}
+                    variant="outline"
+                    size="lg"
                   >
-                    Accéder
+                    Voir tous les services disponibles
                   </Button>
                 </CardFooter>
               </Card>
-            ))}
-          </div>
-
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold flex items-center gap-2 mb-4">
-              <DollarSign className="h-5 w-5 text-green-600" />
-              Services additionnels
-            </h2>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Boostez votre activité avec nos services professionnels</CardTitle>
-                <CardDescription>
-                  Des solutions clés en main pour augmenter votre visibilité et vos revenus
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {additionalServices.map((service, index) => (
-                    <Card key={index} className="border-2 hover:border-primary transition-all">
-                      <CardHeader className="pb-2">
-                        <div className={`w-12 h-12 rounded-full ${service.color} flex items-center justify-center`}>
-                          {service.icon}
-                        </div>
-                        <CardTitle className="text-lg mt-1">{service.title}</CardTitle>
-                        <CardDescription className="h-12">{service.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="font-bold text-lg text-primary">{service.price}</div>
-                      </CardContent>
-                      <CardFooter>
-                        <Button 
-                          onClick={() => navigate("/visibility/additional-services")}
-                          className="w-full"
-                        >
-                          En savoir plus
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-center border-t pt-4">
-                <Button 
-                  onClick={() => navigate("/visibility/additional-services")}
-                  variant="outline"
-                  size="lg"
-                >
-                  Voir tous les services disponibles
-                </Button>
-              </CardFooter>
-            </Card>
-          </div>
-        </TabsContent>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </AppLayout>
   );
