@@ -1,92 +1,75 @@
 
-import { ReactNode } from 'react';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon } from "lucide-react";
+import { Database } from "@/integrations/supabase/types";
 
-export type BookingTemplate = {
+// Types for DB
+export type Json = 
+  | string
+  | number
+  | boolean
+  | { [key: string]: Json | undefined }
+  | Json[]
+  | null;
+
+export type BookingPageSettingsDB = Database['public']['Tables']['booking_page_settings']['Row'];
+
+// App types for BookingStep
+export interface BookingStep {
   id: string;
-  name: string;
+  title: string;
   description: string;
-  preview: string;
-  colors: {
-    primary: string;
-    secondary: string;
-    background: string;
-    text: string;
-  };
-  style: 'standard' | 'minimal' | 'premium';
-};
-
-export type BookingStep = {
-  id: string;
-  name: string;
-  icon: LucideIcon;
   enabled: boolean;
-  customLabel?: string;
-};
+  position: number;
+  icon?: LucideIcon;
+}
 
-// Types pour les modèles d'affichage
-export type BookingLayoutType = 'stepped' | 'all-in-one';
+// App types for Custom Texts
+export interface BookingCustomTexts {
+  confirmationTitle: string;
+  confirmationMessage: string;
+  serviceSelectionTitle: string;
+  serviceSelectionDescription: string;
+  dateSelectionTitle: string;
+  dateSelectionDescription: string;
+  clientInfoTitle: string;
+  clientInfoDescription: string;
+}
 
-export type BookingCustomTexts = {
-  selectServiceLabel: string;
-  selectDateLabel: string;
-  selectTimeLabel: string;
-  clientInfoLabel: string;
-  paymentMethodLabel: string;
-};
-
-// Nouveau type pour regrouper tous les paramètres de la page de réservation
+// App types
 export interface BookingPageSettings {
+  id?: string;
+  businessId: string;
   selectedTemplate: string;
   primaryColor: string;
   secondaryColor: string;
-  buttonCorners: 'squared' | 'rounded' | 'pill';
-  steps: BookingStep[];
-  businessName: string;
+  buttonCorners: "rounded" | "squared" | "pill";
   welcomeMessage: string;
-  logo: string | null;
-  customUrl: string;
+  businessName?: string;
+  logo?: string;
+  customUrl?: string;
   bookingButtonText: string;
   showConfirmation: boolean;
-  confirmationMessage: string;
-  layoutType: BookingLayoutType;
+  confirmationMessage?: string;
+  layoutType: "stepped" | "allinone";
+  steps: BookingStep[];
   customTexts: BookingCustomTexts;
 }
 
-export interface BookingPageContextType {
-  businessName: string;
-  setBusinessName: (name: string) => void;
-  welcomeMessage: string;
-  setWelcomeMessage: (message: string) => void;
-  selectedTemplate: string;
-  setSelectedTemplate: (templateId: string) => void;
-  primaryColor: string;
-  setPrimaryColor: (color: string) => void;
-  secondaryColor: string;
-  setSecondaryColor: (color: string) => void;
-  buttonCorners: 'squared' | 'rounded' | 'pill';
-  setButtonCorners: (style: 'squared' | 'rounded' | 'pill') => void;
-  logo: string | null;
-  setLogo: (logo: string | null) => void;
-  templates: BookingTemplate[];
-  steps: BookingStep[];
-  setSteps: (steps: BookingStep[]) => void;
-  handleStepChange: (id: string, enabled: boolean) => void;
-  customUrl: string;
-  setCustomUrl: (url: string) => void;
-  // Propriétés existantes
-  bookingButtonText: string;
-  setBookingButtonText: (text: string) => void;
-  showConfirmation: boolean;
-  setShowConfirmation: (show: boolean) => void;
-  confirmationMessage: string;
-  setConfirmationMessage: (message: string) => void;
-  // Nouvelles propriétés
-  layoutType: BookingLayoutType;
-  setLayoutType: (type: BookingLayoutType) => void;
-  customTexts: BookingCustomTexts;
-  updateCustomText: (key: keyof BookingCustomTexts, value: string) => void;
-  updateStepLabel: (id: string, label: string) => void;
-  // Fonction de sauvegarde
-  saveBookingPageSettings: () => Promise<void>;
+// Helper types for conversion
+export interface BookingPageSettingsForDB {
+  business_id: string;
+  selected_template: string;
+  primary_color: string;
+  secondary_color: string;
+  button_corners: string;
+  welcome_message: string;
+  business_name?: string;
+  logo?: string;
+  custom_url?: string;
+  booking_button_text: string;
+  show_confirmation: boolean;
+  confirmation_message?: string;
+  layout_type: string;
+  steps: Json;
+  custom_texts: Json;
 }

@@ -2,9 +2,60 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import type { BookingPageSettings } from '@/components/Visibility/BookingPage/types';
+import type { 
+  BookingPageSettings, 
+  BookingStep,
+  BookingCustomTexts,
+  BookingPageSettingsForDB,
+  Json
+} from '@/components/Visibility/BookingPage/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { defaultSteps, defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
+
+// Helper function to convert from DB format to app format
+const convertFromDB = (dbSettings: any): BookingPageSettings => {
+  return {
+    id: dbSettings.id,
+    businessId: dbSettings.business_id,
+    selectedTemplate: dbSettings.selected_template,
+    primaryColor: dbSettings.primary_color,
+    secondaryColor: dbSettings.secondary_color,
+    buttonCorners: dbSettings.button_corners as "rounded" | "squared" | "pill",
+    welcomeMessage: dbSettings.welcome_message,
+    businessName: dbSettings.business_name,
+    logo: dbSettings.logo,
+    customUrl: dbSettings.custom_url,
+    bookingButtonText: dbSettings.booking_button_text,
+    showConfirmation: dbSettings.show_confirmation,
+    confirmationMessage: dbSettings.confirmation_message,
+    layoutType: dbSettings.layout_type as "stepped" | "allinone",
+    steps: Array.isArray(dbSettings.steps) ? dbSettings.steps : defaultSteps,
+    customTexts: dbSettings.custom_texts ? dbSettings.custom_texts : defaultCustomTexts
+  };
+};
+
+// Helper function to convert from app format to DB format
+const convertToDB = (appSettings: Partial<BookingPageSettings>): Partial<BookingPageSettingsForDB> => {
+  const result: Partial<BookingPageSettingsForDB> = {};
+  
+  if (appSettings.businessId !== undefined) result.business_id = appSettings.businessId;
+  if (appSettings.selectedTemplate !== undefined) result.selected_template = appSettings.selectedTemplate;
+  if (appSettings.primaryColor !== undefined) result.primary_color = appSettings.primaryColor;
+  if (appSettings.secondaryColor !== undefined) result.secondary_color = appSettings.secondaryColor;
+  if (appSettings.buttonCorners !== undefined) result.button_corners = appSettings.buttonCorners;
+  if (appSettings.welcomeMessage !== undefined) result.welcome_message = appSettings.welcomeMessage;
+  if (appSettings.businessName !== undefined) result.business_name = appSettings.businessName;
+  if (appSettings.logo !== undefined) result.logo = appSettings.logo;
+  if (appSettings.customUrl !== undefined) result.custom_url = appSettings.customUrl;
+  if (appSettings.bookingButtonText !== undefined) result.booking_button_text = appSettings.bookingButtonText;
+  if (appSettings.showConfirmation !== undefined) result.show_confirmation = appSettings.showConfirmation;
+  if (appSettings.confirmationMessage !== undefined) result.confirmation_message = appSettings.confirmationMessage;
+  if (appSettings.layoutType !== undefined) result.layout_type = appSettings.layoutType;
+  if (appSettings.steps !== undefined) result.steps = appSettings.steps as unknown as Json;
+  if (appSettings.customTexts !== undefined) result.custom_texts = appSettings.customTexts as unknown as Json;
+  
+  return result;
+};
 
 export const useBookingPageSettings = (businessId?: string) => {
   const [settings, setSettings] = useState<BookingPageSettings | null>(null);
@@ -34,11 +85,7 @@ export const useBookingPageSettings = (businessId?: string) => {
             setError(error.message);
           }
         } else if (data) {
-          setSettings({
-            ...data,
-            steps: data.steps || defaultSteps,
-            customTexts: data.custom_texts || defaultCustomTexts
-          });
+          setSettings(convertFromDB(data));
         }
       } catch (err) {
         console.error('Erreur:', err);
@@ -54,7 +101,7 @@ export const useBookingPageSettings = (businessId?: string) => {
   // Créer des paramètres par défaut si aucun n'existe
   const createDefaultSettings = async (businessId: string) => {
     try {
-      const defaultSettings: Partial<BookingPageSettings> = {
+      const defaultSettings: BookingPageSettingsForDB = {
         business_id: businessId,
         selected_template: 'standard',
         primary_color: '#4f46e5',
@@ -64,8 +111,8 @@ export const useBookingPageSettings = (businessId?: string) => {
         booking_button_text: 'Réserver',
         show_confirmation: true,
         layout_type: 'stepped',
-        steps: defaultSteps,
-        custom_texts: defaultCustomTexts
+        steps: defaultSteps as unknown as Json,
+        custom_texts: defaultCustomTexts as unknown as Json
       };
 
       const { data, error } = await supabase
@@ -78,11 +125,7 @@ export const useBookingPageSettings = (businessId?: string) => {
         console.error('Erreur lors de la création des paramètres par défaut:', error);
         setError(error.message);
       } else if (data) {
-        setSettings({
-          ...data,
-          steps: data.steps || defaultSteps,
-          customTexts: data.custom_texts || defaultCustomTexts
-        });
+        setSettings(convertFromDB(data));
       }
     } catch (err) {
       console.error('Erreur:', err);
@@ -100,23 +143,24 @@ export const useBookingPageSettings = (businessId?: string) => {
     }
 
     try {
-      // Formater les données pour Supabase
+      // Convert application format to database format
+      const dbSettings = convertToDB({
+        ...updatedSettings,
+        businessId // Ensure businessId is included
+      });
+
+      // Remove steps and custom_texts from dbSettings to avoid type issues
+      // We'll handle them separately
+      const { steps, custom_texts, ...restDbSettings } = dbSettings;
+
+      // Prepare the final object for upsert, with appropriately typed fields
       const formattedSettings = {
+        ...restDbSettings,
+        // Ensure business_id is set
         business_id: businessId,
-        selected_template: updatedSettings.selectedTemplate,
-        primary_color: updatedSettings.primaryColor,
-        secondary_color: updatedSettings.secondaryColor,
-        button_corners: updatedSettings.buttonCorners,
-        welcome_message: updatedSettings.welcomeMessage,
-        business_name: updatedSettings.businessName,
-        logo: updatedSettings.logo,
-        custom_url: updatedSettings.customUrl,
-        booking_button_text: updatedSettings.bookingButtonText,
-        show_confirmation: updatedSettings.showConfirmation,
-        confirmation_message: updatedSettings.confirmationMessage,
-        layout_type: updatedSettings.layoutType,
-        steps: updatedSettings.steps,
-        custom_texts: updatedSettings.customTexts
+        // Convert complex objects to JSON strings for database storage
+        steps: JSON.stringify(updatedSettings.steps || []),
+        custom_texts: JSON.stringify(updatedSettings.customTexts || {})
       };
 
       const { error } = await supabase
