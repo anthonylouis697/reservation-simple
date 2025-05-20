@@ -5,7 +5,7 @@ import { Menu, X, Search, Bell, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { MainNavigation } from "@/components/MainNavigation";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 export function MobileHeader() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -21,7 +21,7 @@ export function MobileHeader() {
                 <span className="sr-only">Menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] p-0" showClose={false}>
+            <SheetContent side="left" className="w-[280px] p-0">
               <div className="flex h-14 items-center border-b px-4">
                 <Link
                   to="/"
@@ -29,10 +29,10 @@ export function MobileHeader() {
                 >
                   <span className="text-xl font-bold">Reservatoo</span>
                 </Link>
-                <Sheet.Close className="ml-auto">
+                <SheetClose className="ml-auto">
                   <X className="h-5 w-5" />
                   <span className="sr-only">Close</span>
-                </Sheet.Close>
+                </SheetClose>
               </div>
               <div className="py-4 px-4">
                 <MainNavigation />
