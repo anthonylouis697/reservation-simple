@@ -1,17 +1,20 @@
 
 import { FC } from 'react';
 import { Button } from '@/components/ui/button';
+import { FullScreenPreview } from '../FullScreenPreview';
 
 interface PreviewFooterProps {
   bookingButtonText: string;
   primaryColor: string;
   buttonCorners: 'squared' | 'rounded' | 'pill';
+  showFullscreenButton?: boolean;
 }
 
 export const PreviewFooter: FC<PreviewFooterProps> = ({ 
   bookingButtonText, 
   primaryColor, 
-  buttonCorners 
+  buttonCorners,
+  showFullscreenButton = true
 }) => {
   // Generate the classes CSS for the style of buttons
   const getButtonClasses = () => {
@@ -35,11 +38,11 @@ export const PreviewFooter: FC<PreviewFooterProps> = ({
         Aperçu simplifié. L'apparence réelle peut varier.
       </p>
       
-      <div className="flex justify-center mt-4">
-        <Button variant="outline" size="sm" className="text-xs">
-          Voir en plein écran
-        </Button>
-      </div>
+      {showFullscreenButton && (
+        <div className="flex justify-center mt-4">
+          <FullScreenPreview />
+        </div>
+      )}
     </>
   );
 };
