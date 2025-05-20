@@ -8,6 +8,7 @@ import { SteppedLayoutPreview } from './components/SteppedLayoutPreview';
 import { AllInOneLayoutPreview } from './components/AllInOneLayoutPreview';
 import { PreviewFooter } from './components/PreviewFooter';
 import { getTemplateStyles } from './utils/templateStyles';
+import { BookingTemplate } from '../types';
 
 export function PreviewPanel() {
   const {
@@ -36,7 +37,7 @@ export function PreviewPanel() {
       <CardContent>
         <div 
           className="border rounded-lg overflow-hidden"
-          style={getTemplateStyles(template)}
+          style={getTemplateStyles(template as BookingTemplate)}
         >
           <PreviewTemplateHeader 
             businessName={businessName}

@@ -25,7 +25,7 @@ export interface BookingTemplate {
     background: string;
     text: string;
   };
-  style: string;
+  style: "standard" | "minimal" | "premium";
 }
 
 // App types for BookingStep
@@ -53,11 +53,11 @@ export interface BookingCustomTexts {
   dateSelectionDescription: string;
   clientInfoTitle: string;
   clientInfoDescription: string;
-  selectServiceLabel: string; // Added missing property
-  selectDateLabel: string; // Added missing property
-  selectTimeLabel: string; // Added missing property
-  clientInfoLabel: string; // Added missing property
-  paymentMethodLabel: string; // Added missing property
+  selectServiceLabel: string;
+  selectDateLabel: string;
+  selectTimeLabel: string;
+  clientInfoLabel: string;
+  paymentMethodLabel: string;
 }
 
 // App types

@@ -35,26 +35,29 @@ const convertFromDB = (dbSettings: any): BookingPageSettings => {
 };
 
 // Helper function to convert from app format to DB format
-const convertToDB = (appSettings: Partial<BookingPageSettings>): Partial<BookingPageSettingsForDB> => {
-  const result: Partial<BookingPageSettingsForDB> = {};
-  
-  if (appSettings.businessId !== undefined) result.business_id = appSettings.businessId;
-  if (appSettings.selectedTemplate !== undefined) result.selected_template = appSettings.selectedTemplate;
-  if (appSettings.primaryColor !== undefined) result.primary_color = appSettings.primaryColor;
-  if (appSettings.secondaryColor !== undefined) result.secondary_color = appSettings.secondaryColor;
-  if (appSettings.buttonCorners !== undefined) result.button_corners = appSettings.buttonCorners;
-  if (appSettings.welcomeMessage !== undefined) result.welcome_message = appSettings.welcomeMessage;
-  if (appSettings.businessName !== undefined) result.business_name = appSettings.businessName;
-  if (appSettings.logo !== undefined) result.logo = appSettings.logo;
-  if (appSettings.customUrl !== undefined) result.custom_url = appSettings.customUrl;
-  if (appSettings.bookingButtonText !== undefined) result.booking_button_text = appSettings.bookingButtonText;
-  if (appSettings.showConfirmation !== undefined) result.show_confirmation = appSettings.showConfirmation;
-  if (appSettings.confirmationMessage !== undefined) result.confirmation_message = appSettings.confirmationMessage;
-  if (appSettings.layoutType !== undefined) result.layout_type = appSettings.layoutType;
-  if (appSettings.steps !== undefined) result.steps = appSettings.steps as unknown as Json;
-  if (appSettings.customTexts !== undefined) result.custom_texts = appSettings.customTexts as unknown as Json;
-  
-  return result;
+const convertToDB = (appSettings: Partial<BookingPageSettings>): BookingPageSettingsForDB => {
+  // Always ensure business_id is included
+  if (!appSettings.businessId) {
+    throw new Error("Business ID is required");
+  }
+
+  return {
+    business_id: appSettings.businessId,
+    selected_template: appSettings.selectedTemplate || 'standard',
+    primary_color: appSettings.primaryColor || '#4f46e5',
+    secondary_color: appSettings.secondaryColor || '#ffffff',
+    button_corners: appSettings.buttonCorners || 'rounded',
+    welcome_message: appSettings.welcomeMessage || 'Bienvenue sur notre page de réservation',
+    business_name: appSettings.businessName,
+    logo: appSettings.logo || null,
+    custom_url: appSettings.customUrl,
+    booking_button_text: appSettings.bookingButtonText || 'Réserver',
+    show_confirmation: appSettings.showConfirmation !== undefined ? appSettings.showConfirmation : true,
+    confirmation_message: appSettings.confirmationMessage,
+    layout_type: appSettings.layoutType || 'stepped',
+    steps: appSettings.steps as unknown as Json,
+    custom_texts: appSettings.customTexts as unknown as Json
+  };
 };
 
 export const useBookingPageSettings = (businessId?: string) => {
@@ -143,11 +146,14 @@ export const useBookingPageSettings = (businessId?: string) => {
     }
 
     try {
-      // Convert application format to database format
-      const dbSettings = convertToDB({
+      // Ensure businessId is included
+      const settingsWithBusinessId = {
         ...updatedSettings,
-        businessId // Ensure businessId is included
-      });
+        businessId: businessId
+      };
+
+      // Convert application format to database format
+      const dbSettings = convertToDB(settingsWithBusinessId);
 
       // Prepare the final object for upsert
       const { error } = await supabase

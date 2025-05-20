@@ -11,7 +11,7 @@ export function LayoutSelector() {
   const { layoutType, setLayoutType } = useBookingPage();
 
   const handleLayoutChange = (value: string) => {
-    setLayoutType(value as 'stepped' | 'all-in-one');
+    setLayoutType(value as "stepped" | "allinone");
     toast.success(`Modèle "${value === 'stepped' ? 'Par étapes' : 'Tout-en-un'}" sélectionné`);
   };
 
@@ -62,13 +62,13 @@ export function LayoutSelector() {
         </label>
 
         <label 
-          htmlFor="all-in-one"
+          htmlFor="allinone"
           className={cn(
             "flex flex-col border rounded-lg p-4 cursor-pointer transition-all",
-            layoutType === 'all-in-one' ? "ring-2 ring-primary ring-offset-2" : "hover:bg-accent/30"
+            layoutType === 'allinone' ? "ring-2 ring-primary ring-offset-2" : "hover:bg-accent/30"
           )}
         >
-          <RadioGroupItem value="all-in-one" id="all-in-one" className="sr-only" />
+          <RadioGroupItem value="allinone" id="allinone" className="sr-only" />
           <div className="mb-3 flex items-center justify-center h-24 bg-muted/50 rounded">
             <div className="w-4/5 space-y-2">
               <div className="h-4 bg-muted rounded w-full"></div>
@@ -82,7 +82,7 @@ export function LayoutSelector() {
               <span className="text-base font-medium">Tout-en-un</span>
               <p className="text-sm text-muted-foreground mt-1">Formulaire complet visible</p>
             </div>
-            <Layers className={cn("h-5 w-5", layoutType === 'all-in-one' ? "text-primary" : "text-muted-foreground")} />
+            <Layers className={cn("h-5 w-5", layoutType === 'allinone' ? "text-primary" : "text-muted-foreground")} />
           </div>
         </label>
       </RadioGroup>

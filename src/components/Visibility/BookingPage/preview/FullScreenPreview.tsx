@@ -9,6 +9,7 @@ import { SteppedLayoutPreview } from './components/SteppedLayoutPreview';
 import { AllInOneLayoutPreview } from './components/AllInOneLayoutPreview';
 import { PreviewFooter } from './components/PreviewFooter';
 import { getTemplateStyles } from './utils/templateStyles';
+import { BookingTemplate } from '../types';
 
 export function FullScreenPreview() {
   const {
@@ -41,7 +42,7 @@ export function FullScreenPreview() {
       <DialogContent className="max-w-3xl w-full max-h-[90vh] overflow-y-auto p-0">
         <div 
           className="rounded-lg overflow-hidden"
-          style={getTemplateStyles(template)}
+          style={getTemplateStyles(template as BookingTemplate)}
         >
           <PreviewTemplateHeader 
             businessName={businessName}

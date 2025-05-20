@@ -84,7 +84,7 @@ export const useBookingPageState = () => {
     return new Promise((resolve, reject) => {
       try {
         const settings: BookingPageSettings = {
-          businessId: savedSettings?.businessId || 'default-business-id', // Add businessId with default value
+          businessId: savedSettings?.businessId || 'default-business-id',
           selectedTemplate,
           primaryColor,
           secondaryColor,
