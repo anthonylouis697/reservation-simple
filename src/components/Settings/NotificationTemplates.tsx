@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Mail, MessageSquare, PlusCircle, Search, Settings, AlertCircle } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label"; // Added Label import
 import NotificationTemplateEditor from "./NotificationTemplateEditor";
 import { 
   AlertDialog,

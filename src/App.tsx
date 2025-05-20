@@ -28,43 +28,46 @@ import TeamPage from "./pages/Account/TeamPage";
 import BillingPage from "./pages/Account/BillingPage";
 import SecurityPage from "./pages/Account/SecurityPage";
 
+// Create a new QueryClient instance (fix React hooks error)
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/calendar" element={<CalendarPage />} />
-          <Route path="/booking-customization" element={<BookingCustomization />} />
-          <Route path="/visibility-boost" element={<VisibilityBoostPage />} />
-          <Route path="/events" element={<Events />} />
-          <Route path="/help" element={<HelpCenter />} />
-          <Route path="/statistics" element={<Statistics />} />
-          <Route path="/clients" element={<Clients />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/marketing" element={<Marketing />} />
-          <Route path="/gift-cards" element={<GiftCards />} />
-          <Route path="/payments" element={<Payments />} />
-          
-          {/* Account management routes */}
-          <Route path="/account" element={<ProfilePage />} />
-          <Route path="/account/team" element={<TeamPage />} />
-          <Route path="/account/billing" element={<BillingPage />} />
-          <Route path="/account/security" element={<SecurityPage />} />
-          
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/booking-customization" element={<BookingCustomization />} />
+            <Route path="/visibility-boost" element={<VisibilityBoostPage />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/help" element={<HelpCenter />} />
+            <Route path="/statistics" element={<Statistics />} />
+            <Route path="/clients" element={<Clients />} />
+            <Route path="/services" element={<Services />} />
+            <Route path="/marketing" element={<Marketing />} />
+            <Route path="/gift-cards" element={<GiftCards />} />
+            <Route path="/payments" element={<Payments />} />
+            
+            {/* Account management routes */}
+            <Route path="/account" element={<ProfilePage />} />
+            <Route path="/account/team" element={<TeamPage />} />
+            <Route path="/account/billing" element={<BillingPage />} />
+            <Route path="/account/security" element={<SecurityPage />} />
+            
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
