@@ -37,7 +37,7 @@ export function NavItem({
   const isActive = isPathActive(item.href);
   const hasSubItems = item.subItems && item.subItems.length > 0;
   
-  // For items with sub-menus, determine the URL to use (first sub-item)
+  // For items with sub-menus, determine the URL to use (first sub-item or main item if no subItems)
   const navigationUrl = hasSubItems ? 
     (item.subItems && item.subItems.length > 0 ? item.subItems[0].href : item.href) : 
     item.href;

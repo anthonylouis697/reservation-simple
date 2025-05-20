@@ -5,79 +5,58 @@ import {
   Card, 
   CardContent, 
   CardDescription, 
-  CardFooter, 
   CardHeader, 
-  CardTitle 
+  CardTitle,
+  CardFooter 
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger
-} from "@/components/ui/accordion";
-import { 
-  Alert,
-  AlertDescription,
-  AlertTitle 
-} from "@/components/ui/alert";
-import { Copy, ExternalLink, Info, Facebook, Instagram, AlertCircle } from "lucide-react";
+import { useVisibilityNavigation, VisibilityNavigation } from "@/components/Visibility/VisibilityNavigation";
+import { Share, Copy, ExternalLink, Check } from "lucide-react";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function SocialIntegration() {
   const { toast } = useToast();
+  const { currentTab } = useVisibilityNavigation();
+  const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
 
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({
       title: "Code copié!",
-      description: "Le code a été copié dans le presse-papier.",
+      description: "Le code a été copié dans le presse-papier."
     });
   };
 
-  const integrations = [
+  const platforms = [
     {
+      id: "facebook",
       name: "Facebook",
-      icon: <Facebook className="h-6 w-6 text-blue-600" />,
-      description: "Ajoutez un bouton de réservation sur votre page Facebook",
-      instructions: [
-        "Connectez-vous à votre page Facebook",
-        "Cliquez sur 'Modifier les informations' sous la photo de couverture",
-        "Cliquez sur 'Ajouter un bouton'",
-        "Sélectionnez 'Prendre rendez-vous'",
-        "Entrez l'URL de votre page de réservation",
-        "Cliquez sur 'Enregistrer'"
-      ],
-      link: "https://www.facebook.com/business/help/327029232278948",
-      embedCode: null
+      icon: "🔵",
+      description: "Intégrez votre widget de réservation à votre page Facebook"
     },
     {
+      id: "instagram",
       name: "Instagram",
-      icon: <Instagram className="h-6 w-6 text-pink-600" />,
-      description: "Ajoutez un lien de réservation à votre bio Instagram",
-      instructions: [
-        "Ouvrez Instagram et allez sur votre profil",
-        "Cliquez sur 'Modifier le profil'",
-        "Collez l'URL de votre page de réservation dans 'Site web'",
-        "Mentionnez dans votre bio que les clients peuvent prendre rendez-vous via le lien",
-        "Enregistrez vos modifications"
-      ],
-      link: "https://help.instagram.com/1791090447643166",
-      embedCode: null
+      icon: "📸",
+      description: "Ajoutez un lien de réservation à votre profil Instagram"
     },
     {
+      id: "google",
+      name: "Google Business",
+      icon: "🔍",
+      description: "Activez les réservations sur votre fiche Google"
+    },
+    {
+      id: "website",
       name: "Site web",
-      icon: <ExternalLink className="h-6 w-6 text-indigo-600" />,
-      description: "Intégrez un widget de réservation sur votre site web",
-      instructions: [
-        "Copiez le code d'intégration ci-dessous",
-        "Collez ce code dans votre site web où vous souhaitez que le widget apparaisse",
-        "Personnalisez les couleurs et la taille selon vos besoins"
-      ],
-      link: null,
-      embedCode: `<iframe src="https://reservatoo.com/embed/votre-nom" width="100%" height="600" frameborder="0"></iframe><script src="https://reservatoo.com/js/embed.js"></script>`
+      icon: "🌐",
+      description: "Intégrez le widget de réservation sur votre site"
     }
   ];
+
+  const integrationCode = `<div id="reservatoo-booking-widget" data-merchant-id="YOUR_ID"></div>
+<script src="https://reservatoo.com/widgets/booking.js"></script>`;
 
   return (
     <AppLayout>
@@ -87,110 +66,125 @@ export default function SocialIntegration() {
 
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Intégrations sociales</h1>
+          <h1 className="text-2xl font-bold">Visibilité et Croissance</h1>
           <p className="text-muted-foreground mt-1">
-            Intégrez votre agenda sur vos réseaux sociaux et votre site web
+            Développez votre présence en ligne et augmentez vos revenus
           </p>
         </div>
 
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertTitle>Astuce</AlertTitle>
-          <AlertDescription>
-            Intégrer votre système de réservation sur vos réseaux sociaux peut augmenter vos réservations jusqu'à 30%.
-          </AlertDescription>
-        </Alert>
+        <VisibilityNavigation currentTab={currentTab} />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {integrations.map((integration, index) => (
-            <Card key={index} className="hover:shadow-md transition-all">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="md:col-span-1 space-y-4">
+            <h2 className="text-xl font-semibold">Plateformes</h2>
+            <div className="space-y-2">
+              {platforms.map((platform) => (
+                <Card 
+                  key={platform.id}
+                  className={`cursor-pointer transition-all ${selectedPlatform === platform.id ? 'ring-2 ring-primary' : ''}`}
+                  onClick={() => setSelectedPlatform(platform.id)}
+                >
+                  <CardHeader className="p-4">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <span>{platform.icon}</span> {platform.name}
+                    </CardTitle>
+                    <CardDescription className="text-xs mt-1">
+                      {platform.description}
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          </div>
+          
+          <div className="md:col-span-2">
+            <Card>
               <CardHeader>
-                <div className="flex items-center gap-2">
-                  {integration.icon}
-                  <CardTitle>{integration.name}</CardTitle>
-                </div>
-                <CardDescription>{integration.description}</CardDescription>
+                <CardTitle>
+                  {selectedPlatform ? 
+                    `Intégration ${platforms.find(p => p.id === selectedPlatform)?.name}` :
+                    "Sélectionnez une plateforme"
+                  }
+                </CardTitle>
+                <CardDescription>
+                  {selectedPlatform ? 
+                    "Suivez les instructions ci-dessous pour intégrer votre widget de réservation" :
+                    "Cliquez sur une plateforme dans la liste à gauche pour voir les instructions"
+                  }
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem value="instructions">
-                    <AccordionTrigger>Instructions</AccordionTrigger>
-                    <AccordionContent className="space-y-2 pt-2">
-                      <ol className="list-decimal pl-4 space-y-1 text-sm">
-                        {integration.instructions.map((step, i) => (
-                          <li key={i}>{step}</li>
-                        ))}
-                      </ol>
-                      
-                      {integration.embedCode && (
-                        <div className="mt-4">
-                          <p className="text-sm font-medium mb-1">Code d'intégration:</p>
-                          <div className="p-3 bg-muted rounded-md relative">
-                            <pre className="text-xs overflow-x-auto whitespace-pre-wrap">
-                              {integration.embedCode}
-                            </pre>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="absolute top-2 right-2"
-                              onClick={() => handleCopy(integration.embedCode!)}
-                            >
-                              <Copy className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                {integration.embedCode && (
-                  <Button variant="outline" onClick={() => handleCopy(integration.embedCode!)}>
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copier le code
+              
+              {selectedPlatform && (
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <h3 className="font-medium">1. Copiez le code d'intégration</h3>
+                    <div className="bg-muted p-4 rounded-md relative">
+                      <pre className="text-xs overflow-x-auto whitespace-pre-wrap">
+                        {integrationCode}
+                      </pre>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        className="absolute top-2 right-2"
+                        onClick={() => handleCopy(integrationCode)}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <Button variant="outline" onClick={() => handleCopy(integrationCode)}>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copier le code
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-4 border-t pt-4">
+                    <h3 className="font-medium">2. Suivez les instructions spécifiques à la plateforme</h3>
+                    <ol className="list-decimal list-inside space-y-3 text-sm">
+                      <li>Connectez-vous à votre compte {platforms.find(p => p.id === selectedPlatform)?.name}</li>
+                      <li>Accédez aux paramètres de votre page ou profil</li>
+                      <li>Recherchez l'option d'intégration ou de bouton de réservation</li>
+                      <li>Collez le code d'intégration ou configurez votre lien de réservation</li>
+                      <li>Enregistrez vos modifications</li>
+                    </ol>
+                    
+                    <Button variant="outline" className="w-full">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Voir le tutoriel complet
+                    </Button>
+                  </div>
+                  
+                  <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md flex items-start gap-3">
+                    <span className="rounded-full bg-green-100 p-1.5 text-green-700">
+                      <Check className="h-4 w-4" />
+                    </span>
+                    <div className="text-sm text-green-800">
+                      <p className="font-medium">Conseil professionnel</p>
+                      <p className="mt-1">Ajoutez votre widget de réservation à plusieurs endroits pour maximiser les chances que vos clients le trouvent facilement.</p>
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+              
+              {!selectedPlatform && (
+                <CardContent className="py-8">
+                  <div className="flex flex-col items-center justify-center text-center space-y-3">
+                    <Share className="h-12 w-12 text-muted-foreground" />
+                    <p className="text-muted-foreground">Sélectionnez une plateforme pour voir les instructions d'intégration</p>
+                  </div>
+                </CardContent>
+              )}
+              
+              {selectedPlatform && (
+                <CardFooter className="border-t pt-4">
+                  <Button className="ml-auto">
+                    <Check className="h-4 w-4 mr-2" />
+                    Marquer comme configuré
                   </Button>
-                )}
-                
-                {integration.link && (
-                  <Button onClick={() => window.open(integration.link!, '_blank')}>
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Voir le guide
-                  </Button>
-                )}
-                
-                {!integration.link && !integration.embedCode && (
-                  <Button disabled>
-                    Bientôt disponible
-                  </Button>
-                )}
-              </CardFooter>
+                </CardFooter>
+              )}
             </Card>
-          ))}
+          </div>
         </div>
-
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Besoin d'aide pour l'intégration?</CardTitle>
-            <CardDescription>
-              Notre équipe peut vous aider à mettre en place ces intégrations
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Alert variant="default">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Service d'intégration personnalisée</AlertTitle>
-              <AlertDescription>
-                Nos experts peuvent configurer votre système de réservation sur tous vos canaux numériques pour seulement 49€. Ce service inclut l'intégration sur votre site web, vos réseaux sociaux et votre fiche Google.
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-          <CardFooter>
-            <Button className="w-full">
-              Demander une intégration personnalisée
-            </Button>
-          </CardFooter>
-        </Card>
       </div>
     </AppLayout>
   );

@@ -1,157 +1,152 @@
 
 import { Helmet } from "react-helmet";
 import { AppLayout } from "@/components/AppLayout";
-import { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent, 
   CardDescription, 
-  CardFooter, 
   CardHeader, 
-  CardTitle 
+  CardTitle, 
+  CardFooter 
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useVisibilityNavigation, VisibilityNavigation } from "@/components/Visibility/VisibilityNavigation";
 import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
-import { 
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel
-} from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Slider } from "@/components/ui/slider";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { toast } from "@/hooks/use-toast";
-import { Globe, Pencil, DollarSign, Star } from "lucide-react";
-
-// Schéma pour le formulaire du site web
-const websiteFormSchema = z.object({
-  pages: z.number().min(1).max(20),
-  design: z.enum(["simple", "standard", "premium"]),
-  logo: z.boolean().default(false),
-  seo: z.boolean().default(false),
-  contentCreation: z.boolean().default(false),
-  maintenance: z.boolean().default(false),
-  hosting: z.boolean().default(true),
-});
-
-type WebsiteFormValues = z.infer<typeof websiteFormSchema>;
+  Globe, 
+  Star, 
+  Pencil, 
+  MapPin, 
+  MessageCircle, 
+  Image, 
+  Mail,
+  Check,
+  ArrowRight
+} from "lucide-react";
 
 export default function AdditionalServices() {
-  const [activeTab, setActiveTab] = useState("website");
-  const [totalPrice, setTotalPrice] = useState(499);
-  
-  // Form pour le calculateur de site web
-  const form = useForm<WebsiteFormValues>({
-    resolver: zodResolver(websiteFormSchema),
-    defaultValues: {
-      pages: 5,
-      design: "standard",
-      logo: false,
-      seo: false,
-      contentCreation: false,
-      maintenance: false,
-      hosting: true,
-    },
-  });
-
-  // Observer les changements du formulaire pour recalculer le prix
-  useEffect(() => {
-    const subscription = form.watch((value) => {
-      calculateWebsitePrice(value as WebsiteFormValues);
-    });
-    return () => subscription.unsubscribe();
-  }, [form.watch]);
-
-  // Calculer le prix du site web
-  const calculateWebsitePrice = (values: WebsiteFormValues) => {
-    let price = 499; // Prix de base
-    
-    // Prix selon le nombre de pages
-    price += (values.pages - 5) * 50; // 50€ par page supplémentaire au-delà de 5
-    
-    // Prix selon le design
-    if (values.design === "standard") price += 200;
-    if (values.design === "premium") price += 500;
-    
-    // Options supplémentaires
-    if (values.logo) price += 150;
-    if (values.seo) price += 300;
-    if (values.contentCreation) price += values.pages * 80;
-    if (values.maintenance) price += 150;
-    if (values.hosting) price += 100;
-    
-    setTotalPrice(price);
-  };
-
-  // Gérer la soumission du formulaire
-  const onSubmit = (values: WebsiteFormValues) => {
-    toast({
-      title: "Demande envoyée",
-      description: "Notre équipe vous contactera sous peu pour discuter de votre projet.",
-    });
-    console.log("Form values:", values);
-  };
+  const { currentTab } = useVisibilityNavigation();
 
   const services = [
     {
-      id: "google-business",
-      title: "Création Fiche Google My Business",
-      description: "Une fiche Google My Business optimisée est essentielle pour être visible localement. Notre service inclut la création complète de votre fiche, l'optimisation des informations, l'ajout de photos, et la configuration initiale.",
+      id: "google-creation",
+      title: "Création Fiche Google",
+      description: "Créez une fiche Google My Business optimisée pour votre entreprise",
+      icon: <Globe className="h-6 w-6 text-blue-500" />,
       price: "299€",
-      icon: <Globe className="h-8 w-8 text-blue-500" />,
-      features: [
-        "Création de fiche vérifiée",
-        "Optimisation des mots-clés",
-        "Ajout de photos professionnelles",
-        "Configuration des horaires et services",
-        "Validation et publication"
-      ],
-      cta: "Commander"
+      color: "bg-blue-100",
+      benefits: [
+        "Configuration complète de votre fiche Google My Business",
+        "Optimisation SEO locale avec mots-clés ciblés",
+        "Ajout de photos professionnelles fournies par vos soins",
+        "Mise en place des horaires, services et informations de contact",
+        "Vérification et validation de la fiche"
+      ]
     },
     {
-      id: "local-boost",
-      title: "Boost Local Google",
-      description: "Améliorez votre visibilité locale avec notre service d'optimisation continue. Nous gérons vos avis, optimisons votre présence dans les recherches locales et améliorons votre référencement de proximité.",
+      id: "google-boost",
+      title: "Boost local Google",
+      description: "Optimisez votre référencement local sur Google",
+      icon: <Star className="h-6 w-6 text-green-500" />,
       price: "199€/mois",
-      icon: <Star className="h-8 w-8 text-green-500" />,
-      features: [
-        "Gestion des avis clients",
-        "Optimisation SEO locale",
-        "Publication de posts réguliers",
-        "Suivi de positionnement",
+      color: "bg-green-100",
+      benefits: [
+        "Gestion mensuelle de votre fiche Google My Business",
+        "Publication régulière de contenus et d'actualités",
+        "Réponse aux avis clients et gestion de la réputation",
+        "Optimisation continue pour améliorer votre positionnement local",
         "Rapport mensuel de performance"
-      ],
-      cta: "S'abonner"
+      ]
     },
     {
       id: "google-repair",
       title: "Réparation Fiche Google",
-      description: "Vous rencontrez des problèmes avec votre fiche Google existante? Notre service de réparation corrige les erreurs, résout les problèmes d'accès et optimise votre fiche pour de meilleures performances.",
+      description: "Résolution des problèmes et optimisation de votre fiche existante",
+      icon: <Globe className="h-6 w-6 text-orange-500" />,
       price: "149€",
-      icon: <Globe className="h-8 w-8 text-orange-500" />,
-      features: [
-        "Audit complet de votre fiche",
-        "Correction des informations erronées",
-        "Résolution des problèmes d'accès",
-        "Optimisation des éléments existants",
-        "Recommandations d'amélioration"
-      ],
-      cta: "Réparer ma fiche"
+      color: "bg-orange-100",
+      benefits: [
+        "Diagnostic complet de votre fiche Google My Business existante",
+        "Correction des erreurs et incohérences",
+        "Récupération d'accès en cas de perte",
+        "Fusion de fiches dupliquées",
+        "Suppression de fausses informations"
+      ]
+    },
+    {
+      id: "website",
+      title: "Création de site web",
+      description: "Site internet sur mesure adapté à votre activité",
+      icon: <Pencil className="h-6 w-6 text-rose-500" />,
+      price: "À partir de 499€",
+      color: "bg-rose-100",
+      benefits: [
+        "Design moderne et responsive (mobile, tablette, ordinateur)",
+        "Intégration de votre système de réservation Reservatoo",
+        "Optimisation SEO de base",
+        "Hébergement et nom de domaine inclus la première année",
+        "Formation à l'utilisation du site"
+      ]
+    },
+    {
+      id: "local-seo",
+      title: "SEO local avancé",
+      description: "Stratégie complète de référencement local",
+      icon: <MapPin className="h-6 w-6 text-purple-500" />,
+      price: "349€/mois",
+      color: "bg-purple-100",
+      benefits: [
+        "Audit complet de votre présence en ligne locale",
+        "Optimisation de votre site web pour le référencement local",
+        "Gestion des citations et annuaires locaux",
+        "Création de contenu local pertinent",
+        "Stratégie d'acquisition de backlinks locaux"
+      ]
+    },
+    {
+      id: "review-management",
+      title: "Gestion des avis",
+      description: "Améliorez votre réputation en ligne",
+      icon: <MessageCircle className="h-6 w-6 text-yellow-500" />,
+      price: "129€/mois",
+      color: "bg-yellow-100",
+      benefits: [
+        "Système automatisé de collecte d'avis clients",
+        "Réponse aux avis (positifs et négatifs)",
+        "Alertes en temps réel pour les nouveaux avis",
+        "Stratégie de gestion de réputation",
+        "Rapport mensuel d'analyse des avis"
+      ]
+    },
+    {
+      id: "photo-service",
+      title: "Shooting photo pro",
+      description: "Séance photo professionnelle pour votre entreprise",
+      icon: <Image className="h-6 w-6 text-cyan-500" />,
+      price: "399€",
+      color: "bg-cyan-100",
+      benefits: [
+        "Séance photo de 2h dans votre établissement",
+        "20 photos professionnelles retouchées",
+        "Photos de vos locaux, services et équipe",
+        "Droits d'utilisation illimités",
+        "Format optimisé pour le web et les réseaux sociaux"
+      ]
+    },
+    {
+      id: "email-marketing",
+      title: "Email marketing",
+      description: "Campagnes email professionnelles pour vos clients",
+      icon: <Mail className="h-6 w-6 text-indigo-500" />,
+      price: "149€/mois",
+      color: "bg-indigo-100",
+      benefits: [
+        "Création mensuelle de 2 newsletters professionnelles",
+        "Segmentation de votre base clients",
+        "Automatisation des campagnes",
+        "Analyse des performances",
+        "A/B testing pour optimiser vos résultats"
+      ]
     }
   ];
 
@@ -163,329 +158,235 @@ export default function AdditionalServices() {
 
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Services additionnels</h1>
+          <h1 className="text-2xl font-bold">Visibilité et Croissance</h1>
           <p className="text-muted-foreground mt-1">
-            Renforcez votre présence en ligne avec nos services professionnels
+            Développez votre présence en ligne et augmentez vos revenus
           </p>
         </div>
 
-        <Tabs defaultValue="services" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="services">Services Google</TabsTrigger>
-            <TabsTrigger value="website">Création de site web</TabsTrigger>
-          </TabsList>
+        <VisibilityNavigation currentTab={currentTab} />
+
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <Card className="bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-100">
+              <CardHeader>
+                <CardTitle>Boostez votre croissance</CardTitle>
+                <CardDescription>
+                  Des solutions professionnelles pour augmenter votre visibilité et attirer plus de clients
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-green-600 mt-0.5" />
+                    <span>Services réalisés par nos experts en marketing digital</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-green-600 mt-0.5" />
+                    <span>Intégration parfaite avec votre compte Reservatoo</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-green-600 mt-0.5" />
+                    <span>Résultats concrets et mesurables</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-5 w-5 text-green-600 mt-0.5" />
+                    <span>Tarifs préférentiels pour les clients Reservatoo</span>
+                  </li>
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button>
+                  Demander un appel conseil gratuit
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Services les plus demandés</CardTitle>
+                <CardDescription>
+                  Les prestations plébiscitées par nos clients pour développer leur activité
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center pb-2 border-b">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-blue-100 p-2 rounded-full">
+                      <Globe className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <span className="font-medium">Création Fiche Google</span>
+                  </div>
+                  <span className="text-sm font-semibold">299€</span>
+                </div>
+                
+                <div className="flex justify-between items-center pb-2 border-b">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-green-100 p-2 rounded-full">
+                      <Star className="h-4 w-4 text-green-600" />
+                    </div>
+                    <span className="font-medium">Boost local Google</span>
+                  </div>
+                  <span className="text-sm font-semibold">199€/mois</span>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-rose-100 p-2 rounded-full">
+                      <Pencil className="h-4 w-4 text-rose-600" />
+                    </div>
+                    <span className="font-medium">Site web vitrine</span>
+                  </div>
+                  <span className="text-sm font-semibold">À partir de 499€</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
           
-          <TabsContent value="services" className="space-y-4 mt-4">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {services.map((service) => (
-                <Card key={service.id} className="border-2 hover:shadow-lg transition-all">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div className="mb-2">{service.icon}</div>
-                      <div className="text-xl font-bold text-primary">{service.price}</div>
-                    </div>
-                    <CardTitle>{service.title}</CardTitle>
-                    <CardDescription>{service.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {service.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-center gap-2">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="h-5 w-5 text-green-500"
-                          >
-                            <path d="M20 6L9 17l-5-5" />
-                          </svg>
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                  <CardFooter>
-                    <Button className="w-full">{service.cta}</Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="website" className="space-y-4 mt-4">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Pencil className="h-6 w-6 text-rose-500" />
-                      <CardTitle>Calculateur de site web</CardTitle>
-                    </div>
-                    <CardDescription>
-                      Configurez votre site web sur mesure et obtenez un devis instantané
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <FormField
-                          control={form.control}
-                          name="pages"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Nombre de pages</FormLabel>
-                              <div className="space-y-2">
-                                <Slider 
-                                  min={1}
-                                  max={20}
-                                  step={1}
-                                  defaultValue={[field.value]}
-                                  onValueChange={(value) => field.onChange(value[0])}
-                                />
-                                <div className="flex justify-between text-xs text-muted-foreground">
-                                  <span>1 page</span>
-                                  <span>{field.value} pages</span>
-                                  <span>20 pages</span>
-                                </div>
-                              </div>
-                              <FormDescription>
-                                Sélectionnez le nombre de pages dont vous avez besoin.
-                              </FormDescription>
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="design"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Niveau de design</FormLabel>
-                              <Select 
-                                onValueChange={field.onChange} 
-                                defaultValue={field.value}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Sélectionnez un niveau de design" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="simple">Simple (Basic)</SelectItem>
-                                  <SelectItem value="standard">Standard (Recommandé)</SelectItem>
-                                  <SelectItem value="premium">Premium (Haute qualité)</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormDescription>
-                                Le niveau de design détermine la complexité et l'unicité de votre site.
-                              </FormDescription>
-                            </FormItem>
-                          )}
-                        />
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="logo"
-                            render={({ field }) => (
-                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                                <div className="space-y-0.5">
-                                  <FormLabel>Création de logo</FormLabel>
-                                  <FormDescription>
-                                    Design professionnel de votre logo
-                                  </FormDescription>
-                                </div>
-                                <FormControl>
-                                  <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="seo"
-                            render={({ field }) => (
-                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                                <div className="space-y-0.5">
-                                  <FormLabel>Optimisation SEO</FormLabel>
-                                  <FormDescription>
-                                    Référencement Google amélioré
-                                  </FormDescription>
-                                </div>
-                                <FormControl>
-                                  <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="contentCreation"
-                            render={({ field }) => (
-                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                                <div className="space-y-0.5">
-                                  <FormLabel>Création de contenu</FormLabel>
-                                  <FormDescription>
-                                    Textes rédigés par nos experts
-                                  </FormDescription>
-                                </div>
-                                <FormControl>
-                                  <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="maintenance"
-                            render={({ field }) => (
-                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                                <div className="space-y-0.5">
-                                  <FormLabel>Maintenance annuelle</FormLabel>
-                                  <FormDescription>
-                                    Mises à jour et support technique
-                                  </FormDescription>
-                                </div>
-                                <FormControl>
-                                  <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="hosting"
-                            render={({ field }) => (
-                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                                <div className="space-y-0.5">
-                                  <FormLabel>Hébergement (1 an)</FormLabel>
-                                  <FormDescription>
-                                    Inclut nom de domaine et certificat SSL
-                                  </FormDescription>
-                                </div>
-                                <FormControl>
-                                  <Switch
-                                    checked={field.value}
-                                    onCheckedChange={field.onChange}
-                                  />
-                                </FormControl>
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        <Button type="submit" className="w-full">
-                          Demander un devis détaillé
-                        </Button>
-                      </form>
-                    </Form>
-                  </CardContent>
-                </Card>
+          <Tabs defaultValue="all" className="w-full">
+            <TabsList className="mb-6">
+              <TabsTrigger value="all">Tous les services</TabsTrigger>
+              <TabsTrigger value="google">Google My Business</TabsTrigger>
+              <TabsTrigger value="web">Site web</TabsTrigger>
+              <TabsTrigger value="marketing">Marketing</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {services.map((service) => (
+                  <Card key={service.id} className="border-2 hover:border-primary transition-all">
+                    <CardHeader className="pb-2">
+                      <div className={`w-12 h-12 rounded-full ${service.color} flex items-center justify-center`}>
+                        {service.icon}
+                      </div>
+                      <CardTitle className="text-lg mt-1">{service.title}</CardTitle>
+                      <CardDescription className="h-12">{service.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="font-bold text-lg text-primary">{service.price}</div>
+                      <ul className="text-xs space-y-1">
+                        {service.benefits.slice(0, 3).map((benefit, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <Check className="h-3.5 w-3.5 text-green-500 shrink-0 mt-0.5" />
+                            <span>{benefit}</span>
+                          </li>
+                        ))}
+                        {service.benefits.length > 3 && (
+                          <li className="text-muted-foreground italic">+ {service.benefits.length - 3} autres avantages</li>
+                        )}
+                      </ul>
+                    </CardContent>
+                    <CardFooter className="pt-0">
+                      <Button className="w-full">
+                        En savoir plus
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
               </div>
-              
-              <div>
-                <Card className="border-2 border-primary sticky top-6">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span>Votre devis</span>
-                      <DollarSign className="h-5 w-5 text-green-500" />
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Site web ({form.watch("pages")} pages)</span>
-                        <span>{form.watch("pages") <= 5 ? "499€" : `${499 + (form.watch("pages") - 5) * 50}€`}</span>
+            </TabsContent>
+            
+            <TabsContent value="google">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {services.filter(s => s.id.includes('google')).map((service) => (
+                  <Card key={service.id} className="border-2 hover:border-primary transition-all">
+                    <CardHeader className="pb-2">
+                      <div className={`w-12 h-12 rounded-full ${service.color} flex items-center justify-center`}>
+                        {service.icon}
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Design {
-                          form.watch("design") === "simple" ? "Simple" : 
-                          form.watch("design") === "standard" ? "Standard" : "Premium"
-                        }</span>
-                        <span>{
-                          form.watch("design") === "simple" ? "0€" : 
-                          form.watch("design") === "standard" ? "200€" : "500€"
-                        }</span>
-                      </div>
-                      
-                      {form.watch("logo") && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Création de logo</span>
-                          <span>150€</span>
-                        </div>
-                      )}
-                      
-                      {form.watch("seo") && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Optimisation SEO</span>
-                          <span>300€</span>
-                        </div>
-                      )}
-                      
-                      {form.watch("contentCreation") && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Création de contenu</span>
-                          <span>{form.watch("pages") * 80}€</span>
-                        </div>
-                      )}
-                      
-                      {form.watch("maintenance") && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Maintenance annuelle</span>
-                          <span>150€</span>
-                        </div>
-                      )}
-                      
-                      {form.watch("hosting") && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Hébergement (1 an)</span>
-                          <span>100€</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="pt-4 border-t">
-                      <div className="flex justify-between font-bold">
-                        <span>Total</span>
-                        <span className="text-xl text-primary">{totalPrice}€</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Prix HT. TVA applicable selon votre pays.
-                      </p>
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button variant="outline" className="w-full">
-                      Télécharger le devis (PDF)
-                    </Button>
-                  </CardFooter>
-                </Card>
+                      <CardTitle className="text-lg mt-1">{service.title}</CardTitle>
+                      <CardDescription className="h-12">{service.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="font-bold text-lg text-primary">{service.price}</div>
+                      <ul className="text-xs space-y-1">
+                        {service.benefits.map((benefit, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <Check className="h-3.5 w-3.5 text-green-500 shrink-0 mt-0.5" />
+                            <span>{benefit}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                    <CardFooter>
+                      <Button className="w-full">
+                        En savoir plus
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
               </div>
-            </div>
-          </TabsContent>
-        </Tabs>
+            </TabsContent>
+            
+            <TabsContent value="web">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {services.filter(s => s.id === 'website').map((service) => (
+                  <Card key={service.id} className="border-2 hover:border-primary transition-all">
+                    <CardHeader className="pb-2">
+                      <div className={`w-12 h-12 rounded-full ${service.color} flex items-center justify-center`}>
+                        {service.icon}
+                      </div>
+                      <CardTitle className="text-lg mt-1">{service.title}</CardTitle>
+                      <CardDescription className="h-12">{service.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="font-bold text-lg text-primary">{service.price}</div>
+                      <ul className="text-xs space-y-1">
+                        {service.benefits.map((benefit, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <Check className="h-3.5 w-3.5 text-green-500 shrink-0 mt-0.5" />
+                            <span>{benefit}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                    <CardFooter>
+                      <Button className="w-full">
+                        En savoir plus
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="marketing">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {services.filter(s => ['local-seo', 'review-management', 'email-marketing', 'photo-service'].includes(s.id)).map((service) => (
+                  <Card key={service.id} className="border-2 hover:border-primary transition-all">
+                    <CardHeader className="pb-2">
+                      <div className={`w-12 h-12 rounded-full ${service.color} flex items-center justify-center`}>
+                        {service.icon}
+                      </div>
+                      <CardTitle className="text-lg mt-1">{service.title}</CardTitle>
+                      <CardDescription className="h-12">{service.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="font-bold text-lg text-primary">{service.price}</div>
+                      <ul className="text-xs space-y-1">
+                        {service.benefits.map((benefit, idx) => (
+                          <li key={idx} className="flex items-start gap-1.5">
+                            <Check className="h-3.5 w-3.5 text-green-500 shrink-0 mt-0.5" />
+                            <span>{benefit}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                    <CardFooter>
+                      <Button className="w-full">
+                        En savoir plus
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </AppLayout>
   );
