@@ -29,10 +29,13 @@ export function LayoutSelector() {
         onValueChange={handleLayoutChange}
         className="grid grid-cols-1 sm:grid-cols-2 gap-4"
       >
-        <div className={cn(
-          "flex flex-col border rounded-lg p-4 cursor-pointer transition-all",
-          layoutType === 'stepped' ? "ring-2 ring-primary ring-offset-2" : "hover:bg-accent/30"
-        )}>
+        <label 
+          htmlFor="stepped"
+          className={cn(
+            "flex flex-col border rounded-lg p-4 cursor-pointer transition-all",
+            layoutType === 'stepped' ? "ring-2 ring-primary ring-offset-2" : "hover:bg-accent/30"
+          )}
+        >
           <RadioGroupItem value="stepped" id="stepped" className="sr-only" />
           <div className="mb-3 flex items-center justify-center h-24 bg-muted/50 rounded">
             <div className="flex space-x-2">
@@ -51,17 +54,20 @@ export function LayoutSelector() {
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="stepped" className="text-base font-medium">Par étapes</Label>
+              <span className="text-base font-medium">Par étapes</span>
               <p className="text-sm text-muted-foreground mt-1">Progression séquentielle</p>
             </div>
             <ListOrdered className={cn("h-5 w-5", layoutType === 'stepped' ? "text-primary" : "text-muted-foreground")} />
           </div>
-        </div>
+        </label>
 
-        <div className={cn(
-          "flex flex-col border rounded-lg p-4 cursor-pointer transition-all",
-          layoutType === 'all-in-one' ? "ring-2 ring-primary ring-offset-2" : "hover:bg-accent/30"
-        )}>
+        <label 
+          htmlFor="all-in-one"
+          className={cn(
+            "flex flex-col border rounded-lg p-4 cursor-pointer transition-all",
+            layoutType === 'all-in-one' ? "ring-2 ring-primary ring-offset-2" : "hover:bg-accent/30"
+          )}
+        >
           <RadioGroupItem value="all-in-one" id="all-in-one" className="sr-only" />
           <div className="mb-3 flex items-center justify-center h-24 bg-muted/50 rounded">
             <div className="w-4/5 space-y-2">
@@ -73,12 +79,12 @@ export function LayoutSelector() {
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <Label htmlFor="all-in-one" className="text-base font-medium">Tout-en-un</Label>
+              <span className="text-base font-medium">Tout-en-un</span>
               <p className="text-sm text-muted-foreground mt-1">Formulaire complet visible</p>
             </div>
             <Layers className={cn("h-5 w-5", layoutType === 'all-in-one' ? "text-primary" : "text-muted-foreground")} />
           </div>
-        </div>
+        </label>
       </RadioGroup>
     </div>
   );

@@ -13,7 +13,6 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LayoutSelector } from '../components/LayoutSelector';
-import { CustomTextsEditor } from '../components/CustomTextsEditor';
 
 export function CustomizeTab() {
   const { 
@@ -207,48 +206,57 @@ export function CustomizeTab() {
                     className="flex gap-2"
                   >
                     <div className="flex flex-col items-center gap-1.5 flex-1">
-                      <div className={cn(
-                        "border-2 w-full h-10 rounded-none flex items-center justify-center",
-                        buttonCorners === 'squared' ? "border-primary" : "border-gray-200"
-                      )}>
+                      <label
+                        htmlFor="squared"
+                        className={cn(
+                          "border-2 w-full h-10 rounded-none flex items-center justify-center cursor-pointer",
+                          buttonCorners === 'squared' ? "border-primary" : "border-gray-200"
+                        )}
+                      >
                         <RadioGroupItem 
                           value="squared" 
                           id="squared" 
                           className="sr-only" 
                         />
                         {buttonCorners === 'squared' && <Check className="h-4 w-4 text-primary" />}
-                      </div>
-                      <Label htmlFor="squared" className="text-xs">Carré</Label>
+                      </label>
+                      <Label htmlFor="squared" className="text-xs cursor-pointer">Carré</Label>
                     </div>
                     
                     <div className="flex flex-col items-center gap-1.5 flex-1">
-                      <div className={cn(
-                        "border-2 w-full h-10 rounded-md flex items-center justify-center",
-                        buttonCorners === 'rounded' ? "border-primary" : "border-gray-200"
-                      )}>
+                      <label
+                        htmlFor="rounded"
+                        className={cn(
+                          "border-2 w-full h-10 rounded-md flex items-center justify-center cursor-pointer",
+                          buttonCorners === 'rounded' ? "border-primary" : "border-gray-200"
+                        )}
+                      >
                         <RadioGroupItem 
                           value="rounded" 
                           id="rounded" 
                           className="sr-only" 
                         />
                         {buttonCorners === 'rounded' && <Check className="h-4 w-4 text-primary" />}
-                      </div>
-                      <Label htmlFor="rounded" className="text-xs">Arrondi</Label>
+                      </label>
+                      <Label htmlFor="rounded" className="text-xs cursor-pointer">Arrondi</Label>
                     </div>
                     
                     <div className="flex flex-col items-center gap-1.5 flex-1">
-                      <div className={cn(
-                        "border-2 w-full h-10 rounded-full flex items-center justify-center",
-                        buttonCorners === 'pill' ? "border-primary" : "border-gray-200"
-                      )}>
+                      <label
+                        htmlFor="pill"
+                        className={cn(
+                          "border-2 w-full h-10 rounded-full flex items-center justify-center cursor-pointer",
+                          buttonCorners === 'pill' ? "border-primary" : "border-gray-200"
+                        )}
+                      >
                         <RadioGroupItem 
                           value="pill" 
                           id="pill" 
                           className="sr-only" 
                         />
                         {buttonCorners === 'pill' && <Check className="h-4 w-4 text-primary" />}
-                      </div>
-                      <Label htmlFor="pill" className="text-xs">Pill</Label>
+                      </label>
+                      <Label htmlFor="pill" className="text-xs cursor-pointer">Pill</Label>
                     </div>
                   </RadioGroup>
                 </div>
@@ -348,8 +356,6 @@ export function CustomizeTab() {
                   </div>
                 </div>
               </div>
-              
-              <CustomTextsEditor />
             </CardContent>
           </Card>
         </TabsContent>

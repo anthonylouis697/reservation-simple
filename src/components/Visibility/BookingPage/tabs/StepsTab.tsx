@@ -6,9 +6,6 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { SortableStepList } from '../components/SortableStepList';
 import { Badge } from '@/components/ui/badge';
-import { useState } from 'react';
-import { Pencil, Check, X } from 'lucide-react';
-import { toast } from 'sonner';
 import { CustomTextsEditor } from '../components/CustomTextsEditor';
 
 export function StepsTab() {
@@ -25,31 +22,6 @@ export function StepsTab() {
     updateStepLabel,
   } = useBookingPage();
 
-  const [editingStepId, setEditingStepId] = useState<string | null>(null);
-  const [tempStepName, setTempStepName] = useState<string>('');
-  
-  // Démarrer l'édition d'un label
-  const startEditing = (stepId: string, currentName: string) => {
-    setEditingStepId(stepId);
-    setTempStepName(currentName);
-  };
-  
-  // Valider l'édition d'un label
-  const saveStepName = () => {
-    if (editingStepId) {
-      updateStepLabel(editingStepId, tempStepName);
-      setEditingStepId(null);
-      setTempStepName('');
-      toast.success('Nom de l\'étape mis à jour');
-    }
-  };
-  
-  // Annuler l'édition
-  const cancelEditing = () => {
-    setEditingStepId(null);
-    setTempStepName('');
-  };
-
   return (
     <div className="space-y-6">
       <Card>
@@ -64,6 +36,7 @@ export function StepsTab() {
               steps={steps}
               setSteps={setSteps}
               onStepChange={handleStepChange}
+              onEditLabel={updateStepLabel}
             />
           </div>
           
@@ -108,7 +81,6 @@ export function StepsTab() {
             )}
           </div>
           
-          {/* Ajout de l'éditeur de textes personnalisés */}
           <CustomTextsEditor />
         </CardContent>
       </Card>

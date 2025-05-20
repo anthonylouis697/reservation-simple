@@ -20,17 +20,19 @@ import { CSS } from '@dnd-kit/utilities';
 import { BookingStep } from '../types';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Move, Eye, CheckCircle } from 'lucide-react';
+import { Move, Eye, CheckCircle, Pencil, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 interface SortableStepProps {
   step: BookingStep;
   onChange: (id: string, enabled: boolean) => void;
   isFirst: boolean;
+  onEditLabel?: (id: string, label: string) => void;
 }
 
-const SortableStep = ({ step, onChange, isFirst }: SortableStepProps) => {
+const SortableStep = ({ step, onChange, isFirst, onEditLabel }: SortableStepProps) => {
   const {
     attributes,
     listeners,
@@ -40,10 +42,32 @@ const SortableStep = ({ step, onChange, isFirst }: SortableStepProps) => {
     isDragging
   } = useSortable({ id: step.id });
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempLabel, setTempLabel] = useState(step.customLabel || step.name);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     zIndex: isDragging ? 10 : 1,
+  };
+
+  const handleEditStart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setTempLabel(step.customLabel || step.name);
+    setIsEditing(true);
+  };
+
+  const handleSave = () => {
+    if (onEditLabel && tempLabel.trim()) {
+      onEditLabel(step.id, tempLabel.trim());
+      toast.success("Nom de l'étape mis à jour");
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setTempLabel(step.customLabel || step.name);
   };
 
   return (
@@ -77,13 +101,54 @@ const SortableStep = ({ step, onChange, isFirst }: SortableStepProps) => {
           )}>
             {step.icon}
           </div>
+          
           <div>
-            <span className={cn(
-              "font-medium",
-              !step.enabled && "text-muted-foreground"
-            )}>
-              {step.customLabel || step.name}
-            </span>
+            {isEditing ? (
+              <div className="flex gap-2 items-center">
+                <Input
+                  value={tempLabel}
+                  onChange={(e) => setTempLabel(e.target.value)}
+                  className="h-8 w-48"
+                  autoFocus
+                />
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  onClick={handleSave}
+                  className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700"
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="ghost" 
+                  onClick={handleCancel}
+                  className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <span className={cn(
+                  "font-medium",
+                  !step.enabled && "text-muted-foreground"
+                )}>
+                  {step.customLabel || step.name}
+                </span>
+                {onEditLabel && (
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={handleEditStart}
+                    className="h-6 w-6 p-0 text-muted-foreground hover:text-primary"
+                  >
+                    <Pencil className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            )}
+            
             {isFirst && step.enabled && (
               <div className="text-xs text-primary flex items-center gap-1 mt-0.5">
                 <CheckCircle className="h-3 w-3" />
@@ -113,9 +178,10 @@ interface SortableStepListProps {
   steps: BookingStep[];
   setSteps: (steps: BookingStep[]) => void;
   onStepChange?: (id: string, enabled: boolean) => void;
+  onEditLabel?: (id: string, label: string) => void;
 }
 
-export const SortableStepList = ({ steps, setSteps, onStepChange }: SortableStepListProps) => {
+export const SortableStepList = ({ steps, setSteps, onStepChange, onEditLabel }: SortableStepListProps) => {
   // Capteurs pour le système de drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -157,7 +223,7 @@ export const SortableStepList = ({ steps, setSteps, onStepChange }: SortableStep
             <p className="font-medium mb-1">Personnalisation des étapes</p>
             <p className="text-muted-foreground">
               Glissez-déposez pour réorganiser les étapes. Activez ou désactivez les étapes selon vos besoins. 
-              L'ordre et l'état des étapes sont reflétés dans l'aperçu.
+              Cliquez sur le nom pour le personnaliser.
             </p>
           </div>
         </div>
@@ -178,6 +244,7 @@ export const SortableStepList = ({ steps, setSteps, onStepChange }: SortableStep
               step={step} 
               onChange={onStepChange || ((id, enabled) => {})} 
               isFirst={step.id === firstEnabledStepId}
+              onEditLabel={onEditLabel}
             />
           ))}
         </SortableContext>
