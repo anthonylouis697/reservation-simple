@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { AlertCircle } from 'lucide-react';
 
 interface EmailPasswordFormProps {
   type: 'login' | 'signup';
@@ -16,6 +17,7 @@ export const EmailPasswordForm = ({ type }: EmailPasswordFormProps) => {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const { signIn, signUp, isLoading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -23,6 +25,7 @@ export const EmailPasswordForm = ({ type }: EmailPasswordFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
     try {
       if (type === 'login') {
@@ -39,6 +42,13 @@ export const EmailPasswordForm = ({ type }: EmailPasswordFormProps) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <div className="p-3 rounded-md bg-destructive/10 text-destructive border border-destructive flex items-start gap-2">
+          <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
+      
       {type === 'signup' && (
         <>
           <div className="space-y-2">

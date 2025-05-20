@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,17 +27,23 @@ export const useAuthManagement = () => {
       });
 
       if (error) {
+        // Si l'erreur est liée à une limite de taux d'emails, on affiche un message spécifique
+        if (error.message?.includes('email rate limit exceeded')) {
+          toast.error('Trop de tentatives d\'inscription. Veuillez réessayer plus tard ou utiliser un autre email.');
+          throw new Error('Trop de tentatives. Réessayez plus tard ou utilisez un autre email.');
+        }
         throw error;
       }
 
+      // Si pas de session, cela signifie que l'utilisateur doit vérifier son email
       if (!data.session) {
         toast.success('Inscription réussie ! Vérifiez votre email pour confirmer votre compte.');
         navigate('/login');
       } else {
-        // User was created and immediately signed in
+        // L'utilisateur est créé et connecté immédiatement
         toast.success('Inscription réussie !');
         
-        // Create default business if needed
+        // Créer une entreprise par défaut si nécessaire
         if (data.user) {
           await createDefaultBusiness(data.user.id, options?.first_name, options?.last_name);
         }
@@ -46,13 +51,16 @@ export const useAuthManagement = () => {
         navigate('/dashboard');
       }
     } catch (error: any) {
-      // Handle specific errors
+      // Gérer les erreurs spécifiques
       if (error.message?.includes('User already registered')) {
         toast.error('Cet email est déjà utilisé. Veuillez vous connecter.');
+      } else if (error.message?.includes('email rate limit exceeded')) {
+        toast.error('Trop de tentatives d\'inscription. Veuillez réessayer plus tard ou utiliser un autre email.');
       } else {
         toast.error(error.message || 'Une erreur est survenue lors de l\'inscription.');
       }
       console.error('Sign up error:', error);
+      throw error; // Propagation de l'erreur pour gestion dans le composant
     } finally {
       setIsLoading(false);
     }
@@ -74,9 +82,9 @@ export const useAuthManagement = () => {
       }
 
       toast.success('Connexion réussie !');
-      // Redirection handled by the auth state listener
+      // Redirection gérée par l'écouteur d'état d'authentification
     } catch (error: any) {
-      // Handle specific error messages
+      // Gérer les messages d'erreur spécifiques
       if (error.message?.includes('Email not confirmed')) {
         toast.error('Veuillez confirmer votre email avant de vous connecter.');
       } else if (error.message?.includes('Invalid login credentials')) {
@@ -85,6 +93,7 @@ export const useAuthManagement = () => {
         toast.error(error.message || 'Une erreur est survenue lors de la connexion.');
       }
       console.error('Sign in error:', error);
+      throw error; // Propagation de l'erreur pour gestion dans le composant
     } finally {
       setIsLoading(false);
     }

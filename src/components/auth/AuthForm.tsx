@@ -33,7 +33,9 @@ const AuthForm = ({ type }: AuthFormProps) => {
             </div>
           </div>
           
-          <EmailPasswordForm type={type} />
+          <div className="bg-card-foreground/5 p-4 rounded-md border">
+            <EmailPasswordForm type={type} />
+          </div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-center">
