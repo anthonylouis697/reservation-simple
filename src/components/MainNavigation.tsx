@@ -3,8 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect, useState } from 'react';
-import { navItems } from "@/config/navigation";
-import { NavItem } from "@/types/navigation";
+import { navigationConfig } from "@/config/navigation";
+import type { NavItem as NavItemType } from "@/types/navigation";
 import { 
   Tooltip,
   TooltipContent,
@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { HelpCircle } from 'lucide-react';
 
 interface NavItemProps {
-  item: NavItem;
+  item: NavItemType;
   mobile?: boolean;
   isFirstTimeUser?: boolean;
   handleNavigation?: (href: string) => void;
@@ -114,6 +114,7 @@ export function HelpNavItem({ mobile = false }: HelpNavItemProps) {
 export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
   const navigate = useNavigate();
   const [firstTimeUser, setFirstTimeUser] = useState(false);
+  const navItems = [...navigationConfig.mainNav];
 
   // Check if user is new
   useEffect(() => {

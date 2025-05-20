@@ -2,7 +2,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { Button } from '@/components/ui/button';
-import { NavItem as NavItemType } from '@/types/navigation';
+import type { NavItem as NavItemType } from '@/types/navigation';
 import { 
   Tooltip,
   TooltipContent,
@@ -43,7 +43,7 @@ export function NavItem({
     item.href;
 
   return (
-    <Tooltip key={item.name} delayDuration={300}>
+    <Tooltip key={item.title} delayDuration={300}>
       <TooltipTrigger asChild>
         <Button 
           id={item.href}
@@ -56,19 +56,17 @@ export function NavItem({
           )}
           onClick={() => handleNavigation(navigationUrl)}
         >
-          <item.icon className={cn(
-            "mr-2 h-4 w-4", 
-            mobile && "mr-0 h-5 w-5 mb-1"
-          )} />
+          {/* Render the icon as ReactNode */}
+          {item.icon}
           <span className={cn(
             mobile && "text-xs font-medium"
-          )}>{item.name}</span>
+          )}>{item.title}</span>
         </Button>
       </TooltipTrigger>
       <TooltipContent side={mobile ? "top" : "right"}>
         <div className="flex flex-col">
-          <span className="font-medium">{item.name}</span>
-          <span className="text-xs text-muted-foreground">{item.description}</span>
+          <span className="font-medium">{item.title}</span>
+          <span className="text-xs text-muted-foreground">{item.description || item.title}</span>
         </div>
       </TooltipContent>
     </Tooltip>

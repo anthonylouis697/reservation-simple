@@ -13,6 +13,11 @@ export function DesktopSidebar() {
   const { currentBusiness } = useBusiness();
   const showBusinessSelector = pathname !== "/welcome" && !pathname.includes("/account");
 
+  // Function to handle navigation
+  const handleNavigation = (href: string) => {
+    window.location.href = href;
+  };
+
   return (
     <div className="hidden border-r bg-background lg:block lg:w-64">
       <div className="flex flex-col h-full">
@@ -37,8 +42,9 @@ export function DesktopSidebar() {
               <NavItem 
                 key={index} 
                 item={item}
+                mobile={false}
                 isFirstTimeUser={false}
-                handleNavigation={(href) => window.location.href = href}
+                handleNavigation={handleNavigation}
               />
             ))}
           </div>
@@ -55,8 +61,9 @@ export function DesktopSidebar() {
                   <NavItem 
                     key={index} 
                     item={item}
+                    mobile={false}
                     isFirstTimeUser={false}
-                    handleNavigation={(href) => window.location.href = href}
+                    handleNavigation={handleNavigation}
                   />
                 ))}
               </div>
@@ -75,8 +82,9 @@ export function DesktopSidebar() {
                   <NavItem 
                     key={index} 
                     item={item}
+                    mobile={false}
                     isFirstTimeUser={false}
-                    handleNavigation={(href) => window.location.href = href}
+                    handleNavigation={handleNavigation}
                   />
                 ))}
               </div>
@@ -90,8 +98,9 @@ export function DesktopSidebar() {
                   <NavItem 
                     key={index} 
                     item={item}
+                    mobile={false}
                     isFirstTimeUser={false}
-                    handleNavigation={(href) => window.location.href = href}
+                    handleNavigation={handleNavigation}
                   />
                 ))}
                 <HelpNavItem />

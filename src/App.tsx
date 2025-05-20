@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import Index from '@/pages/Index';
 import Login from '@/pages/Login';
@@ -62,7 +62,7 @@ function App() {
             <Route path="/events" element={<RequireAuth><Events /></RequireAuth>} />
             
             {/* Account routes */}
-            <Route path="/account" element={<RequireAuth><AccountLayout /></RequireAuth>}>
+            <Route path="/account" element={<RequireAuth><AccountLayout><Outlet /></AccountLayout></RequireAuth>}>
               <Route index element={<ProfilePage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="billing" element={<BillingPage />} />
