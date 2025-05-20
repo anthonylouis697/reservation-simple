@@ -1,11 +1,9 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
@@ -30,15 +28,45 @@ const AuthForm = ({ type }: AuthFormProps) => {
       // Simuler l'appel API
       await new Promise((resolve) => setTimeout(resolve, 1500));
       
-      toast.success(
-        type === 'login'
-          ? 'Connexion réussie !'
-          : 'Inscription réussie !'
-      );
-      
-      navigate('/dashboard');
+      if (type === 'signup') {
+        // Pour les nouveaux comptes, réinitialiser le statut d'onboarding
+        localStorage.removeItem('hasCompletedOnboarding');
+        localStorage.removeItem('hasSetupAccount');
+        
+        toast.success("Inscription réussie ! Bienvenue sur BookWise.");
+        // Rediriger vers la page de bienvenue pour les nouveaux comptes
+        navigate('/welcome');
+      } else {
+        toast.success("Connexion réussie !");
+        // Rediriger les utilisateurs existants vers le tableau de bord
+        navigate('/dashboard');
+      }
     } catch (error) {
       toast.error('Une erreur est survenue. Veuillez réessayer.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSocialAuth = async (provider: string) => {
+    setIsLoading(true);
+    try {
+      // Simuler l'appel API d'authentification sociale
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      
+      if (type === 'signup') {
+        // Pour les nouveaux comptes, réinitialiser le statut d'onboarding
+        localStorage.removeItem('hasCompletedOnboarding');
+        localStorage.removeItem('hasSetupAccount');
+        
+        toast.success(`Inscription avec ${provider} réussie !`);
+        navigate('/welcome');
+      } else {
+        toast.success(`Connexion avec ${provider} réussie !`);
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      toast.error(`Échec de la connexion avec ${provider}`);
     } finally {
       setIsLoading(false);
     }
@@ -109,7 +137,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
               type="button" 
               variant="outline" 
               className="flex items-center justify-center gap-2"
-              onClick={handleGoogleAuth}
+              onClick={() => handleSocialAuth('Google')}
               disabled={isLoading}
             >
               <svg viewBox="0 0 24 24" className="h-5 w-5">
@@ -137,7 +165,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
               type="button" 
               variant="outline" 
               className="flex items-center justify-center gap-2"
-              onClick={handleAppleAuth}
+              onClick={() => handleSocialAuth('Apple')}
               disabled={isLoading}
             >
               <Apple className="h-5 w-5" />
@@ -148,7 +176,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
               type="button" 
               variant="outline" 
               className="flex items-center justify-center gap-2"
-              onClick={handleFacebookAuth}
+              onClick={() => handleSocialAuth('Facebook')}
               disabled={isLoading}
             >
               <Facebook className="h-5 w-5" fill="currentColor" />
