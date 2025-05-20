@@ -28,7 +28,7 @@ const AuthForm = ({ type }: AuthFormProps) => {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-card px-2 text-muted-foreground">
-                ou avec un email
+                s'identifier avec un email
               </span>
             </div>
           </div>
