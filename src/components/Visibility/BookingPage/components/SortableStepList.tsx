@@ -85,12 +85,13 @@ export const SortableStepList = ({ steps, setSteps, onStepChange }: SortableStep
     const { active, over } = event;
     
     if (active.id !== over.id) {
-      setSteps((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-        
-        return arrayMove(items, oldIndex, newIndex);
-      });
+      // Fix: Create a new array directly instead of passing a function to setSteps
+      const oldIndex = steps.findIndex((item) => item.id === active.id);
+      const newIndex = steps.findIndex((item) => item.id === over.id);
+      const newSteps = arrayMove(steps, oldIndex, newIndex);
+      
+      // Now we're passing an array directly, not a function
+      setSteps(newSteps);
     }
   };
   
