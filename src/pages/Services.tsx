@@ -422,9 +422,9 @@ export default function Services() {
           id: cat.id,
           name: cat.name,
           description: cat.description || '',
-          isActive: cat.is_active,
+          isActive: true, // Default value since is_active doesn't exist in the database
           order: cat.position,
-          parentId: cat.parent_id || undefined,
+          parentId: undefined, // Default value since parent_id doesn't exist in the database
           color: '#' + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0'), // Generate random color
           imageUrl: undefined
         }));
@@ -445,6 +445,8 @@ export default function Services() {
           id: svc.id,
           name: svc.name,
           description: svc.description || '',
+          duration: svc.duration || 60, // Make sure to include required Service properties
+          price: svc.price || 0, // Make sure to include required Service properties
           isActive: svc.is_active,
           categoryId: svc.category_id,
           category: categoriesData.find(c => c.id === svc.category_id)?.name || 'Sans catégorie',
@@ -674,8 +676,6 @@ export default function Services() {
           business_id: currentBusiness.id,
           name: category.name,
           description: category.description || null,
-          is_active: category.isActive,
-          parent_id: category.parentId || null,
           position: category.order || categories.length
         })
         .select()
@@ -711,8 +711,6 @@ export default function Services() {
         .update({
           name: category.name,
           description: category.description || null,
-          is_active: category.isActive,
-          parent_id: category.parentId || null,
           position: category.order || 0
         })
         .eq('id', category.id);

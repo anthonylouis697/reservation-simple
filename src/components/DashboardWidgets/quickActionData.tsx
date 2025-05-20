@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar, UserPlus, Settings, BarChart3, Tag, Trash2 } from "lucide-react";
 import { QuickActionProps } from "./QuickAction";
@@ -29,8 +28,7 @@ export const resetMockData = async (businessId: string) => {
       name: category.name,
       description: category.description || null,
       business_id: businessId,
-      position: category.order || 0,
-      is_active: category.isActive
+      position: category.order || 0
     }));
     
     const { data: insertedCategories, error: insertCategoriesError } = await supabase
