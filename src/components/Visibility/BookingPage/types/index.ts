@@ -1,5 +1,6 @@
 
 import { ReactNode } from 'react';
+import { LucideIcon } from 'lucide-react';
 
 export type BookingTemplate = {
   id: string;
@@ -18,7 +19,7 @@ export type BookingTemplate = {
 export type BookingStep = {
   id: string;
   name: string;
-  icon: ReactNode;
+  icon: LucideIcon;
   enabled: boolean;
   customLabel?: string;
 };
