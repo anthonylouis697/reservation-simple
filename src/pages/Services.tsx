@@ -128,6 +128,8 @@ const initialCategories: Category[] = [
     description: "Services de consultation et d'évaluation initiale",
     isActive: true,
     color: "#8B5CF6", // Purple
+    imageUrl: "https://images.unsplash.com/photo-1500673922987-e212871fec22?w=300&h=300&fit=crop",
+    order: 0
   },
   {
     id: "cat2",
@@ -135,6 +137,8 @@ const initialCategories: Category[] = [
     description: "Services de traitement et de soins",
     isActive: true,
     color: "#10B981", // Green
+    imageUrl: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=300&h=300&fit=crop",
+    order: 1
   },
   {
     id: "cat3",
@@ -142,6 +146,8 @@ const initialCategories: Category[] = [
     description: "Services thérapeutiques spécialisés",
     isActive: true,
     color: "#3B82F6", // Blue
+    imageUrl: "/placeholder.svg",
+    order: 2
   },
   {
     id: "cat4",
@@ -149,6 +155,7 @@ const initialCategories: Category[] = [
     description: "Activités en groupe et ateliers collectifs",
     isActive: true,
     color: "#F59E0B", // Amber
+    order: 3
   },
   {
     id: "cat5",
@@ -157,6 +164,8 @@ const initialCategories: Category[] = [
     parentId: "cat2",
     isActive: true,
     color: "#06B6D4", // Cyan
+    imageUrl: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=300&h=300&fit=crop",
+    order: 0
   },
   {
     id: "cat6",
@@ -165,6 +174,7 @@ const initialCategories: Category[] = [
     parentId: "cat2",
     isActive: false,
     color: "#EC4899", // Pink
+    order: 1
   }
 ];
 
@@ -354,6 +364,14 @@ export default function Services() {
         description: `La catégorie "${category.name}" est maintenant ${newStatus ? "active" : "inactive"}.`
       });
     }
+  };
+
+  const handleReorderCategories = (updatedCategories: Category[]) => {
+    setCategories(updatedCategories);
+    toast({
+      title: "Catégories réordonnées",
+      description: "L'ordre des catégories a été mis à jour avec succès."
+    });
   };
   
   return (
@@ -545,6 +563,7 @@ export default function Services() {
                   onUpdateCategory={handleUpdateCategory}
                   onDeleteCategory={handleDeleteCategory}
                   onToggleStatus={handleToggleCategoryStatus}
+                  onReorderCategories={handleReorderCategories}
                   serviceCounts={serviceCounts}
                 />
               </TabsContent>

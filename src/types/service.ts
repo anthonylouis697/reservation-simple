@@ -34,5 +34,6 @@ export interface Category {
   isActive: boolean;
   color?: string;
   icon?: string;
+  imageUrl?: string;
   order?: number;
 }

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Category } from "@/types/service";
+import { ImageIcon, X, Upload } from "lucide-react";
 
 interface CategoryFormProps {
   initialData?: Category;
@@ -25,6 +26,15 @@ interface CategoryFormProps {
 
 const generateId = () => Math.random().toString(36).substring(2, 11);
 
+const SAMPLE_IMAGES = [
+  "/placeholder.svg",
+  "https://images.unsplash.com/photo-1618160702438-9b02ab6515c9?w=300&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=300&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=300&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=300&h=300&fit=crop",
+  "https://images.unsplash.com/photo-1500673922987-e212871fec22?w=300&h=300&fit=crop"
+];
+
 export const CategoryForm = ({ initialData, categories, onSubmit, onCancel }: CategoryFormProps) => {
   const [formData, setFormData] = useState<Category>({
     id: initialData?.id || "",
@@ -34,8 +44,11 @@ export const CategoryForm = ({ initialData, categories, onSubmit, onCancel }: Ca
     isActive: initialData?.isActive ?? true,
     color: initialData?.color || "#8B5CF6", // Default to purple
     icon: initialData?.icon || "",
+    imageUrl: initialData?.imageUrl || "",
     order: initialData?.order || 0,
   });
+
+  const [showImagePicker, setShowImagePicker] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -72,6 +85,21 @@ export const CategoryForm = ({ initialData, categories, onSubmit, onCancel }: Ca
     onSubmit(formData);
   };
 
+  const selectImage = (imageUrl: string) => {
+    setFormData({
+      ...formData,
+      imageUrl
+    });
+    setShowImagePicker(false);
+  };
+
+  const removeImage = () => {
+    setFormData({
+      ...formData,
+      imageUrl: ""
+    });
+  };
+
   // Filter out the current category and its children to prevent circular references
   const availableParentCategories = categories.filter(
     category => category.id !== formData.id && 
@@ -92,6 +120,88 @@ export const CategoryForm = ({ initialData, categories, onSubmit, onCancel }: Ca
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-4">
+            {/* Image de la catégorie */}
+            <div className="space-y-2">
+              <Label>Image de la catégorie</Label>
+              <div className="flex items-center gap-4">
+                <div className="relative h-24 w-24 rounded-md overflow-hidden flex items-center justify-center bg-secondary">
+                  {formData.imageUrl ? (
+                    <>
+                      <img 
+                        src={formData.imageUrl} 
+                        alt="Aperçu de l'image de catégorie" 
+                        className="h-full w-full object-cover"
+                      />
+                      <Button 
+                        variant="destructive" 
+                        size="icon"
+                        className="absolute top-0 right-0 h-6 w-6 rounded-full"
+                        type="button"
+                        onClick={removeImage}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </>
+                  ) : (
+                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowImagePicker(prev => !prev)}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    {formData.imageUrl ? "Changer l'image" : "Ajouter une image"}
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    L'image aidera les clients à identifier rapidement cette catégorie
+                  </span>
+                </div>
+              </div>
+
+              {showImagePicker && (
+                <div className="mt-4 border rounded-md p-4">
+                  <h3 className="font-medium mb-3">Choisissez une image</h3>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                    {SAMPLE_IMAGES.map((img, index) => (
+                      <div 
+                        key={index} 
+                        className={`h-16 w-16 rounded-md overflow-hidden cursor-pointer border-2 hover:opacity-80 transition-opacity ${
+                          formData.imageUrl === img ? 'border-primary' : 'border-transparent'
+                        }`}
+                        onClick={() => selectImage(img)}
+                      >
+                        <img src={img} alt={`Option ${index + 1}`} className="h-full w-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex justify-between items-center">
+                    <p className="text-xs text-muted-foreground">
+                      Vous pouvez aussi saisir une URL d'image
+                    </p>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setShowImagePicker(false)}
+                      type="button"
+                    >
+                      Fermer
+                    </Button>
+                  </div>
+                  <div className="mt-2">
+                    <Input
+                      name="imageUrl"
+                      value={formData.imageUrl || ""}
+                      onChange={handleChange}
+                      placeholder="URL de l'image (ex: https://example.com/image.jpg)"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+            
             <div className="space-y-2">
               <Label htmlFor="name">Nom de la catégorie *</Label>
               <Input
