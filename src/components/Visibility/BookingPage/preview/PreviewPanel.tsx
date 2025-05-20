@@ -1,9 +1,11 @@
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Eye, ImageIcon } from 'lucide-react';
+import { Eye, ImageIcon, Check } from 'lucide-react';
 import { useBookingPage } from '../BookingPageContext';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
+import { BookingStep } from '../types';
 
 export function PreviewPanel() {
   const {
@@ -14,7 +16,9 @@ export function PreviewPanel() {
     selectedTemplate,
     logo,
     buttonCorners,
-    templates
+    templates,
+    steps,
+    bookingButtonText
   } = useBookingPage();
 
   // Récupérer le template sélectionné
@@ -46,6 +50,77 @@ export function PreviewPanel() {
     return styles;
   };
 
+  // Only get enabled steps
+  const enabledSteps = steps.filter(step => step.enabled);
+  
+  // Generate step UI based on the step type
+  const renderStepPreview = (step: BookingStep, isActive: boolean = false) => {
+    switch (step.id) {
+      case 'service':
+        return (
+          <div className="space-y-2">
+            <Label className="text-xs">Sélectionnez un service</Label>
+            <div 
+              className={cn(
+                "border rounded p-2 text-sm cursor-pointer",
+                isActive ? "bg-accent" : "hover:bg-accent/50"
+              )}
+            >
+              Service exemple
+            </div>
+          </div>
+        );
+      case 'date':
+        return (
+          <div className="space-y-2">
+            <Label className="text-xs">Sélectionnez une date</Label>
+            <div className="border rounded p-2 text-sm text-center">
+              [Calendrier]
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Sélectionnez un horaire</Label>
+              <div className="flex flex-wrap gap-1 text-xs">
+                <div 
+                  className={`py-1 px-2 ${getButtonClasses()} text-white cursor-pointer`}
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  10:00
+                </div>
+                <div className={`py-1 px-2 border ${getButtonClasses()} cursor-pointer`}>
+                  11:00
+                </div>
+                <div className={`py-1 px-2 border ${getButtonClasses()} cursor-pointer`}>
+                  14:00
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'client':
+        return (
+          <div className="space-y-2">
+            <Label className="text-xs">Vos informations</Label>
+            <div className="space-y-1">
+              <div className="h-6 bg-gray-100 rounded mb-1"></div>
+              <div className="h-6 bg-gray-100 rounded"></div>
+            </div>
+          </div>
+        );
+      case 'payment':
+        return (
+          <div className="space-y-2">
+            <Label className="text-xs">Méthode de paiement</Label>
+            <div className="flex gap-2">
+              <div className="h-10 w-14 bg-gray-100 rounded flex items-center justify-center text-xs">VISA</div>
+              <div className="h-10 w-14 bg-gray-100 rounded flex items-center justify-center text-xs">MC</div>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <Card className="sticky top-4">
       <CardHeader>
@@ -75,7 +150,7 @@ export function PreviewPanel() {
             <div className="flex flex-col items-center justify-center">
               <div className={`w-16 h-16 ${template.style === 'premium' ? 'rounded-xl' : 'rounded-full'} border flex items-center justify-center bg-white mb-2`}>
                 {logo ? (
-                  <img src={logo} alt="Logo" className="max-h-full max-w-full rounded-full" />
+                  <img src={logo} alt="Logo" className="max-h-full max-w-full object-contain" />
                 ) : (
                   <ImageIcon className="h-6 w-6 text-muted-foreground" />
                 )}
@@ -86,43 +161,30 @@ export function PreviewPanel() {
               </p>
             </div>
             
-            <div className="space-y-2">
-              <Label className="text-xs">Sélectionnez un service</Label>
-              <div className="border rounded p-2 text-sm cursor-pointer hover:bg-accent">
-                Service exemple
+            {/* Progress Steps */}
+            {enabledSteps.length > 0 && (
+              <div className="flex justify-between items-center mb-4 text-xs">
+                {enabledSteps.map((step, index) => (
+                  <div key={step.id} className="flex flex-col items-center">
+                    <div 
+                      className={`w-6 h-6 rounded-full flex items-center justify-center mb-1 ${index === 0 ? "bg-primary text-white" : "border"}`}
+                    >
+                      {index === 0 ? "1" : index + 1}
+                    </div>
+                    <span className="text-[10px]">{step.name}</span>
+                  </div>
+                ))}
               </div>
-            </div>
+            )}
             
-            <div className="space-y-2">
-              <Label className="text-xs">Sélectionnez une date</Label>
-              <div className="border rounded p-2 text-sm text-center">
-                [Calendrier]
-              </div>
-            </div>
-            
-            <div className="space-y-1">
-              <Label className="text-xs">Sélectionnez un horaire</Label>
-              <div className="flex flex-wrap gap-1 text-xs">
-                <div 
-                  className={`py-1 px-2 ${getButtonClasses()} text-white cursor-pointer`}
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  10:00
-                </div>
-                <div className={`py-1 px-2 border ${getButtonClasses()} cursor-pointer`}>
-                  11:00
-                </div>
-                <div className={`py-1 px-2 border ${getButtonClasses()} cursor-pointer`}>
-                  14:00
-                </div>
-              </div>
-            </div>
+            {/* Active Step (showing first enabled step) */}
+            {enabledSteps.length > 0 && renderStepPreview(enabledSteps[0], true)}
             
             <Button 
-              className={`w-full text-xs h-8 mt-2 ${getButtonClasses()}`} 
+              className={`w-full text-xs h-8 mt-4 ${getButtonClasses()}`} 
               style={{ backgroundColor: primaryColor }}
             >
-              Confirmer
+              {bookingButtonText || "Confirmer"}
             </Button>
           </div>
         </div>
