@@ -25,6 +25,12 @@ import Marketing from "./pages/Marketing";
 import GiftCards from "./pages/GiftCards";
 import Payments from "./pages/Payments";
 
+// Visibilité pages
+import Visibility from "./pages/Visibility";
+import BookingPage from "./pages/BookingPage";
+import SocialIntegration from "./pages/SocialIntegration";
+import AdditionalServices from "./pages/AdditionalServices";
+
 // Account management pages
 import ProfilePage from "./pages/Account/ProfilePage";
 import TeamPage from "./pages/Account/TeamPage";
@@ -56,7 +62,14 @@ const App = () => {
             <Route path="/settings" element={<Settings />} />
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/booking-customization" element={<BookingCustomization />} />
+            
+            {/* Visibilité routes */}
+            <Route path="/visibility" element={<Visibility />} />
+            <Route path="/visibility/booking-page" element={<BookingPage />} />
+            <Route path="/visibility/social-integration" element={<SocialIntegration />} />
+            <Route path="/visibility/additional-services" element={<AdditionalServices />} />
             <Route path="/visibility-boost" element={<VisibilityBoostPage />} />
+            
             <Route path="/events" element={<Events />} />
             <Route path="/help" element={<HelpCenter />} />
             <Route path="/statistics" element={<Statistics />} />
