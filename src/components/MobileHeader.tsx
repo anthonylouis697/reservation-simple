@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { MobileNavigation } from "@/components/MainNavigation";
+import { MainNavigation } from "@/components/MainNavigation";
 import { UserProfileDropdown } from "@/components/UserProfileDropdown";
 import { useAuth } from "@/contexts/AuthContext";
 import { BusinessSelector } from "./BusinessSelector";
@@ -22,7 +22,7 @@ export const MobileHeader = () => {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="sm:max-w-xs">
-            <MobileNavigation />
+            <MainNavigation mobile={true} />
           </SheetContent>
         </Sheet>
 

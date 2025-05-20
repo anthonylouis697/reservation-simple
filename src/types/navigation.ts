@@ -1,10 +1,12 @@
 
-import { LucideIcon } from 'lucide-react';
+import { ReactNode } from 'react';
 
 export type NavItem = {
-  name: string;
+  title: string;
   href: string;
-  icon: LucideIcon;
-  description: string;
+  icon: ReactNode;
+  description?: string;
+  isAction?: boolean;
+  alwaysAccessible?: boolean;
   subItems?: NavItem[];
 }

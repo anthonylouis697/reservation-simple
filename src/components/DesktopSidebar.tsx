@@ -3,12 +3,10 @@ import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { navigationConfig } from "@/config/navigation";
-import { navigationItems } from "@/config/navigation";
-import { NavItem } from "@/components/Navigation/NavItem";
-import { HelpNavItem } from "@/components/Navigation/HelpNavItem";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BusinessSelector } from "./BusinessSelector";
 import { useBusiness } from "@/contexts/BusinessContext";
+import { NavItem, HelpNavItem } from "./MainNavigation";
 
 export function DesktopSidebar() {
   const { pathname } = useLocation();
@@ -38,9 +36,9 @@ export function DesktopSidebar() {
             {navigationConfig.mainNav.map((item, index) => (
               <NavItem 
                 key={index} 
-                item={item} 
-                pathname={pathname} 
-                disabled={!currentBusiness && pathname !== "/welcome" && !item.alwaysAccessible}
+                item={item}
+                isFirstTimeUser={false}
+                handleNavigation={(href) => window.location.href = href}
               />
             ))}
           </div>
@@ -56,9 +54,9 @@ export function DesktopSidebar() {
                 {navigationConfig.marketingNav.map((item, index) => (
                   <NavItem 
                     key={index} 
-                    item={item} 
-                    pathname={pathname}
-                    disabled={!currentBusiness && pathname !== "/welcome"}
+                    item={item}
+                    isFirstTimeUser={false}
+                    handleNavigation={(href) => window.location.href = href}
                   />
                 ))}
               </div>
@@ -76,9 +74,9 @@ export function DesktopSidebar() {
                 {navigationConfig.visibilityNav.map((item, index) => (
                   <NavItem 
                     key={index} 
-                    item={item} 
-                    pathname={pathname}
-                    disabled={!currentBusiness && pathname !== "/welcome"}
+                    item={item}
+                    isFirstTimeUser={false}
+                    handleNavigation={(href) => window.location.href = href}
                   />
                 ))}
               </div>
@@ -91,11 +89,12 @@ export function DesktopSidebar() {
                 {navigationConfig.bottomNav.map((item, index) => (
                   <NavItem 
                     key={index} 
-                    item={item} 
-                    pathname={pathname}
+                    item={item}
+                    isFirstTimeUser={false}
+                    handleNavigation={(href) => window.location.href = href}
                   />
                 ))}
-                <HelpNavItem pathname={pathname} />
+                <HelpNavItem />
               </div>
             </div>
           )}
