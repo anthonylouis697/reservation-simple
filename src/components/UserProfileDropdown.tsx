@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface UserProfileDropdownProps {
-  user: {
+  user?: {
     name: string;
     email: string;
     initials: string;
@@ -29,25 +29,52 @@ interface UserProfileDropdownProps {
   variant?: 'default' | 'mobile';
 }
 
-export const UserProfileDropdown = ({ user, variant = 'default' }: UserProfileDropdownProps) => {
-  const { signOut } = useAuth();
+export const UserProfileDropdown = ({ user: providedUser, variant = 'default' }: UserProfileDropdownProps) => {
+  const { signOut, user: authUser, profile } = useAuth();
+
+  // Utiliser les données d'authentification réelles si disponibles, sinon utiliser les données fournies
+  const userData = authUser ? {
+    name: profile?.first_name && profile?.last_name 
+      ? `${profile.first_name} ${profile.last_name}` 
+      : authUser.email?.split('@')[0] || 'Utilisateur',
+    email: authUser.email || '',
+    initials: profile?.first_name && profile?.last_name 
+      ? `${profile.first_name[0]}${profile.last_name[0]}` 
+      : authUser.email?.substring(0, 2).toUpperCase() || 'U',
+    role: profile?.role || 'Utilisateur',
+    subscription: {
+      plan: 'Gratuit',
+      status: 'active',
+      renewalDate: new Date().toLocaleDateString('fr-FR')
+    }
+  } : providedUser || {
+    name: 'Utilisateur',
+    email: '',
+    initials: 'U',
+    role: 'Utilisateur',
+    subscription: {
+      plan: 'Gratuit',
+      status: 'active',
+      renewalDate: new Date().toLocaleDateString('fr-FR')
+    }
+  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="" alt={user.name} />
-            <AvatarFallback>{user.initials}</AvatarFallback>
+            <AvatarImage src={profile?.avatar_url || ""} alt={userData.name} />
+            <AvatarFallback>{userData.initials}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
+            <p className="text-sm font-medium leading-none">{userData.name}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
+              {userData.email}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -85,3 +112,5 @@ export const UserProfileDropdown = ({ user, variant = 'default' }: UserProfileDr
     </DropdownMenu>
   );
 };
+
+export default UserProfileDropdown;

@@ -15,6 +15,7 @@ const RequireAuth = ({ children }: RequireAuthProps) => {
   useEffect(() => {
     if (!isLoading && !user) {
       // Rediriger vers la page de connexion si l'utilisateur n'est pas authentifié
+      // et stocker l'URL d'origine pour y revenir après la connexion
       navigate('/login', { state: { from: location.pathname } });
     }
   }, [user, isLoading, navigate, location]);

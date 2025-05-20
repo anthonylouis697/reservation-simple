@@ -1,6 +1,5 @@
 
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { SocialLoginButtons } from './SocialLoginButtons';
 import { EmailPasswordForm } from './EmailPasswordForm';
 import { AuthFormHeader } from './AuthFormHeader';

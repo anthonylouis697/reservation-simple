@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -24,6 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // Fonction pour charger le profil utilisateur
@@ -33,7 +34,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .from('profiles')
           .select('*')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Erreur lors du chargement du profil:', error);
@@ -48,6 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Écouteur de changement d'état d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
+        console.log('Auth event:', event, 'Session:', currentSession);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
@@ -57,8 +59,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setTimeout(() => {
             loadUserProfile(currentSession.user.id);
           }, 0);
+          
+          // Si l'utilisateur est sur la page d'accueil, login ou signup, rediriger vers dashboard
+          if (['/login', '/signup', '/'].includes(location.pathname)) {
+            navigate('/dashboard');
+          }
         } else {
           setProfile(null);
+          
+          // Si l'utilisateur n'est pas connecté et est sur une page protégée, rediriger vers login
+          const isProtectedRoute = !['/', '/login', '/signup', '/reset-password'].includes(location.pathname);
+          if (isProtectedRoute) {
+            navigate('/login', { state: { from: location.pathname } });
+          }
         }
 
         setIsLoading(false);
@@ -67,11 +80,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Vérifier s'il y a une session existante au chargement
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      console.log('Initial session check:', currentSession);
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       
       if (currentSession?.user) {
         loadUserProfile(currentSession.user.id);
+        
+        // Si l'utilisateur est sur la page d'accueil, login ou signup, rediriger vers dashboard
+        if (['/login', '/signup', '/'].includes(location.pathname)) {
+          navigate('/dashboard');
+        }
+      } else {
+        // Si l'utilisateur n'est pas connecté et est sur une page protégée, rediriger vers login
+        const isProtectedRoute = !['/', '/login', '/signup', '/reset-password'].includes(location.pathname);
+        if (isProtectedRoute) {
+          navigate('/login', { state: { from: location.pathname } });
+        }
       }
       
       setIsLoading(false);
@@ -81,19 +106,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate, location]);
 
   const signUp = async (email: string, password: string, options?: { first_name?: string; last_name?: string }) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: {
             first_name: options?.first_name || '',
             last_name: options?.last_name || ''
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/dashboard`
         }
       });
 
@@ -101,8 +127,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw error;
       }
 
-      toast.success('Inscription réussie ! Vérifiez votre email pour confirmer votre compte.');
-      navigate('/welcome');
+      if (!data.session) {
+        toast.success('Inscription réussie ! Vérifiez votre email pour confirmer votre compte.');
+        navigate('/welcome');
+      } else {
+        toast.success('Inscription réussie !');
+        navigate('/dashboard');
+      }
     } catch (error: any) {
       toast.error(error.message || 'Une erreur est survenue lors de l\'inscription.');
     } finally {
@@ -123,7 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       toast.success('Connexion réussie !');
-      navigate('/dashboard');
+      // La redirection sera gérée par l'écouteur onAuthStateChange
     } catch (error: any) {
       toast.error(error.message || 'Une erreur est survenue lors de la connexion.');
     } finally {

@@ -18,16 +18,21 @@ export const SocialLoginButtons = ({ isLoading }: SocialLoginButtonsProps) => {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: `${window.location.origin}/dashboard`,
+          queryParams: {
+            prompt: 'select_account' // Pour Google: forcer l'affichage du sélecteur de compte
+          }
         }
       });
 
       if (error) {
         throw error;
       }
+
+      // Pas besoin de redirection ici car l'OAuth gère cela automatiquement
+      // et la redirection vers le dashboard est spécifiée dans redirectTo
     } catch (error: any) {
       toast.error(`Échec de la connexion avec ${provider}: ${error.message}`);
-    } finally {
       setIsSocialLoading(null);
     }
   };

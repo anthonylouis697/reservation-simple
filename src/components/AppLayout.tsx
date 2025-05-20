@@ -4,6 +4,7 @@ import { QuickHelp } from "@/components/QuickHelp";
 import { DesktopSidebar } from "@/components/DesktopSidebar";
 import { MobileHeader } from "@/components/MobileHeader";
 import { MobileFooter } from "@/components/MobileFooter";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -11,16 +12,21 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const { user, profile } = useAuth();
   
-  // Mocked user data - in a real app this would come from auth context
-  const user = {
-    name: "Thomas Martin",
-    email: "thomas@example.com",
-    initials: "TM",
-    role: "Propriétaire",
+  // Créer un objet userData à partir des données d'authentification
+  const userData = {
+    name: profile?.first_name && profile?.last_name 
+      ? `${profile.first_name} ${profile.last_name}` 
+      : user?.email?.split('@')[0] || 'Utilisateur',
+    email: user?.email || 'email@exemple.com',
+    initials: profile?.first_name && profile?.last_name 
+      ? `${profile.first_name[0]}${profile.last_name[0]}` 
+      : user?.email?.substring(0, 2).toUpperCase() || 'U',
+    role: profile?.role || 'Propriétaire',
     subscription: {
-      plan: "Premium",
-      status: "active",
+      plan: 'Premium',
+      status: 'active',
       renewalDate: "15/06/2025"
     }
   };
@@ -28,14 +34,14 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50 flex w-full">
       {/* Sidebar for desktop */}
-      <DesktopSidebar userData={user} />
+      <DesktopSidebar userData={userData} />
       
       {/* Main content */}
       <main className="flex-grow overflow-auto pb-20 md:pb-6">
         {/* Mobile header */}
         <MobileHeader 
           onHelpClick={() => setIsHelpOpen(true)}
-          userData={user}
+          userData={userData}
         />
         
         {/* Page content */}

@@ -3,9 +3,21 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AuthForm from '@/components/auth/AuthForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Login = () => {
+  const { user, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  // Rediriger si l'utilisateur est déjà connecté
+  useEffect(() => {
+    if (user && !isLoading) {
+      navigate('/dashboard');
+    }
+  }, [user, isLoading, navigate]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />

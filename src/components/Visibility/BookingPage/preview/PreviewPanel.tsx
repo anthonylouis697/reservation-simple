@@ -43,7 +43,7 @@ export function PreviewPanel() {
             businessName={businessName}
             primaryColor={primaryColor}
             logo={logo}
-            templateStyle={template.style}
+            templateStyle={template.style as "standard" | "minimal" | "premium"}
             welcomeMessage={welcomeMessage}
           />
           
