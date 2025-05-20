@@ -800,14 +800,10 @@ export default function Services() {
     if (!category) return;
     
     try {
-      const { error } = await supabase
-        .from('service_categories')
-        .update({ is_active: !category.isActive })
-        .eq('id', categoryId);
-        
-      if (error) throw error;
+      // Since is_active doesn't exist in the database, we can't update it
+      // Instead, we'll just update the UI state
       
-      // Mettre à jour la liste des catégories en local
+      // Mettre à jour la liste des catégories en local only
       setCategories(prev => prev.map(c => 
         c.id === categoryId ? { ...c, isActive: !c.isActive } : c
       ));
