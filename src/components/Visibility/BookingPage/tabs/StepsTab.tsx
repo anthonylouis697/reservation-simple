@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
 import { Pencil, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { CustomTextsEditor } from '../components/CustomTextsEditor';
 
 export function StepsTab() {
   const {
@@ -62,54 +63,7 @@ export function StepsTab() {
             <SortableStepList
               steps={steps}
               setSteps={setSteps}
-              renderStep={(step) => (
-                <div className="flex items-center justify-between py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="text-primary mt-0.5">
-                      {step.icon}
-                    </div>
-                    {editingStepId === step.id ? (
-                      <div className="flex gap-2 items-center">
-                        <Input
-                          value={tempStepName}
-                          onChange={(e) => setTempStepName(e.target.value)}
-                          className="h-8 w-48"
-                          autoFocus
-                        />
-                        <button
-                          onClick={saveStepName}
-                          className="text-green-600 hover:bg-green-50 p-1 rounded-full"
-                          title="Valider"
-                        >
-                          <Check className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={cancelEditing}
-                          className="text-red-600 hover:bg-red-50 p-1 rounded-full"
-                          title="Annuler"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <span>{step.customLabel || step.name}</span>
-                        <button
-                          onClick={() => startEditing(step.id, step.customLabel || step.name)}
-                          className="text-muted-foreground hover:text-primary p-1 rounded-full hover:bg-muted"
-                          title="Modifier le nom"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  <Switch
-                    checked={step.enabled}
-                    onCheckedChange={(checked) => handleStepChange(step.id, checked)}
-                  />
-                </div>
-              )}
+              onStepChange={handleStepChange}
             />
           </div>
           
@@ -153,6 +107,9 @@ export function StepsTab() {
               </div>
             )}
           </div>
+          
+          {/* Ajout de l'éditeur de textes personnalisés */}
+          <CustomTextsEditor />
         </CardContent>
       </Card>
     </div>

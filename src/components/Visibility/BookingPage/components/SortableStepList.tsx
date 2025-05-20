@@ -82,7 +82,7 @@ const SortableStep = ({ step, onChange, isFirst }: SortableStepProps) => {
               "font-medium",
               !step.enabled && "text-muted-foreground"
             )}>
-              {step.name}
+              {step.customLabel || step.name}
             </span>
             {isFirst && step.enabled && (
               <div className="text-xs text-primary flex items-center gap-1 mt-0.5">
@@ -112,7 +112,7 @@ const SortableStep = ({ step, onChange, isFirst }: SortableStepProps) => {
 interface SortableStepListProps {
   steps: BookingStep[];
   setSteps: (steps: BookingStep[]) => void;
-  onStepChange: (id: string, enabled: boolean) => void;
+  onStepChange?: (id: string, enabled: boolean) => void;
 }
 
 export const SortableStepList = ({ steps, setSteps, onStepChange }: SortableStepListProps) => {
@@ -176,7 +176,7 @@ export const SortableStepList = ({ steps, setSteps, onStepChange }: SortableStep
             <SortableStep 
               key={step.id} 
               step={step} 
-              onChange={onStepChange} 
+              onChange={onStepChange || ((id, enabled) => {})} 
               isFirst={step.id === firstEnabledStepId}
             />
           ))}
