@@ -10,28 +10,38 @@ import Industries from '@/components/Industries';
 import WhyChooseUs from '@/components/WhyChooseUs';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
   const location = useLocation();
+  const { user } = useAuth();
 
   // Scroll to section on hash change
   useEffect(() => {
+    console.log("Index page loaded, hash:", location.hash);
+    
     if (location.hash) {
       // Petit délai pour assurer que le composant est monté
       setTimeout(() => {
-        const element = document.getElementById(location.hash.substring(1));
+        const sectionId = location.hash.substring(1);
+        console.log("Trying to scroll to section:", sectionId);
+        
+        const element = document.getElementById(sectionId);
         if (element) {
+          console.log("Element found, scrolling to:", sectionId);
           element.scrollIntoView({ behavior: 'smooth' });
+        } else {
+          console.log("Element not found:", sectionId);
         }
-      }, 100);
+      }, 300);
     } else {
       window.scrollTo(0, 0);
     }
-  }, [location]);
+  }, [location.hash]);
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      <Navbar showDashboardLink={!!user} />
       <main className="flex-grow">
         <Hero />
         <Features />

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown, LogIn } from 'lucide-react';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -13,11 +13,17 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
+import { useAuth } from '@/contexts/AuthContext';
 
-const Navbar = () => {
+interface NavbarProps {
+  showDashboardLink?: boolean;
+}
+
+const Navbar = ({ showDashboardLink = false }: NavbarProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
   
   // Change navbar style on scroll
   useEffect(() => {
@@ -121,6 +127,7 @@ const Navbar = () => {
                               <Link
                                 to={item.href}
                                 className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+                                onClick={() => setIsMenuOpen(false)}
                               >
                                 <div className="text-xl mb-1">{item.icon}</div>
                                 <div className="text-sm font-medium leading-none">{item.title}</div>
@@ -145,6 +152,7 @@ const Navbar = () => {
                               <Link
                                 to={item.href}
                                 className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-indigo-50 hover:text-indigo-600"
+                                onClick={() => setIsMenuOpen(false)}
                               >
                                 <div className="text-xl mb-1">{item.icon}</div>
                                 <div className="text-sm font-medium leading-none">{item.title}</div>
@@ -182,16 +190,36 @@ const Navbar = () => {
           </div>
           
           <div className="hidden lg:ml-6 lg:flex lg:items-center lg:space-x-4">
-            <Link to="/login">
-              <Button variant="outline" className="border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50">
-                Connexion
-              </Button>
-            </Link>
-            <Link to="/signup">
-              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg transition-all">
-                Essayer gratuitement
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <Link to="/dashboard">
+                  <Button variant="outline" className="border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50 flex items-center gap-2">
+                    <LogIn className="h-4 w-4" />
+                    Mon espace
+                  </Button>
+                </Link>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => signOut()}
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                >
+                  Déconnexion
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="outline" className="border-indigo-200 hover:border-indigo-300 hover:bg-indigo-50">
+                    Connexion
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg transition-all">
+                    Essayer gratuitement
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
           
           <div className="lg:hidden flex items-center">
@@ -270,12 +298,35 @@ const Navbar = () => {
           </div>
           
           <div className="pt-4 pb-3 border-t border-gray-200 flex flex-col space-y-2 px-4">
-            <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-              <Button variant="outline" className="w-full">Connexion</Button>
-            </Link>
-            <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
-              <Button className="w-full">Essayer gratuitement</Button>
-            </Link>
+            {user ? (
+              <>
+                <Link to="/dashboard" onClick={() => setIsMenuOpen(false)}>
+                  <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+                    <LogIn className="h-4 w-4" />
+                    Mon espace
+                  </Button>
+                </Link>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    signOut();
+                  }}
+                  className="w-full text-red-500 hover:text-red-600 hover:bg-red-50"
+                >
+                  Déconnexion
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" onClick={() => setIsMenuOpen(false)}>
+                  <Button variant="outline" className="w-full">Connexion</Button>
+                </Link>
+                <Link to="/signup" onClick={() => setIsMenuOpen(false)}>
+                  <Button className="w-full">Essayer gratuitement</Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -1,14 +1,16 @@
 
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Search, Bell, HelpCircle } from "lucide-react";
+import { Menu, X, Search, Bell, HelpCircle, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { MainNavigation } from "@/components/MainNavigation";
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function MobileHeader() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const { user, signOut } = useAuth();
 
   return (
     <header className="sticky top-0 z-10 border-b bg-white lg:hidden">
@@ -36,6 +38,23 @@ export function MobileHeader() {
               </div>
               <div className="py-4 px-4">
                 <MainNavigation />
+              </div>
+              <div className="mt-auto border-t p-4">
+                <Link to="/">
+                  <Button variant="outline" className="w-full flex items-center justify-center gap-2">
+                    <Home className="h-4 w-4" />
+                    <span>Retour au site</span>
+                  </Button>
+                </Link>
+                {user && (
+                  <Button
+                    variant="ghost"
+                    className="w-full mt-2"
+                    onClick={() => signOut()}
+                  >
+                    Déconnexion
+                  </Button>
+                )}
               </div>
             </SheetContent>
           </Sheet>

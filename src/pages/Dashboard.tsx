@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Clock, User, Star, Settings, ArrowRight } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -14,10 +14,33 @@ import { RevenueChart } from '@/components/DashboardWidgets/RevenueChart';
 import { ClientsWidget } from '@/components/DashboardWidgets/ClientsWidget';
 import { ServicesWidget } from '@/components/DashboardWidgets/ServicesWidget';
 import { UpcomingEvents } from '@/components/DashboardWidgets/UpcomingEvents';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Dashboard = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const navigate = useNavigate();
+  const { user, isLoading } = useAuth();
+  const [isReady, setIsReady] = useState(false);
+  
+  // Vérifier que l'utilisateur est bien chargé
+  useEffect(() => {
+    if (!isLoading && user) {
+      console.log("Dashboard: User loaded successfully", user.email);
+      setIsReady(true);
+    }
+  }, [user, isLoading]);
+  
+  // Si toujours en chargement, afficher un indicateur
+  if (isLoading || !isReady) {
+    return (
+      <AppLayout>
+        <div className="flex flex-col items-center justify-center min-h-[50vh]">
+          <div className="animate-spin w-10 h-10 border-4 border-primary border-t-transparent rounded-full mb-4"></div>
+          <p className="text-gray-500">Chargement de votre tableau de bord...</p>
+        </div>
+      </AppLayout>
+    );
+  }
   
   // Mock data for appointments
   const upcomingAppointments = [

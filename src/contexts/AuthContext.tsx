@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
+      (event, currentSession) => {
         console.log('Auth event:', event, 'Session:', currentSession?.user?.id);
         
         setSession(currentSession);
@@ -49,12 +49,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setTimeout(() => {
             loadUserProfile(currentSession.user.id).then(({ profile: userProfile }) => {
               setProfile(userProfile);
+              setIsLoading(false);
             });
           }, 0);
           
-          // Redirect logic for authenticated users
-          // Only redirect to dashboard if user is on login/signup/home pages
-          if (['/login', '/signup', '/'].includes(location.pathname)) {
+          // Redirect logic for authenticated users - Only redirect to dashboard if user is on login/signup
+          if (['/login', '/signup'].includes(location.pathname)) {
             console.log("Redirecting authenticated user to dashboard from", location.pathname);
             navigate('/dashboard');
           }
@@ -71,9 +71,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.log("Redirecting unauthenticated user to login from protected route:", location.pathname);
             navigate('/login', { state: { from: location.pathname } });
           }
+          setIsLoading(false);
         }
-
-        setIsLoading(false);
       }
     );
 
@@ -90,11 +89,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setTimeout(() => {
           loadUserProfile(currentSession.user.id).then(({ profile: userProfile }) => {
             setProfile(userProfile);
+            setIsLoading(false);
           });
         }, 0);
         
-        // Redirect logic for the initial check
-        if (['/login', '/signup', '/'].includes(location.pathname)) {
+        // Redirect logic for the initial check - Only redirect to dashboard if user is on login/signup
+        if (['/login', '/signup'].includes(location.pathname)) {
           console.log("Initial check: Redirecting to dashboard");
           navigate('/dashboard');
         }
@@ -109,9 +109,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log("Initial check: Redirecting to login");
           navigate('/login', { state: { from: location.pathname } });
         }
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     });
 
     // Cleanup subscription
