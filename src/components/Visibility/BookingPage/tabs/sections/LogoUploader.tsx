@@ -1,0 +1,95 @@
+
+import { Upload } from 'lucide-react';
+import { toast } from 'sonner';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { useBookingPage } from '../../BookingPageContext';
+
+export function LogoUploader() {
+  const { 
+    logo,
+    setLogo,
+  } = useBookingPage();
+  
+  // Handle logo upload
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (!file.type.startsWith('image/')) {
+      toast.error('Veuillez choisir une image valide');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = () => {
+      setLogo(reader.result as string);
+      toast.success('Logo téléchargé avec succès');
+    };
+    reader.readAsDataURL(file);
+  };
+  
+  // Reset logo
+  const handleResetLogo = () => {
+    setLogo(null);
+    toast.success('Logo réinitialisé');
+  };
+
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <Label className="text-base font-medium mb-4 block">Logo de votre entreprise</Label>
+        <div className="flex flex-col sm:flex-row gap-4 items-center">
+          <div 
+            className="w-24 h-24 rounded-lg border-2 border-dashed flex items-center justify-center bg-muted/50"
+          >
+            {logo ? (
+              <img 
+                src={logo} 
+                alt="Logo" 
+                className="max-w-full max-h-full object-contain"
+              />
+            ) : (
+              <Upload className="h-8 w-8 text-muted-foreground" />
+            )}
+          </div>
+          
+          <div className="space-y-2 flex-1">
+            <Label 
+              htmlFor="logo-upload" 
+              className="block w-full cursor-pointer text-center py-2 px-4 border-2 border-dashed rounded-md hover:bg-muted/50 transition-colors"
+            >
+              <span className="flex items-center justify-center gap-2">
+                <Upload className="h-4 w-4" />
+                {logo ? "Changer le logo" : "Télécharger un logo"}
+              </span>
+              <Input 
+                id="logo-upload" 
+                type="file" 
+                className="sr-only" 
+                onChange={handleLogoUpload}
+                accept="image/*"
+              />
+            </Label>
+            
+            {logo && (
+              <Button 
+                variant="outline"
+                onClick={handleResetLogo}
+                className="w-full"
+              >
+                Supprimer le logo
+              </Button>
+            )}
+            
+            <p className="text-xs text-muted-foreground text-center">
+              Format recommandé : PNG ou JPG, dimensions carrées, max 1MB
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
