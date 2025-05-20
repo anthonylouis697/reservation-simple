@@ -1,144 +1,147 @@
 
-import { 
-  LayoutDashboard, 
-  Calendar, 
-  Settings, 
-  Users, 
-  Star,
-  HelpCircle,
-  ScrollText,
-  BarChart3,
-  Tag,
-  CreditCard,
-  Bell,
-  Gift,
+import {
+  CalendarDays,
+  LayoutDashboard,
+  Settings,
+  Users,
+  CircleDollarSign,
+  PanelLeftClose,
+  CalendarClock,
+  Megaphone,
+  PieChart,
+  ListChecks,
+  GalleryHorizontalEnd,
   Globe,
-  Link,
-  Share,
-  DollarSign,
-  Pencil,
-} from 'lucide-react';
-import { NavItem } from '@/types/navigation';
+  HandCoins,
+  Database,
+  GanttChart,
+  PackageCheck,
+  Rocket,
+  Building2
+} from "lucide-react";
+import { ReactNode } from "react";
+import { NavItem } from "@/types/navigation";
 
-export const navItems: NavItem[] = [
-  {
-    name: "Tableau de bord",
+export const navigationItems = {
+  dashboard: {
+    title: "Tableau de bord",
     href: "/dashboard",
-    icon: LayoutDashboard,
-    description: "Aperçu de votre activité et rendez-vous à venir"
+    icon: <LayoutDashboard className="h-5 w-5" />,
   },
-  {
-    name: "Calendrier",
+  calendar: {
+    title: "Calendrier",
     href: "/calendar",
-    icon: Calendar,
-    description: "Gérez vos disponibilités et rendez-vous"
+    icon: <CalendarDays className="h-5 w-5" />,
   },
-  {
-    name: "Clients",
+  clients: {
+    title: "Clients",
     href: "/clients",
-    icon: Users,
-    description: "Base de données de vos clients et prospects"
+    icon: <Users className="h-5 w-5" />,
   },
-  {
-    name: "Offres",
+  reservations: {
+    title: "Réservations",
+    href: "/reservations",
+    icon: <CalendarClock className="h-5 w-5" />,
+  },
+  services: {
+    title: "Services",
     href: "/services",
-    icon: Tag,
-    description: "Gérez vos services et tarifs",
-    subItems: [
-      {
-        name: "Offres & Catégories",
-        href: "/services",
-        icon: Tag,
-        description: "Gérez vos services et leurs catégories"
-      },
-      {
-        name: "Ressources",
-        href: "/services?tab=resources",
-        icon: Pencil,
-        description: "Gérez les ressources nécessaires à vos offres"
-      }
-    ]
+    icon: <ListChecks className="h-5 w-5" />,
   },
-  {
-    name: "Événements",
-    href: "/events",
-    icon: ScrollText,
-    description: "Créez et gérez vos événements et ateliers"
-  },
-  {
-    name: "Paiements",
-    href: "/payments",
-    icon: CreditCard,
-    description: "Suivez vos revenus et configurez les paiements"
-  },
-  {
-    name: "Marketing",
-    href: "/marketing",
-    icon: Bell,
-    description: "Notifications, promotions et fidélité",
-    subItems: [
-      {
-        name: "Codes promo",
-        href: "/marketing?tab=promotions",
-        icon: Tag,
-        description: "Créez et gérez vos codes promotionnels"
-      },
-      {
-        name: "SMS Marketing",
-        href: "/marketing?tab=sms",
-        icon: Bell,
-        description: "Envoyez des SMS à vos clients"
-      },
-      {
-        name: "Notifications",
-        href: "/marketing?tab=notifications",
-        icon: Bell,
-        description: "Gérez les notifications automatiques"
-      },
-      {
-        name: "Programme fidélité",
-        href: "/marketing?tab=loyalty",
-        icon: Star,
-        description: "Configurez votre programme de fidélité"
-      },
-      {
-        name: "Cartes cadeaux",
-        href: "/marketing?tab=gift-cards",
-        icon: Gift,
-        description: "Créez et gérez des cartes cadeaux"
-      }
-    ]
-  },
-  {
-    name: "Statistiques",
+  statistics: {
+    title: "Statistiques",
     href: "/statistics",
-    icon: BarChart3,
-    description: "Analysez votre activité et vos performances"
+    icon: <PieChart className="h-5 w-5" />,
   },
-  {
-    name: "Page de réservation",
-    href: "/visibility",
-    icon: Link,
-    description: "Personnalisez votre page de réservation en ligne",
-    subItems: [
-      {
-        name: "Personnalisation",
-        href: "/visibility/booking-page",
-        icon: Pencil,
-        description: "Configurez l'apparence de votre page de réservation"
-      },
-      {
-        name: "Boost de visibilité",
-        href: "/visibility/additional-services",
-        icon: Star,
-        description: "Boostez votre présence en ligne avec des services additionnels"
-      }
-    ]
+  payments: {
+    title: "Paiements",
+    href: "/payments",
+    icon: <CircleDollarSign className="h-5 w-5" />,
   },
-  {
-    name: "Paramètres",
+  settings: {
+    title: "Paramètres",
     href: "/settings",
-    icon: Settings,
-    description: "Personnalisez votre compte et vos services"
+    icon: <Settings className="h-5 w-5" />,
+  },
+  marketing: {
+    title: "Marketing",
+    href: "/marketing",
+    icon: <Megaphone className="h-5 w-5" />,
+  },
+  events: {
+    title: "Événements",
+    href: "/events",
+    icon: <GanttChart className="h-5 w-5" />,
+  },
+  bookingPage: {
+    title: "Page de réservation",
+    href: "/booking-page",
+    icon: <Globe className="h-5 w-5" />,
+  },
+  customization: {
+    title: "Personnalisation",
+    href: "/booking-customization",
+    icon: <GalleryHorizontalEnd className="h-5 w-5" />,
+  },
+  visibilityBoost: {
+    title: "Boost de visibilité",
+    href: "/visibility-boost",
+    icon: <Rocket className="h-5 w-5" />,
+  },
+  addons: {
+    title: "Modules complémentaires",
+    href: "/additional-services",
+    icon: <PackageCheck className="h-5 w-5" />,
+  },
+  giftCards: {
+    title: "Cartes cadeaux",
+    href: "/gift-cards",
+    icon: <HandCoins className="h-5 w-5" />,
+  },
+  businessSelector: {
+    title: "Sélecteur d'entreprise",
+    href: "#",
+    icon: <Building2 className="h-5 w-5" />,
+    isAction: true,
+  },
+  welcome: {
+    title: "Bienvenue",
+    href: "/welcome",
+    icon: <Building2 className="h-5 w-5" />,
+    alwaysAccessible: true,
   }
-];
+} as const;
+
+type NavigationConfig = {
+  mainNav: NavItem[];
+  marketingNav: NavItem[];
+  visibilityNav: NavItem[];
+  bottomNav: NavItem[];
+};
+
+export const navigationConfig: NavigationConfig = {
+  mainNav: [
+    navigationItems.welcome,
+    navigationItems.dashboard,
+    navigationItems.calendar,
+    navigationItems.clients,
+    navigationItems.services,
+    navigationItems.reservations,
+    navigationItems.statistics,
+    navigationItems.payments,
+  ],
+  marketingNav: [
+    navigationItems.marketing,
+    navigationItems.events,
+    navigationItems.giftCards,
+  ],
+  visibilityNav: [
+    navigationItems.bookingPage,
+    navigationItems.customization,
+    navigationItems.visibilityBoost,
+  ],
+  bottomNav: [
+    navigationItems.addons,
+    navigationItems.settings,
+  ],
+};

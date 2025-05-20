@@ -1,64 +1,43 @@
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { HelpCircle, Menu } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { MainNavigation } from "@/components/MainNavigation";
+import { Button } from "@/components/ui/button";
+import { MobileNavigation } from "@/components/MainNavigation";
 import { UserProfileDropdown } from "@/components/UserProfileDropdown";
+import { useAuth } from "@/contexts/AuthContext";
+import { BusinessSelector } from "./BusinessSelector";
 
-interface MobileHeaderProps {
-  onHelpClick: () => void;
-  userData: {
-    name: string;
-    email: string;
-    initials: string;
-    role: string;
-    subscription: {
-      plan: string;
-      status: string;
-      renewalDate: string;
-    };
-  };
-}
+export const MobileHeader = () => {
+  const { user } = useAuth();
 
-export function MobileHeader({ onHelpClick, userData }: MobileHeaderProps) {
   return (
-    <div className="md:hidden bg-white border-b border-gray-200 p-4 sticky top-0 z-10 flex justify-between items-center shadow-sm">
-      <h2 className="text-indigo-600 text-xl font-bold">Reservatoo</h2>
-      <div className="flex items-center space-x-2">
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={onHelpClick}
-          className="hover:bg-indigo-50"
-          aria-label="Aide"
-        >
-          <HelpCircle className="h-5 w-5 text-indigo-600" />
-        </Button>
-        
+    <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center justify-between">
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="hover:bg-indigo-50" aria-label="Menu">
-              <Menu className="h-5 w-5 text-indigo-600" />
+            <Button variant="outline" size="sm" className="mr-2 px-1 sm:hidden">
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle Menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0">
-            <div className="flex flex-col h-full">
-              <div className="p-4 border-b border-gray-200 bg-indigo-50">
-                <h2 className="text-indigo-600 text-xl font-bold">Reservatoo</h2>
-              </div>
-              
-              <div className="p-4 flex-grow overflow-y-auto">
-                <MainNavigation />
-              </div>
-              
-              <div className="border-t border-gray-200">
-                <UserProfileDropdown user={userData} variant="mobile" />
-              </div>
-            </div>
+          <SheetContent side="left" className="sm:max-w-xs">
+            <MobileNavigation />
           </SheetContent>
         </Sheet>
+
+        <Link to="/" className="flex items-center space-x-2 font-bold text-xl">
+          <span className="hidden sm:inline-block">Reservatoo</span>
+          <span className="sm:hidden">R.</span>
+        </Link>
+
+        <div className="flex items-center space-x-2">
+          {user && <BusinessSelector />}
+          <UserProfileDropdown />
+        </div>
       </div>
-    </div>
+    </header>
   );
-}
+};
+
+export default MobileHeader;
