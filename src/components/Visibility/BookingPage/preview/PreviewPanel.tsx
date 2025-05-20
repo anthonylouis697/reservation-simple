@@ -58,6 +58,9 @@ export function PreviewPanel() {
   
   // Generate step UI based on the step type
   const renderStepPreview = (step: BookingStep, isActive: boolean = false) => {
+    // Create instance of the icon component
+    const IconComponent = step.icon;
+    
     switch (step.id) {
       case 'service':
         return (
@@ -193,7 +196,7 @@ export function PreviewPanel() {
                   <div key={step.id} className="border-b pb-4 last:border-b-0 last:pb-0">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="bg-accent rounded-full w-4 h-4 flex items-center justify-center">
-                        {step.icon}
+                        {step.icon && <IconComponent size={12} />}
                       </div>
                       <span className="text-sm font-medium">{step.name}</span>
                     </div>
