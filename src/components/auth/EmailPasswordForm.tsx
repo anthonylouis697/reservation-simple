@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -130,4 +131,4 @@ export const EmailPasswordForm = ({ type }: EmailPasswordFormProps) => {
   );
 };
 
-export { EmailPasswordForm };
+// Removed the duplicate export here
