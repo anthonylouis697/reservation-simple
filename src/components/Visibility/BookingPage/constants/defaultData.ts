@@ -46,7 +46,7 @@ export const defaultTemplates: BookingTemplate[] = [
 ];
 
 // Define the default booking steps without JSX
-export const defaultSteps: BookingStep[] = [
+export const defaultBookingSteps: BookingStep[] = [
   { 
     id: 'service', 
     title: 'Choix du service', 

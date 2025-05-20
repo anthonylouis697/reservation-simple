@@ -4,7 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { BookingPageSettings, BookingPageSettingsForDB, BookingStep, BookingLayoutType, BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
-import { defaultBookingSteps, defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
+import { defaultSteps as defaultBookingSteps, defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
+import { Json } from '@/integrations/supabase/types';
 
 // Hook to manage booking page settings
 export const useBookingPageSettings = () => {
@@ -29,22 +30,37 @@ export const useBookingPageSettings = () => {
       show_confirmation: settings.showConfirmation,
       confirmation_message: settings.confirmationMessage,
       layout_type: settings.layoutType,
-      steps: settings.steps,
-      custom_texts: settings.customTexts
+      // Convert complex objects to JSON
+      steps: JSON.stringify(settings.steps) as Json,
+      custom_texts: JSON.stringify(settings.customTexts) as Json
     };
   };
 
   // Helper function to convert DB format to app format
   const convertFromDBFormat = (dbData: any): BookingPageSettings => {
-    // Ensure steps have correct format
-    let steps = Array.isArray(dbData.steps) 
-      ? dbData.steps 
-      : defaultBookingSteps;
-      
-    // Ensure customTexts have correct format
-    let customTexts = typeof dbData.custom_texts === 'object' && dbData.custom_texts !== null
-      ? dbData.custom_texts
-      : defaultCustomTexts;
+    // Parse JSON strings back to objects
+    let steps: BookingStep[];
+    let customTexts: BookingCustomTexts;
+    
+    try {
+      steps = typeof dbData.steps === 'string' 
+        ? JSON.parse(dbData.steps) 
+        : (Array.isArray(dbData.steps) ? dbData.steps : defaultBookingSteps);
+    } catch (e) {
+      console.error('Error parsing steps JSON:', e);
+      steps = defaultBookingSteps;
+    }
+    
+    try {
+      customTexts = typeof dbData.custom_texts === 'string'
+        ? JSON.parse(dbData.custom_texts)
+        : (typeof dbData.custom_texts === 'object' && dbData.custom_texts !== null 
+            ? dbData.custom_texts 
+            : defaultCustomTexts);
+    } catch (e) {
+      console.error('Error parsing custom_texts JSON:', e);
+      customTexts = defaultCustomTexts;
+    }
 
     return {
       id: dbData.id,
@@ -61,8 +77,8 @@ export const useBookingPageSettings = () => {
       showConfirmation: dbData.show_confirmation,
       confirmationMessage: dbData.confirmation_message,
       layoutType: dbData.layout_type as BookingLayoutType,
-      steps: steps as BookingStep[],
-      customTexts: customTexts as BookingCustomTexts
+      steps: steps,
+      customTexts: customTexts
     };
   };
 
