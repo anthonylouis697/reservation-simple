@@ -48,15 +48,13 @@ const Settings = () => {
             <TabsTrigger value="availability">Disponibilité</TabsTrigger>
           </TabsList>
           
-          <div className="mt-6">
-            <TabsContent value="business">
-              <BusinessSettings />
-            </TabsContent>
+          <TabsContent value="business">
+            <BusinessSettings />
+          </TabsContent>
             
-            <TabsContent value="availability">
-              <AvailabilitySettings />
-            </TabsContent>
-          </div>
+          <TabsContent value="availability">
+            <AvailabilitySettings />
+          </TabsContent>
         </Tabs>
       </div>
     </SettingsLayout>

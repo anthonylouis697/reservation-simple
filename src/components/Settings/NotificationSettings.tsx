@@ -70,7 +70,7 @@ const NotificationSettings = () => {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-3 md:grid-cols-3 lg:w-[400px]">
           <TabsTrigger value="general">Général</TabsTrigger>
           <TabsTrigger value="templates">Modèles</TabsTrigger>

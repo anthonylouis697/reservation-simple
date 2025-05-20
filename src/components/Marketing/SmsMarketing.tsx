@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import {
 export const SmsMarketing = () => {
   const [smsContent, setSmsContent] = useState('');
   const [characterCount, setCharacterCount] = useState(0);
+  const [activeCampaignTab, setActiveCampaignTab] = useState('new');
   
   // Simuler les clients pour la sélection
   const totalClients = 387;
