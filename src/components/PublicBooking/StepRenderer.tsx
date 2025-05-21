@@ -66,6 +66,9 @@ const StepRenderer = ({
   primaryColor,
 }: StepRendererProps) => {
   
+  // S'assurer que customTexts est un objet pour éviter les erreurs
+  const safeCustomTexts = customTexts || {};
+  
   if (bookingComplete) {
     return (
       <BookingConfirmation 
@@ -80,7 +83,7 @@ const StepRenderer = ({
     case 0: // Sélection du service
       return (
         <ServiceSelection
-          customTexts={customTexts || {}}
+          customTexts={safeCustomTexts}
           activeCategories={activeCategories || []}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
@@ -95,7 +98,7 @@ const StepRenderer = ({
     case 1: // Sélection de la date
       return (
         <DateSelection
-          customTexts={customTexts || {}}
+          customTexts={safeCustomTexts}
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
           selectedService={selectedService}
@@ -105,7 +108,7 @@ const StepRenderer = ({
     case 2: // Sélection de l'horaire
       return (
         <TimeSelection
-          customTexts={customTexts || {}}
+          customTexts={safeCustomTexts}
           isLoadingTimes={isLoadingTimes}
           availableTimes={availableTimes || []}
           selectedTime={selectedTime}
@@ -119,7 +122,7 @@ const StepRenderer = ({
     case 3: // Informations du client
       return (
         <ClientInfoForm
-          customTexts={customTexts || {}}
+          customTexts={safeCustomTexts}
           clientName={clientName || ""}
           setClientName={setClientName}
           clientEmail={clientEmail || ""}

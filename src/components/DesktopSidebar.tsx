@@ -9,6 +9,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { NavItem } from "./Navigation/NavItem";
 import { HomeMenuItem } from "./Navigation/HomeMenuItem";
 import { HelpMenuItem } from "./Navigation/HelpMenuItem";
+import { SubMenu } from "./Navigation/SubMenu";
 
 export function DesktopSidebar() {
   const { pathname } = useLocation();
@@ -24,6 +25,9 @@ export function DesktopSidebar() {
   const isItemDisabled = (item) => {
     return !item.alwaysAccessible && !currentBusiness;
   };
+
+  // État pour les sous-menus
+  const servicesOpen = pathname.includes('/services') || pathname.includes('/events');
 
   return (
     <div className="hidden border-r bg-background lg:block lg:w-64">
@@ -54,6 +58,15 @@ export function DesktopSidebar() {
                 disabled={isItemDisabled(item)}
               />
             ))}
+            
+            {/* Ajout du sous-menu Services */}
+            <SubMenu 
+              title="Services" 
+              items={navigationConfig.servicesSubNav}
+              isOpen={servicesOpen}
+              setIsOpen={() => {}}
+              handleNavigation={handleNavigation}
+            />
           </div>
 
           {/* Marketing */}

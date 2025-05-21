@@ -17,16 +17,19 @@ interface SubMenuProps {
 
 export function SubMenu({ 
   title, 
-  items, 
-  isOpen, 
+  items = [], 
+  isOpen = false, 
   setIsOpen, 
   mobile = false,
   handleNavigation
 }: SubMenuProps) {
+  // S'assurer que items est toujours un tableau
+  const safeItems = Array.isArray(items) ? items : [];
+  
   if (mobile) {
     return (
       <>
-        {items.map((item) => (
+        {safeItems.map((item) => (
           <div key={item.title} className="w-full pl-4">
             <NavItemComponent
               item={item}
@@ -40,6 +43,9 @@ export function SubMenu({
     );
   }
   
+  // Si aucun item n'est disponible, ne pas rendre le menu
+  if (safeItems.length === 0) return null;
+  
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
       <CollapsibleTrigger asChild>
@@ -48,14 +54,14 @@ export function SubMenu({
           className="w-full justify-between text-left"
         >
           <div className="flex items-center">
-            {items[0].icon && <div className="mr-2">{items[0].icon}</div>}
+            {safeItems[0]?.icon && <div className="mr-2">{safeItems[0].icon}</div>}
             <span>{title}</span>
           </div>
           {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="pl-4 space-y-1">
-        {items.map((item) => (
+        {safeItems.map((item) => (
           <NavItemComponent
             key={item.title}
             item={item}

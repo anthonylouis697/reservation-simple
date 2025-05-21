@@ -32,12 +32,12 @@ export const DeleteBookingDialog = ({
 }: DeleteBookingDialogProps) => {
   if (!booking) return null;
 
-  // Ensure booking.date is a Date object
+  // Convertir en objet Date si ce n'est pas déjà le cas
   const bookingDate = booking.date instanceof Date 
     ? booking.date 
     : new Date(booking.date);
 
-  // Ensure client object exists and has name property
+  // Récupérer les données client de manière sécurisée
   const clientName = booking.client && typeof booking.client === 'object' && booking.client.name 
     ? booking.client.name 
     : "Client inconnu";
