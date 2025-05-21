@@ -5,9 +5,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { NavItem } from "./Navigation/NavItem";
 import { HomeMenuItem } from "./Navigation/HomeMenuItem";
-import { HelpNavItem } from "./Navigation/HelpNavItem";
 import { SignOutButton } from '@/components/Navigation/SignOutButton';
-import { User, Clock, Calendar, Users, Palette, BookOpen, Settings } from 'lucide-react';
+import { User, Clock, Calendar, Users, Palette, BookOpen, Settings, CalendarDays } from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
 
 export function DesktopSidebar() {
@@ -15,9 +14,8 @@ export function DesktopSidebar() {
   const { currentBusiness } = useBusiness();
   const { signOut } = useAuth();
   const navigate = useNavigate();
-  const showBusinessSelector = false; // On supprime le sélecteur d'entreprise
-
-  // Menu items simplifiés - maintenant avec href au lieu de url
+  
+  // Menu items avec href au lieu de url et les événements ajoutés
   const mainNavItems = [
     {
       title: "Réservations",
@@ -39,12 +37,20 @@ export function DesktopSidebar() {
     }
   ];
   
-  const servicesNavItems = [{
-    title: "Services",
-    href: "/services",
-    icon: <BookOpen className="h-4 w-4" />,
-    description: "Gérer vos services"
-  }];
+  const servicesNavItems = [
+    {
+      title: "Services",
+      href: "/services",
+      icon: <BookOpen className="h-4 w-4" />,
+      description: "Gérer vos services"
+    },
+    {
+      title: "Événements",
+      href: "/events",
+      icon: <CalendarDays className="h-4 w-4" />,
+      description: "Gérer vos événements"
+    }
+  ];
   
   const visibilityNavItems = [{
     title: "Page de réservation",
@@ -82,7 +88,7 @@ export function DesktopSidebar() {
       <div className="flex flex-col h-full">
         <div className="flex h-14 items-center border-b px-4">
           <Link
-            to="/"
+            to="/calendar"
             className="flex items-center space-x-2 font-semibold"
           >
             <span className="text-xl font-bold">Reservatoo</span>
@@ -101,8 +107,15 @@ export function DesktopSidebar() {
                 disabled={isItemDisabled(item)}
               />
             ))}
-            
-            {/* Services pages as regular items */}
+          </div>
+          
+          {/* Services et Événements */}
+          <div className="mt-6 mb-2">
+            <h4 className="px-2 text-xs font-semibold text-muted-foreground">
+              SERVICES
+            </h4>
+          </div>
+          <div className="flex flex-col space-y-1">
             {servicesNavItems.map((item, index) => (
               <NavItem 
                 key={`service-${index}`}
@@ -159,10 +172,9 @@ export function DesktopSidebar() {
             ))}
           </div>
 
-          {/* Aide et déconnexion */}
+          {/* Déconnexion */}
           <div className="mt-6 pt-4 border-t">
             <div className="flex flex-col space-y-1">
-              <HelpNavItem />
               <SignOutButton signOut={signOut} />
             </div>
           </div>

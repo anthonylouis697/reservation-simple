@@ -13,7 +13,7 @@ const Dashboard = () => {
   const { currentBusiness, isLoading: businessLoading, refreshBusinesses } = useBusiness();
   const navigate = useNavigate();
   
-  // Rediriger vers la page calendrier 
+  // Rediriger vers la page calendrier de façon plus propre
   useEffect(() => {
     if (!authLoading && !businessLoading && user) {
       navigate('/calendar');

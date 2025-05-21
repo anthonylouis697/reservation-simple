@@ -7,15 +7,13 @@ import { navigationConfig } from "@/config/navigation";
 import type { NavItem as NavItemType } from "@/types/navigation";
 import { NavItem } from "@/components/Navigation/NavItem";
 import { HomeMenuItem } from '@/components/Navigation/HomeMenuItem';
-import { HelpNavItem } from '@/components/Navigation/HelpNavItem';
 import { SignOutButton } from '@/components/Navigation/SignOutButton';
 import { NavigationCategory } from '@/components/Navigation/NavigationCategory';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, Clock, Calendar, Users, Palette, BookOpen, Settings } from 'lucide-react';
+import { User, Clock, Calendar, Users, Palette, BookOpen, Settings, CalendarDays } from 'lucide-react';
 
 // Re-export components for backward compatibility
 export { HomeMenuItem as HomeNavItem } from '@/components/Navigation/HomeMenuItem';
-export { HelpMenuItem as HelpNavItem } from '@/components/Navigation/HelpMenuItem';
 
 export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
   const navigate = useNavigate();
@@ -23,7 +21,7 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
   const [firstTimeUser, setFirstTimeUser] = useState(false);
   const location = useLocation();
   
-  // Menu items simplifiés - maintenant avec href au lieu de url
+  // Menu items avec href au lieu de url et événements ajoutés
   const mainNavItems = [
     {
       title: "Réservations",
@@ -45,12 +43,20 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
     }
   ];
   
-  const servicesNavItems = [{
-    title: "Services",
-    href: "/services",
-    icon: <BookOpen className="h-4 w-4" />,
-    description: "Gérer vos services"
-  }];
+  const servicesNavItems = [
+    {
+      title: "Services",
+      href: "/services",
+      icon: <BookOpen className="h-4 w-4" />,
+      description: "Gérer vos services"
+    },
+    {
+      title: "Événements",
+      href: "/events",
+      icon: <CalendarDays className="h-4 w-4" />,
+      description: "Gérer vos événements"
+    }
+  ];
   
   const visibilityNavItems = [{
     title: "Page de réservation",
@@ -110,7 +116,7 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
           </div>
         ))}
 
-        {/* Services */}
+        {/* Services et Événements */}
         {!mobile && servicesNavItems.length > 0 && (
           <>
             <div className="mt-6 mb-2">
@@ -184,9 +190,6 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
                   </div>
                 ))}
               </>
-              
-              {/* Aide */}
-              <HelpNavItem />
               
               {/* Déconnexion */}
               <SignOutButton signOut={signOut} />

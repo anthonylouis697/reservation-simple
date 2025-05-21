@@ -1,9 +1,7 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState, useEffect } from "react";
-import AccountLayout from "@/components/Account/AccountLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +12,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { AppLayout } from '@/components/AppLayout';
+import { ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet';
 
 const profileFormSchema = z.object({
   name: z.string().min(2, { message: "Le nom doit contenir au moins 2 caractères" }),
@@ -27,6 +29,7 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export default function ProfilePage() {
+  const navigate = useNavigate();
   const { user, profile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -174,8 +177,22 @@ export default function ProfilePage() {
   };
 
   return (
-    <AccountLayout>
+    <AppLayout>
+      <Helmet>
+        <title>Profil - Reservatoo</title>
+      </Helmet>
+      
       <div className="space-y-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">Profil</h1>
+            <p className="text-muted-foreground">Gérez vos informations personnelles</p>
+          </div>
+        </div>
+        
         <Card>
           <CardHeader>
             <CardTitle>Photo de profil</CardTitle>
@@ -222,7 +239,7 @@ export default function ProfilePage() {
                   Modifiez vos informations personnelles et de contact.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <FormField
                     control={form.control}
@@ -326,6 +343,6 @@ export default function ProfilePage() {
           </form>
         </Form>
       </div>
-    </AccountLayout>
+    </AppLayout>
   );
 }

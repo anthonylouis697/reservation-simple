@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import Index from '@/pages/Index';
 import Login from '@/pages/Login';
@@ -49,12 +49,12 @@ function App() {
               
               {/* Protected routes */}
               <Route path="/welcome" element={<RequireAuth><Welcome /></RequireAuth>} />
-              <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+              <Route path="/dashboard" element={<RequireAuth><Navigate to="/calendar" replace /></RequireAuth>} />
               <Route path="/calendar" element={<RequireAuth><CalendarPage /></RequireAuth>} />
               <Route path="/clients" element={<RequireAuth><ClientsPage /></RequireAuth>} />
               <Route path="/services" element={<RequireAuth><Services /></RequireAuth>} />
+              <Route path="/events" element={<RequireAuth><Events /></RequireAuth>} />
               <Route path="/reservations" element={<RequireAuth><Reservations /></RequireAuth>} />
-              <Route path="/statistics" element={<RequireAuth><Statistics /></RequireAuth>} />
               <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
               <Route path="/booking-page" element={<RequireAuth><BookingPage /></RequireAuth>} />
               <Route path="/booking-link" element={<RequireAuth><BookingLink /></RequireAuth>} />
@@ -63,16 +63,12 @@ function App() {
               <Route path="/marketing" element={<RequireAuth><Marketing /></RequireAuth>} />
               <Route path="/additional-services" element={<RequireAuth><AdditionalServices /></RequireAuth>} />
               <Route path="/payments" element={<RequireAuth><Payments /></RequireAuth>} />
-              <Route path="/events" element={<RequireAuth><Events /></RequireAuth>} />
               
-              {/* Account routes */}
-              <Route path="/account" element={<RequireAuth><AccountLayout><Outlet /></AccountLayout></RequireAuth>}>
-                <Route index element={<ProfilePage />} />
-                <Route path="profile" element={<ProfilePage />} />
-                <Route path="billing" element={<BillingPage />} />
-                <Route path="security" element={<SecurityPage />} />
-                <Route path="team" element={<TeamPage />} />
-              </Route>
+              {/* Profil direct sans imbrication */}
+              <Route path="/account/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
+              <Route path="/account/billing" element={<RequireAuth><BillingPage /></RequireAuth>} />
+              <Route path="/account/security" element={<RequireAuth><SecurityPage /></RequireAuth>} />
+              <Route path="/account/team" element={<RequireAuth><TeamPage /></RequireAuth>} />
               
               {/* 404 */}
               <Route path="*" element={<NotFound />} />

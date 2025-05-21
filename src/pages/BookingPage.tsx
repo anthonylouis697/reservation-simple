@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { AppLayout } from "@/components/AppLayout";
 import { VisibilityNavigation, useVisibilityNavigation } from "@/components/Visibility/VisibilityNavigation";
@@ -12,13 +12,15 @@ import { toast } from "sonner";
 import { useBookingPage } from "@/components/Visibility/BookingPage/BookingPageContext";
 import { BookingPageProvider } from "@/components/Visibility/BookingPage/BookingPageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBusiness } from "@/contexts/BusinessContext";
 
 export default function BookingPage() {
   const { currentTab } = useVisibilityNavigation();
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const { user, businessId } = useAuth();
+  const { user } = useAuth();
+  const { currentBusiness } = useBusiness();
 
   // Composant pour le contenu principal
   const PageContent = () => {
@@ -33,7 +35,8 @@ export default function BookingPage() {
     } = useBookingPage();
     
     // URL de la page de réservation publique
-    const publicBookingUrl = `${window.location.origin}/booking/${customUrl || "votre-nom"}`;
+    const businessSlug = currentBusiness?.slug || "demo-business";
+    const publicBookingUrl = `${window.location.origin}/booking/${businessSlug}`;
     
     // Fonction pour copier l'URL dans le presse-papier
     const handleCopyUrl = () => {
@@ -46,7 +49,7 @@ export default function BookingPage() {
 
     // Fonction pour ouvrir la page de réservation dans un nouvel onglet
     const handleOpenPreview = () => {
-      window.open(`/booking/${customUrl || "votre-nom"}`, '_blank');
+      window.open(`/booking/${businessSlug}`, '_blank');
     };
 
     // Fonction pour sauvegarder les paramètres

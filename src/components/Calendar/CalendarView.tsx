@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, CalendarIcon as CalendarIconLucide } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CalendarIcon as CalendarIconLucide, ArrowLeft } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import AppointmentItem from './AppointmentItem';
+import { useNavigate } from 'react-router-dom';
 
 export type Appointment = {
   id: string;
@@ -27,6 +28,7 @@ interface CalendarViewProps {
   onViewAppointment?: (appointment: Appointment) => void;
   onEditAppointment?: (appointment: Appointment) => void;
   defaultView?: 'day' | 'week' | 'month';
+  standalone?: boolean; // Nouveau prop pour indiquer si c'est la vue calendrier principale
 }
 
 const CalendarView = ({
@@ -34,8 +36,10 @@ const CalendarView = ({
   onAddAppointment,
   onViewAppointment,
   onEditAppointment,
-  defaultView = 'week'
+  defaultView = 'week',
+  standalone = false
 }: CalendarViewProps) => {
+  const navigate = useNavigate();
   const [date, setDate] = useState<Date>(new Date());
   const [view, setView] = useState<'day' | 'week' | 'month'>(defaultView);
   const [weekStartDate, setWeekStartDate] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -274,10 +278,28 @@ const CalendarView = ({
     <Card className="h-full flex flex-col">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Calendrier</CardTitle>
-            <CardDescription>Gérez vos rendez-vous et votre agenda</CardDescription>
-          </div>
+          {standalone && (
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate('/dashboard')}
+                className="h-9 w-9"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <div>
+                <CardTitle>Calendrier</CardTitle>
+                <CardDescription>Gérez vos rendez-vous et votre agenda</CardDescription>
+              </div>
+            </div>
+          )}
+          {!standalone && (
+            <div>
+              <CardTitle>Calendrier</CardTitle>
+              <CardDescription>Gérez vos rendez-vous et votre agenda</CardDescription>
+            </div>
+          )}
           <Button onClick={onAddAppointment}>+ Nouveau rendez-vous</Button>
         </div>
         
