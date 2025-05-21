@@ -6,6 +6,7 @@ import { useBookingPage } from '@/components/Visibility/BookingPage/BookingPageC
 import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
 import { useBookingHandler } from '@/hooks/useBookingHandler';
 import { useStepNavigation } from '@/hooks/useStepNavigation';
+import { useButtonStyle } from '@/hooks/useButtonStyle';
 
 // Import components
 import StepNavigation from './StepNavigation';
@@ -100,22 +101,8 @@ const BookingContent = () => {
     steps
   });
 
-  // Styles dynamiques basés sur la configuration
-  const getButtonStyle = () => {
-    let roundedClass = '';
-    
-    switch (buttonCorners) {
-      case 'squared': roundedClass = 'rounded-none'; break;
-      case 'rounded': roundedClass = 'rounded-md'; break;
-      case 'pill': roundedClass = 'rounded-full'; break;
-      default: roundedClass = 'rounded-md';
-    }
-    
-    return {
-      className: `${roundedClass} transition-colors`,
-      style: { backgroundColor: primaryColor, borderColor: primaryColor }
-    };
-  };
+  // Hook pour gérer les styles des boutons
+  const { getButtonStyle } = useButtonStyle({ buttonCorners, primaryColor });
 
   // Si les données sont en chargement
   if (isLoadingData) {
