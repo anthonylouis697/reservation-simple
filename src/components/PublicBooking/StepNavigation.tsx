@@ -1,7 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-import { LucideIcon } from 'lucide-react';
-import { CSSProperties } from 'react';
+import { ReactNode } from 'react';
 
 interface StepNavigationProps {
   currentStep: number;
@@ -12,7 +11,7 @@ interface StepNavigationProps {
     className: string; 
     style: { backgroundColor: string; borderColor: string } 
   };
-  getCurrentStepIcon: () => React.ReactNode;
+  getCurrentStepIcon: () => ReactNode;
   getStepLabel: (index: number) => string;
   bookingButtonText: string;
   activeStepsLength: number;
@@ -29,6 +28,8 @@ const StepNavigation = ({
   bookingButtonText,
   activeStepsLength
 }: StepNavigationProps) => {
+  const buttonStyle = getButtonStyle();
+  
   return (
     <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
       <div className="flex items-center gap-2">
@@ -50,7 +51,8 @@ const StepNavigation = ({
         <Button 
           onClick={handleNextStep}
           disabled={isBooking}
-          {...getButtonStyle()}
+          className={buttonStyle.className}
+          style={buttonStyle.style}
         >
           {isBooking ? (
             <>

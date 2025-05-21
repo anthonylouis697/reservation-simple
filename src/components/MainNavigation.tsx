@@ -80,7 +80,15 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [firstTimeUser, setFirstTimeUser] = useState(false);
-  const navItems = [...navigationConfig.mainNav];
+  
+  // Combiner tous les éléments de navigation
+  const mainNavItems = [...navigationConfig.mainNav];
+  const marketingNavItems = [...navigationConfig.marketingNav];
+  const visibilityNavItems = [...navigationConfig.visibilityNav];
+  const bottomNavItems = navigationConfig.bottomNav.filter(item => 
+    // Ne pas afficher l'item "Aide" ici car il est géré séparément
+    item.title !== "Aide"
+  );
 
   // Check if user is new
   useEffect(() => {
@@ -121,7 +129,8 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
           <HomeNavItem />
         )}
         
-        {navItems.map((item) => (
+        {/* Navigation principale */}
+        {mainNavItems.map((item) => (
           <div key={item.title} className="w-full">
             <NavItem
               item={item}
@@ -132,18 +141,71 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
           </div>
         ))}
 
-        {/* Hide Help button on mobile since we have it in the header */}
-        {!mobile && (
+        {/* Marketing */}
+        {!mobile && marketingNavItems.length > 0 && (
           <>
-            <HelpNavItem />
-            <Button 
-              variant="ghost"
-              className="w-full justify-start text-left text-red-500 hover:text-red-600 hover:bg-red-50"
-              onClick={() => signOut()}
-            >
-              Déconnexion
-            </Button>
+            <div className="mt-6 mb-2">
+              <h4 className="px-2 text-xs font-semibold text-muted-foreground">
+                MARKETING
+              </h4>
+            </div>
+            {marketingNavItems.map((item) => (
+              <div key={item.title} className="w-full">
+                <NavItem
+                  item={item}
+                  mobile={mobile}
+                  isFirstTimeUser={false}
+                  handleNavigation={handleNavigation}
+                />
+              </div>
+            ))}
           </>
+        )}
+        
+        {/* Visibilité */}
+        {!mobile && visibilityNavItems.length > 0 && (
+          <>
+            <div className="mt-6 mb-2">
+              <h4 className="px-2 text-xs font-semibold text-muted-foreground">
+                VISIBILITÉ
+              </h4>
+            </div>
+            {visibilityNavItems.map((item) => (
+              <div key={item.title} className="w-full">
+                <NavItem
+                  item={item}
+                  mobile={mobile}
+                  isFirstTimeUser={false}
+                  handleNavigation={handleNavigation}
+                />
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* Navigation inférieure */}
+        {!mobile && bottomNavItems.length > 0 && (
+          <div className="mt-auto pt-4">
+            <div className="flex flex-col space-y-1">
+              {bottomNavItems.map((item) => (
+                <NavItem 
+                  key={item.title} 
+                  item={item}
+                  mobile={mobile}
+                  isFirstTimeUser={false}
+                  handleNavigation={handleNavigation}
+                />
+              ))}
+              
+              <Button 
+                variant="ghost"
+                className="w-full justify-start text-left text-red-500 hover:text-red-600 hover:bg-red-50"
+                onClick={() => signOut()}
+              >
+                Déconnexion
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     </TooltipProvider>

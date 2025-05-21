@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { BusinessSelector } from "./BusinessSelector";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { NavItem } from "./Navigation/NavItem";
-import { HelpNavItem } from "./MainNavigation";
+import { HelpNavItem, HomeNavItem } from "./MainNavigation";
 
 export function DesktopSidebar() {
   const { pathname } = useLocation();
@@ -42,8 +42,9 @@ export function DesktopSidebar() {
             </div>
           )}
           
+          {/* Navigation principale */}
           <div className="flex flex-col space-y-1">
-            {/* Navigation Items from config */}
+            <HomeNavItem />
             {navigationConfig.mainNav.map((item, index) => (
               <NavItem 
                 key={index} 
@@ -54,6 +55,7 @@ export function DesktopSidebar() {
             ))}
           </div>
 
+          {/* Marketing */}
           {navigationConfig.marketingNav.length > 0 && (
             <>
               <div className="mt-6 mb-2">
@@ -74,6 +76,7 @@ export function DesktopSidebar() {
             </>
           )}
 
+          {/* Visibilité */}
           {navigationConfig.visibilityNav.length > 0 && (
             <>
               <div className="mt-6 mb-2">
@@ -94,20 +97,19 @@ export function DesktopSidebar() {
             </>
           )}
 
-          {navigationConfig.bottomNav.length > 0 && (
-            <div className="mt-auto pt-4">
-              <div className="flex flex-col space-y-1">
-                {navigationConfig.bottomNav.map((item, index) => (
-                  <NavItem 
-                    key={index} 
-                    item={item}
-                    handleNavigation={handleNavigation}
-                  />
-                ))}
-                <HelpNavItem />
-              </div>
+          {/* Navigation inférieure */}
+          <div className="mt-6 pt-4 border-t">
+            <div className="flex flex-col space-y-1">
+              {navigationConfig.bottomNav.map((item, index) => (
+                <NavItem 
+                  key={index} 
+                  item={item}
+                  handleNavigation={handleNavigation}
+                  disabled={isItemDisabled(item)}
+                />
+              ))}
             </div>
-          )}
+          </div>
         </ScrollArea>
       </div>
     </div>

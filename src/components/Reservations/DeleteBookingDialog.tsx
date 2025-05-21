@@ -32,9 +32,15 @@ export const DeleteBookingDialog = ({
 }: DeleteBookingDialogProps) => {
   if (!booking) return null;
 
+  // Ensure booking.date is a Date object
   const bookingDate = booking.date instanceof Date 
     ? booking.date 
     : new Date(booking.date);
+
+  // Ensure client object exists
+  const clientName = booking.client && booking.client.name 
+    ? booking.client.name 
+    : "Client inconnu";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -48,7 +54,7 @@ export const DeleteBookingDialog = ({
         
         <div className="py-4">
           <p>
-            <strong>Client :</strong> {booking.client.name}
+            <strong>Client :</strong> {clientName}
           </p>
           <p>
             <strong>Service :</strong> {service?.name || "Service inconnu"}
@@ -57,7 +63,7 @@ export const DeleteBookingDialog = ({
             <strong>Date :</strong> {format(bookingDate, 'dd/MM/yyyy', { locale: fr })}
           </p>
           <p>
-            <strong>Heure :</strong> {booking.time}
+            <strong>Heure :</strong> {booking.time || "Heure non spécifiée"}
           </p>
         </div>
         
