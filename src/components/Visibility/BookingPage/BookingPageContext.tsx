@@ -58,5 +58,9 @@ export function BookingPageProvider({ children }: BookingPageProviderProps) {
 
 export function useBookingPage(): BookingPageContextType {
   const context = useContext(BookingPageContext);
+  if (!context) {
+    console.warn("useBookingPage must be used within a BookingPageProvider");
+    return defaultContextValue;
+  }
   return context;
 }

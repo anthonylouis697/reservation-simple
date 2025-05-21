@@ -34,14 +34,17 @@ const ClientInfoForm = ({
   selectedDate,
   selectedTime
 }: ClientInfoFormProps) => {
+  // Ensure customTexts is never undefined
+  const safeCustomTexts = customTexts || {} as BookingCustomTexts;
+  
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold">
-          {customTexts.clientInfoTitle || "Vos informations"}
+          {safeCustomTexts.clientInfoTitle || "Vos informations"}
         </h2>
         <p className="text-gray-600 mt-2">
-          {customTexts.clientInfoDescription || "Veuillez fournir vos coordonnées"}
+          {safeCustomTexts.clientInfoDescription || "Veuillez fournir vos coordonnées"}
         </p>
         
         {selectedService && selectedDate && selectedTime && (

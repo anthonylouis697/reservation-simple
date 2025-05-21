@@ -19,23 +19,21 @@ interface PublicBookingDataProviderProps {
 }
 
 // Create context with default values
-const PublicBookingDataContext = createContext<PublicBookingDataContextType>({
+const defaultContextValue: PublicBookingDataContextType = {
   services: [],
   categories: [],
-  isLoading: true,
+  isLoading: false,
   error: null
-});
+};
+
+const PublicBookingDataContext = createContext<PublicBookingDataContextType>(defaultContextValue);
 
 // Custom hook to access public booking data
 export const usePublicBookingData = (): PublicBookingDataContextType => {
   const context = useContext(PublicBookingDataContext);
   if (!context) {
-    return {
-      services: [],
-      categories: [],
-      isLoading: false,
-      error: "Context not available"
-    };
+    console.warn("usePublicBookingData must be used within a PublicBookingDataProvider");
+    return defaultContextValue;
   }
   return context;
 };

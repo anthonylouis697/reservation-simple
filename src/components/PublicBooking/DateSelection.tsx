@@ -19,6 +19,9 @@ const DateSelection = ({
   setSelectedDate,
   selectedService
 }: DateSelectionProps) => {
+  // Ensure customTexts is never undefined
+  const safeCustomTexts = customTexts || {} as BookingCustomTexts;
+  
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   
@@ -29,10 +32,10 @@ const DateSelection = ({
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold">
-          {customTexts.dateSelectionTitle || "Sélection de la date"}
+          {safeCustomTexts.dateSelectionTitle || "Sélection de la date"}
         </h2>
         <p className="text-gray-600 mt-2">
-          {customTexts.dateSelectionDescription || "Choisissez une date disponible"}
+          {safeCustomTexts.dateSelectionDescription || "Choisissez une date disponible"}
         </p>
         {selectedService && (
           <div className="mt-4 p-3 bg-gray-50 rounded-md inline-block">

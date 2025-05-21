@@ -26,6 +26,9 @@ const TimeSelection = ({
   selectedDate,
   getButtonStyle
 }: TimeSelectionProps) => {
+  // Ensure customTexts is never undefined
+  const safeCustomTexts = customTexts || {} as BookingCustomTexts;
+  
   const mockTimes = [
     "09:00", "09:30", "10:00", "10:30", 
     "11:00", "11:30", "14:00", "14:30",
@@ -42,7 +45,7 @@ const TimeSelection = ({
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold">
-          {customTexts.selectTimeLabel || "Sélectionnez un horaire"}
+          {safeCustomTexts.selectTimeLabel || "Sélectionnez un horaire"}
         </h2>
         
         {selectedService && selectedDate && (
