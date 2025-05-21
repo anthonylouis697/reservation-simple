@@ -1,7 +1,7 @@
 
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Booking } from '@/services/bookingService';
+import { Booking } from '@/services/booking/types';
 import { Service } from '@/types/service';
 import { 
   Dialog, 

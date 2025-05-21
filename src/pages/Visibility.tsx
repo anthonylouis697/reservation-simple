@@ -15,6 +15,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Link as LinkIcon, Star, Pencil } from "lucide-react";
 import { VisibilityNavigation, useVisibilityNavigation } from "@/components/Visibility/VisibilityNavigation";
 import { BookingPageCustomization } from "@/components/Visibility/BookingPage/BookingPageCustomization";
+import { BookingPageProvider } from "@/components/Visibility/BookingPage/BookingPageContext";
 
 export default function Visibility() {
   const navigate = useNavigate();
@@ -97,7 +98,9 @@ export default function Visibility() {
           </TabsContent>
           
           <TabsContent value="booking-page">
-            <BookingPageCustomization />
+            <BookingPageProvider>
+              <BookingPageCustomization />
+            </BookingPageProvider>
           </TabsContent>
         </Tabs>
       </div>
