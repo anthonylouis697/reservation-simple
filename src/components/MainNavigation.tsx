@@ -12,8 +12,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from '@/components/ui/button';
-import { HelpCircle, Home } from 'lucide-react';
+import { HelpCircle, Home, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface HelpNavItemProps {
   mobile?: boolean;
@@ -80,15 +81,37 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [firstTimeUser, setFirstTimeUser] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const location = useLocation();
   
   // Combiner tous les éléments de navigation
-  const mainNavItems = [...navigationConfig.mainNav];
+  const mainNavItems = [...navigationConfig.mainNav].filter(item => 
+    item.title !== "Services" && item.title !== "Profil"
+  );
+  const servicesSubNavItems = [...navigationConfig.servicesSubNav];
+  const profileSubNavItems = [...navigationConfig.profileSubNav];
   const marketingNavItems = [...navigationConfig.marketingNav];
   const visibilityNavItems = [...navigationConfig.visibilityNav];
   const bottomNavItems = navigationConfig.bottomNav.filter(item => 
-    // Ne pas afficher l'item "Aide" ici car il est géré séparément
-    item.title !== "Aide"
+    // Ne pas afficher l'item "Aide" et "Profil" ici car ils sont gérés séparément
+    item.title !== "Aide" && item.title !== "Profil"
   );
+
+  // Vérifier si les sous-menus doivent être ouverts en fonction de l'URL
+  useEffect(() => {
+    // Ouvrir le sous-menu Services si nous sommes sur une page liée aux services ou aux événements
+    if (location.pathname.includes('/services') || location.pathname.includes('/events')) {
+      setServicesOpen(true);
+    }
+    
+    // Ouvrir le sous-menu Profil si nous sommes sur une page liée au profil, à l'entreprise ou à la disponibilité
+    if (location.pathname.includes('/account/profile') || 
+        location.pathname.includes('/settings/business') || 
+        location.pathname.includes('/settings/availability')) {
+      setProfileOpen(true);
+    }
+  }, [location.pathname]);
 
   // Check if user is new
   useEffect(() => {
@@ -118,6 +141,50 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
     }
   };
 
+  // Rendu des sous-menus déroulants pour la version desktop uniquement
+  const renderSubMenu = (title: string, items: NavItemType[], isOpen: boolean, setIsOpen: (open: boolean) => void) => {
+    if (mobile) {
+      return items.map((item) => (
+        <div key={item.title} className="w-full pl-4">
+          <NavItem
+            item={item}
+            mobile={mobile}
+            isFirstTimeUser={false}
+            handleNavigation={handleNavigation}
+          />
+        </div>
+      ));
+    }
+    
+    return (
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="ghost"
+            className="w-full justify-between text-left"
+          >
+            <div className="flex items-center">
+              {items[0].icon && <div className="mr-2">{items[0].icon}</div>}
+              <span>{title}</span>
+            </div>
+            {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pl-4 space-y-1">
+          {items.map((item) => (
+            <NavItem
+              key={item.title}
+              item={item}
+              mobile={mobile}
+              isFirstTimeUser={false}
+              handleNavigation={handleNavigation}
+            />
+          ))}
+        </CollapsibleContent>
+      </Collapsible>
+    );
+  };
+
   return (
     <TooltipProvider>
       <div className={cn(
@@ -140,6 +207,9 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
             />
           </div>
         ))}
+
+        {/* Sous-menu Services */}
+        {renderSubMenu("Services", servicesSubNavItems, servicesOpen, setServicesOpen)}
 
         {/* Marketing */}
         {!mobile && marketingNavItems.length > 0 && (
@@ -187,6 +257,9 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
         {!mobile && bottomNavItems.length > 0 && (
           <div className="mt-auto pt-4">
             <div className="flex flex-col space-y-1">
+              {/* Sous-menu Profil */}
+              {renderSubMenu("Profil", profileSubNavItems, profileOpen, setProfileOpen)}
+              
               {bottomNavItems.map((item) => (
                 <NavItem 
                   key={item.title} 

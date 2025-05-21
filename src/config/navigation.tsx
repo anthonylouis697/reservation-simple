@@ -51,6 +51,12 @@ export const navigationItems = {
     icon: <ListChecks className="h-5 w-5" />,
     description: "Gérez vos prestations",
   },
+  events: {
+    title: "Événements",
+    href: "/events",
+    icon: <CalendarDays className="h-5 w-5" />,
+    description: "Gestion des événements",
+  },
   statistics: {
     title: "Statistiques",
     href: "/statistics",
@@ -74,12 +80,6 @@ export const navigationItems = {
     href: "/marketing",
     icon: <Megaphone className="h-5 w-5" />,
     description: "Outils de promotion",
-  },
-  events: {
-    title: "Événements",
-    href: "/events",
-    icon: <CalendarDays className="h-5 w-5" />,
-    description: "Gestion des événements",
   },
   bookingPage: {
     title: "Page de réservation",
@@ -137,6 +137,8 @@ type NavigationConfig = {
   marketingNav: NavItem[];
   visibilityNav: NavItem[];
   bottomNav: NavItem[];
+  servicesSubNav: NavItem[];
+  profileSubNav: NavItem[];
 };
 
 export const navigationConfig: NavigationConfig = {
@@ -150,11 +152,20 @@ export const navigationConfig: NavigationConfig = {
     navigationItems.statistics,
     navigationItems.payments,
   ],
+  servicesSubNav: [
+    navigationItems.services,
+    navigationItems.events,
+  ],
   marketingNav: [
     navigationItems.marketing,
   ],
   visibilityNav: [
     navigationItems.bookingPage,
+  ],
+  profileSubNav: [
+    navigationItems.profile,
+    navigationItems.business,
+    navigationItems.availability,
   ],
   bottomNav: [
     navigationItems.addons,
