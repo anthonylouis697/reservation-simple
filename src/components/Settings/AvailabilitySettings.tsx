@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
@@ -18,23 +18,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
 import { Clock, Plus, X } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { AvailabilitySettings as AvailabilitySettingsType, DaySchedule, TimeSlot } from '@/services/booking/availabilityService';
 
 type WeekDay = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
-
-interface TimeSlot {
-  start: string;
-  end: string;
-}
-
-interface DaySchedule {
-  isActive: boolean;
-  timeSlots: TimeSlot[];
-}
-
-type WeekSchedule = Record<WeekDay, DaySchedule>;
 
 const dayLabels: Record<WeekDay, string> = {
   monday: "Lundi",
@@ -46,14 +34,19 @@ const dayLabels: Record<WeekDay, string> = {
   sunday: "Dimanche"
 };
 
-const AvailabilitySettings = () => {
+interface AvailabilitySettingsProps {
+  initialSettings?: AvailabilitySettingsType;
+  onChange?: (settings: AvailabilitySettingsType) => void;
+}
+
+const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySettingsProps) => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [blockoutDates, setBlockoutDates] = useState<Date[]>([]);
   const [scheduleType, setScheduleType] = useState<"weekly" | "custom">("weekly");
   const [availabilityBuffer, setAvailabilityBuffer] = useState(15);
   const [advanceBookingLimit, setAdvanceBookingLimit] = useState(30);
   
-  const [weekSchedule, setWeekSchedule] = useState<WeekSchedule>({
+  const [weekSchedule, setWeekSchedule] = useState<Record<WeekDay, DaySchedule>>({
     monday: { isActive: true, timeSlots: [{ start: "09:00", end: "17:00" }] },
     tuesday: { isActive: true, timeSlots: [{ start: "09:00", end: "17:00" }] },
     wednesday: { isActive: true, timeSlots: [{ start: "09:00", end: "17:00" }] },
@@ -62,6 +55,33 @@ const AvailabilitySettings = () => {
     saturday: { isActive: false, timeSlots: [] },
     sunday: { isActive: false, timeSlots: [] },
   });
+
+  // Initialize from props if provided
+  useEffect(() => {
+    if (initialSettings) {
+      setWeekSchedule(initialSettings.regularSchedule);
+      setBlockoutDates(initialSettings.blockedDates.map(dateStr => new Date(dateStr)));
+      setAvailabilityBuffer(initialSettings.bufferTimeMinutes);
+      setAdvanceBookingLimit(initialSettings.advanceBookingDays);
+    }
+  }, [initialSettings]);
+
+  // When settings change, notify parent component
+  useEffect(() => {
+    if (!onChange) return;
+    
+    const currentSettings: AvailabilitySettingsType = {
+      businessId: initialSettings?.businessId || '',
+      regularSchedule: weekSchedule,
+      specialDates: initialSettings?.specialDates || [],
+      blockedDates: blockoutDates.map(date => date.toISOString().split('T')[0]),
+      bufferTimeMinutes: availabilityBuffer,
+      advanceBookingDays: advanceBookingLimit,
+      minAdvanceHours: initialSettings?.minAdvanceHours || 24
+    };
+    
+    onChange(currentSettings);
+  }, [weekSchedule, blockoutDates, availabilityBuffer, advanceBookingLimit, initialSettings, onChange]);
 
   const handleToggleDay = (day: WeekDay) => {
     setWeekSchedule(prev => ({
@@ -341,10 +361,6 @@ const AvailabilitySettings = () => {
           </div>
         </CardContent>
       </Card>
-
-      <div className="flex justify-end">
-        <Button onClick={handleSaveAvailability}>Enregistrer les modifications</Button>
-      </div>
     </div>
   );
 };
