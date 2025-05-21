@@ -1,6 +1,8 @@
 
-import { ButtonCorners } from '@/components/Visibility/BookingPage/types';
 import { CSSProperties } from 'react';
+
+// Define ButtonCorners type directly since it's not exported from the types file
+type ButtonCorners = "rounded" | "squared" | "pill";
 
 interface ButtonStyleProps {
   buttonCorners: ButtonCorners;
@@ -23,7 +25,10 @@ export const useButtonStyle = ({ buttonCorners, primaryColor }: ButtonStyleProps
     
     return {
       className: `${roundedClass} transition-colors`,
-      style: { backgroundColor: primaryColor, borderColor: primaryColor } as CSSProperties
+      style: { 
+        backgroundColor: primaryColor, 
+        borderColor: primaryColor 
+      } as { backgroundColor: string; borderColor: string }
     };
   };
   

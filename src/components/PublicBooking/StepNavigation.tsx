@@ -1,13 +1,17 @@
 
 import { Button } from '@/components/ui/button';
 import { LucideIcon } from 'lucide-react';
+import { CSSProperties } from 'react';
 
 interface StepNavigationProps {
   currentStep: number;
   handlePrevStep: () => void;
   handleNextStep: () => void;
   isBooking: boolean;
-  getButtonStyle: () => { className: string; style: { backgroundColor: string; borderColor: string } };
+  getButtonStyle: () => { 
+    className: string; 
+    style: { backgroundColor: string; borderColor: string } 
+  };
   getCurrentStepIcon: () => React.ReactNode;
   getStepLabel: (index: number) => string;
   bookingButtonText: string;
