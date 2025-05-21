@@ -1,11 +1,11 @@
 
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { toast } from 'sonner';
 import { useBookingSteps } from '@/hooks/useBookingSteps';
 import { useBookingPage } from '@/components/Visibility/BookingPage/BookingPageContext';
 import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
 import { useBookingHandler } from '@/hooks/useBookingHandler';
+import { useStepNavigation } from '@/hooks/useStepNavigation';
 
 // Import components
 import StepNavigation from './StepNavigation';
@@ -68,7 +68,6 @@ const BookingContent = () => {
   // Hook pour gérer la logique de réservation
   const {
     isBooking,
-    setIsBooking,
     handleBooking
   } = useBookingHandler({
     selectedService,
@@ -80,6 +79,25 @@ const BookingContent = () => {
     clientNotes,
     setCurrentStep,
     setBookingComplete
+  });
+
+  // Hook pour gérer la navigation entre les étapes
+  const {
+    handleNextStep,
+    handlePrevStep,
+    getStepLabel,
+    getCurrentStepIcon,
+    getActiveStepsLength
+  } = useStepNavigation({
+    selectedService,
+    selectedDate,
+    selectedTime,
+    clientName,
+    clientEmail,
+    currentStep,
+    setCurrentStep,
+    handleBooking,
+    steps
   });
 
   // Styles dynamiques basés sur la configuration
@@ -97,65 +115,6 @@ const BookingContent = () => {
       className: `${roundedClass} transition-colors`,
       style: { backgroundColor: primaryColor, borderColor: primaryColor }
     };
-  };
-
-  // Fonction pour passer à l'étape suivante
-  const handleNextStep = () => {
-    // Validation de l'étape actuelle
-    if (currentStep === 0 && !selectedService) {
-      toast.error("Veuillez sélectionner un service");
-      return;
-    }
-    
-    if (currentStep === 1 && !selectedDate) {
-      toast.error("Veuillez sélectionner une date");
-      return;
-    }
-    
-    if (currentStep === 2 && !selectedTime) {
-      toast.error("Veuillez sélectionner un horaire");
-      return;
-    }
-    
-    if (currentStep === 3 && (!clientName || !clientEmail)) {
-      toast.error("Veuillez remplir tous les champs obligatoires");
-      return;
-    }
-    
-    // Si nous sommes à la dernière étape, finaliser la réservation
-    const activeSteps = steps.filter(step => step.enabled);
-    if (currentStep === activeSteps.length - 1) {
-      handleBooking();
-      return;
-    }
-    
-    setCurrentStep(currentStep + 1);
-  };
-
-  // Fonction pour revenir à l'étape précédente
-  const handlePrevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  // Affichage du label de l'étape en cours
-  const getStepLabel = (index: number) => {
-    const activeSteps = steps.filter(step => step.enabled);
-    if (index >= 0 && index < activeSteps.length) {
-      return activeSteps[index].customLabel || activeSteps[index].name;
-    }
-    return "";
-  };
-
-  // Récupération de l'icône de l'étape en cours
-  const getCurrentStepIcon = () => {
-    const activeSteps = steps.filter(step => step.enabled);
-    if (currentStep >= 0 && currentStep < activeSteps.length) {
-      const StepIcon = activeSteps[currentStep].icon;
-      return <StepIcon className="h-6 w-6" />;
-    }
-    return null;
   };
 
   // Si les données sont en chargement
@@ -226,7 +185,7 @@ const BookingContent = () => {
           getCurrentStepIcon={getCurrentStepIcon}
           getStepLabel={getStepLabel}
           bookingButtonText={bookingButtonText}
-          activeStepsLength={steps.filter(step => step.enabled).length}
+          activeStepsLength={getActiveStepsLength()}
         />
       )}
     </div>
