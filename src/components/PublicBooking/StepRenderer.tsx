@@ -41,7 +41,7 @@ interface StepRendererProps {
 const StepRenderer = ({
   currentStep = 0,
   bookingComplete = false,
-  customTexts,
+  customTexts = defaultCustomTexts,
   activeCategories = [],
   selectedCategory = null,
   setSelectedCategory = () => {},
@@ -68,28 +68,16 @@ const StepRenderer = ({
   primaryColor = "#9b87f5",
 }: StepRendererProps) => {
   
-  // Ensure functions have safe fallbacks
-  const safeSetSelectedCategory = setSelectedCategory || (() => {});
-  const safeSetSelectedService = setSelectedService || (() => {});
-  const safeSetSelectedDate = setSelectedDate || (() => {});
-  const safeSetSelectedTime = setSelectedTime || (() => {});
-  const safeSetClientName = setClientName || (() => {});
-  const safeSetClientEmail = setClientEmail || (() => {});
-  const safeSetClientPhone = setClientPhone || (() => {});
-  const safeSetClientNotes = setClientNotes || (() => {});
-  const safeHandleStartOver = handleStartOver || (() => {});
-  const safeGetButtonStyle = getButtonStyle || (() => ({ className: "", style: { backgroundColor: "", borderColor: "" } }));
-  
   // Ensure customTexts is never undefined or null
-  const safeCustomTexts: BookingCustomTexts = customTexts || defaultCustomTexts;
+  const safeCustomTexts = customTexts || defaultCustomTexts;
   
   // Show confirmation component if booking is complete
   if (bookingComplete) {
     return (
       <BookingConfirmation 
         confirmationMessage={confirmationMessage}
-        handleStartOver={safeHandleStartOver}
-        getButtonStyle={safeGetButtonStyle}
+        handleStartOver={handleStartOver}
+        getButtonStyle={getButtonStyle}
       />
     );
   }
@@ -100,14 +88,14 @@ const StepRenderer = ({
       return (
         <ServiceSelection
           customTexts={safeCustomTexts}
-          activeCategories={activeCategories || []}
+          activeCategories={activeCategories}
           selectedCategory={selectedCategory}
-          setSelectedCategory={safeSetSelectedCategory}
-          filteredServices={filteredServices || []}
+          setSelectedCategory={setSelectedCategory}
+          filteredServices={filteredServices}
           selectedService={selectedService}
-          setSelectedService={safeSetSelectedService}
-          getButtonStyle={safeGetButtonStyle}
-          primaryColor={primaryColor || "#9b87f5"}
+          setSelectedService={setSelectedService}
+          getButtonStyle={getButtonStyle}
+          primaryColor={primaryColor}
         />
       );
 
@@ -116,7 +104,7 @@ const StepRenderer = ({
         <DateSelection
           customTexts={safeCustomTexts}
           selectedDate={selectedDate}
-          setSelectedDate={safeSetSelectedDate}
+          setSelectedDate={setSelectedDate}
           selectedService={selectedService}
         />
       );
@@ -126,12 +114,12 @@ const StepRenderer = ({
         <TimeSelection
           customTexts={safeCustomTexts}
           isLoadingTimes={isLoadingTimes}
-          availableTimes={availableTimes || []}
+          availableTimes={availableTimes}
           selectedTime={selectedTime}
-          setSelectedTime={safeSetSelectedTime}
+          setSelectedTime={setSelectedTime}
           selectedService={selectedService}
           selectedDate={selectedDate}
-          getButtonStyle={safeGetButtonStyle}
+          getButtonStyle={getButtonStyle}
         />
       );
 
@@ -140,13 +128,13 @@ const StepRenderer = ({
         <ClientInfoForm
           customTexts={safeCustomTexts}
           clientName={clientName}
-          setClientName={safeSetClientName}
+          setClientName={setClientName}
           clientEmail={clientEmail}
-          setClientEmail={safeSetClientEmail}
+          setClientEmail={setClientEmail}
           clientPhone={clientPhone}
-          setClientPhone={safeSetClientPhone}
+          setClientPhone={setClientPhone}
           clientNotes={clientNotes}
-          setClientNotes={safeSetClientNotes}
+          setClientNotes={setClientNotes}
           selectedService={selectedService}
           selectedDate={selectedDate}
           selectedTime={selectedTime}
@@ -158,14 +146,14 @@ const StepRenderer = ({
       return (
         <ServiceSelection
           customTexts={safeCustomTexts}
-          activeCategories={activeCategories || []}
+          activeCategories={activeCategories}
           selectedCategory={selectedCategory}
-          setSelectedCategory={safeSetSelectedCategory}
-          filteredServices={filteredServices || []}
+          setSelectedCategory={setSelectedCategory}
+          filteredServices={filteredServices}
           selectedService={selectedService}
-          setSelectedService={safeSetSelectedService}
-          getButtonStyle={safeGetButtonStyle}
-          primaryColor={primaryColor || "#9b87f5"}
+          setSelectedService={setSelectedService}
+          getButtonStyle={getButtonStyle}
+          primaryColor={primaryColor}
         />
       );
   }

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { AppLayout } from "@/components/AppLayout";
 import { VisibilityNavigation, useVisibilityNavigation } from "@/components/Visibility/VisibilityNavigation";
@@ -21,17 +21,17 @@ export default function BookingPage() {
   // Composant pour le contenu principal
   const PageContent = () => {
     const { 
-      customUrl, 
+      customUrl = "", 
       saveBookingPageSettings, 
-      primaryColor, 
-      selectedTemplate, 
-      buttonCorners, 
-      layoutType, 
-      businessName 
+      primaryColor = "#9b87f5", 
+      selectedTemplate = "standard", 
+      buttonCorners = "rounded", 
+      layoutType = "stepped", 
+      businessName = "Votre entreprise"
     } = useBookingPage();
     
     // URL de la page de réservation publique
-    const publicBookingUrl = `${window.location.origin}/booking/${customUrl}`;
+    const publicBookingUrl = `${window.location.origin}/booking/${customUrl || "votre-nom"}`;
     
     // Fonction pour copier l'URL dans le presse-papier
     const handleCopyUrl = () => {
@@ -44,7 +44,7 @@ export default function BookingPage() {
 
     // Fonction pour ouvrir la page de réservation dans un nouvel onglet
     const handleOpenPreview = () => {
-      window.open(`/booking/${customUrl}`, '_blank');
+      window.open(`/booking/${customUrl || "votre-nom"}`, '_blank');
     };
 
     // Fonction pour sauvegarder les paramètres

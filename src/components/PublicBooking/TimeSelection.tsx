@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Service } from '@/types/service';
 import { BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
+import { defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
 
 interface TimeSelectionProps {
   customTexts: BookingCustomTexts;
@@ -17,9 +18,9 @@ interface TimeSelectionProps {
 }
 
 const TimeSelection = ({
-  customTexts,
+  customTexts = defaultCustomTexts,
   isLoadingTimes,
-  availableTimes,
+  availableTimes = [],
   selectedTime,
   setSelectedTime,
   selectedService,
@@ -27,7 +28,8 @@ const TimeSelection = ({
   getButtonStyle
 }: TimeSelectionProps) => {
   // Ensure customTexts has safe defaults
-  const selectTimeLabel = customTexts?.selectTimeLabel || "Sélectionnez un horaire";
+  const safeCustomTexts = customTexts || defaultCustomTexts;
+  const selectTimeLabel = safeCustomTexts.selectTimeLabel || "Sélectionnez un horaire";
   
   const mockTimes = [
     "09:00", "09:30", "10:00", "10:30", 

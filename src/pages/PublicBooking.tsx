@@ -16,7 +16,7 @@ import BookingContent from '@/components/PublicBooking/BookingContent';
 const PublicBooking = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { businessSlug } = useParams<{ businessSlug: string }>();
-  const [businessFound, setBusinessFound] = useState(true);
+  const [businessFound, setBusinessFound] = useState(false);
   const [businessId, setBusinessId] = useState<string | null>(null);
   const navigate = useNavigate();
   
@@ -63,13 +63,13 @@ const PublicBooking = () => {
     };
     
     checkBusiness();
-  }, [businessSlug, navigate]);
+  }, [businessSlug]);
 
   if (isLoading) {
     return <LoadingScreen />;
   }
   
-  if (!businessFound) {
+  if (!businessFound || !businessId) {
     return <BusinessNotFound />;
   }
 

@@ -55,7 +55,6 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
           console.log("No business slug provided, using mock data");
           setServices(initialServices);
           setCategories(initialCategories);
-          setIsLoading(false);
           return;
         }
         
@@ -72,7 +71,6 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
           setError("Could not find this business");
           setServices(initialServices);
           setCategories(initialCategories);
-          setIsLoading(false);
           return;
         }
 
@@ -82,7 +80,6 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
           // Use mock data if no business found
           setServices(initialServices);
           setCategories(initialCategories);
-          setIsLoading(false);
           return;
         }
         

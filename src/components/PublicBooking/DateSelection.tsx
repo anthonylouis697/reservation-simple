@@ -5,6 +5,7 @@ import { fr } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Service } from '@/types/service';
 import { BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
+import { defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
 
 interface DateSelectionProps {
   customTexts: BookingCustomTexts;
@@ -14,14 +15,15 @@ interface DateSelectionProps {
 }
 
 const DateSelection = ({
-  customTexts,
+  customTexts = defaultCustomTexts,
   selectedDate,
   setSelectedDate,
   selectedService
 }: DateSelectionProps) => {
   // Ensure customTexts is never undefined - use safe defaults
-  const dateSelectionTitle = customTexts?.dateSelectionTitle || "Sélection de la date";
-  const dateSelectionDescription = customTexts?.dateSelectionDescription || "Choisissez une date disponible";
+  const safeCustomTexts = customTexts || defaultCustomTexts;
+  const dateSelectionTitle = safeCustomTexts.dateSelectionTitle || "Sélection de la date";
+  const dateSelectionDescription = safeCustomTexts.dateSelectionDescription || "Choisissez une date disponible";
   
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
