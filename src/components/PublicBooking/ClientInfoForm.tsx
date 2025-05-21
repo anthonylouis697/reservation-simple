@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Service } from '@/types/service';
 import { BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
+import { defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
 
 interface ClientInfoFormProps {
   customTexts: BookingCustomTexts;
@@ -35,7 +36,7 @@ const ClientInfoForm = ({
   selectedTime
 }: ClientInfoFormProps) => {
   // Ensure customTexts is never undefined
-  const safeCustomTexts = customTexts || {} as BookingCustomTexts;
+  const safeCustomTexts = customTexts || defaultCustomTexts;
   
   return (
     <div className="space-y-6">

@@ -1,4 +1,4 @@
-// Modifier le type BookingStep si nécessaire pour s'assurer que l'icon est correctement typé
+
 import { LucideIcon } from 'lucide-react';
 
 export interface BookingStep {
@@ -8,9 +8,47 @@ export interface BookingStep {
   enabled: boolean;
   required?: boolean;
   customLabel?: string;
+  description?: string;
+  position?: number;
+}
+
+export interface BookingTemplate {
+  id: string;
+  name: string;
+  description: string;
+  style: string;
+  preview?: string;
+  colors: {
+    primary: string;
+    secondary: string;
+    background?: string;
+    text?: string;
+  };
+}
+
+export type BookingLayoutType = 'stepped' | 'all-in-one';
+
+export interface BookingPageSettingsForDB {
+  business_id: string;
+  business_name?: string;
+  welcome_message: string;
+  primary_color: string;
+  secondary_color: string;
+  button_corners: 'rounded' | 'squared' | 'pill';
+  logo: string | null;
+  booking_button_text: string;
+  show_confirmation: boolean;
+  confirmation_message: string;
+  layout_type: BookingLayoutType;
+  steps: any;
+  custom_texts: any;
+  selected_template: string;
+  custom_url: string;
+  id?: string;
 }
 
 export interface BookingPageSettings {
+  id?: string;
   businessId: string;
   businessName: string;
   welcomeMessage: string;
@@ -21,7 +59,7 @@ export interface BookingPageSettings {
   bookingButtonText: string;
   showConfirmation: boolean;
   confirmationMessage: string;
-  layoutType: 'stepped' | 'all-in-one';
+  layoutType: BookingLayoutType;
   steps: BookingStep[];
   customTexts: BookingCustomTexts;
   selectedTemplate: string;
@@ -34,19 +72,14 @@ export interface BookingCustomTexts {
   selectTimeLabel?: string;
   clientInfoLabel?: string;
   paymentMethodLabel?: string;
-}
-
-export interface BookingTemplate {
-  id: string;
-  name: string;
-  description: string;
-  style: string;
-  colors: {
-    primary: string;
-    secondary: string;
-    background?: string;
-    text?: string;
-  };
+  serviceSelectionTitle?: string;
+  serviceSelectionDescription?: string;
+  dateSelectionTitle?: string;
+  dateSelectionDescription?: string;
+  clientInfoTitle?: string;
+  clientInfoDescription?: string;
+  confirmationTitle?: string;
+  confirmationMessage?: string;
 }
 
 export interface BookingPageContextType {
@@ -59,11 +92,11 @@ export interface BookingPageContextType {
   bookingButtonText: string;
   showConfirmation: boolean;
   confirmationMessage: string;
-  layoutType: 'stepped' | 'all-in-one';
+  layoutType: BookingLayoutType;
   steps: BookingStep[];
   customTexts: BookingCustomTexts;
   selectedTemplate: string;
-  templates: any; // Vous pouvez ajuster ceci en fonction de la structure réelle de vos templates
+  templates: any;
   customUrl: string;
   
   // Setters
@@ -81,7 +114,7 @@ export interface BookingPageContextType {
   setBookingButtonText: (text: string) => void;
   setShowConfirmation: (show: boolean) => void;
   setConfirmationMessage: (message: string) => void;
-  setLayoutType: (layout: 'stepped' | 'all-in-one') => void;
+  setLayoutType: (layout: BookingLayoutType) => void;
   updateCustomText: (key: keyof BookingCustomTexts, value: string) => void;
   saveBookingPageSettings: () => Promise<void>;
 }

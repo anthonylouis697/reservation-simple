@@ -20,7 +20,7 @@ const DateSelection = ({
   setSelectedDate,
   selectedService
 }: DateSelectionProps) => {
-  // Ensure customTexts is never undefined - use safe defaults
+  // Ensure customTexts is never undefined
   const safeCustomTexts = customTexts || defaultCustomTexts;
   const dateSelectionTitle = safeCustomTexts.dateSelectionTitle || "Sélection de la date";
   const dateSelectionDescription = safeCustomTexts.dateSelectionDescription || "Choisissez une date disponible";

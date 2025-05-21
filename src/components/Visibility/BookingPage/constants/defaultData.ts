@@ -8,40 +8,40 @@ export const defaultTemplates: BookingTemplate[] = [
     id: 'standard',
     name: 'Standard',
     description: 'Design classique professionnel',
+    style: 'standard',
     preview: '/templates/standard.jpg',
     colors: {
       primary: '#9b87f5',
       secondary: '#7E69AB',
       background: '#ffffff',
       text: '#1A1F2C'
-    },
-    style: 'standard'
+    }
   },
   {
     id: 'minimal',
     name: 'Minimaliste',
     description: 'Design épuré et moderne',
+    style: 'minimal',
     preview: '/templates/minimal.jpg',
     colors: {
       primary: '#10b981',
       secondary: '#059669',
       background: '#f9fafb',
       text: '#111827'
-    },
-    style: 'minimal'
+    }
   },
   {
     id: 'premium',
     name: 'Premium',
     description: 'Design élégant et sophistiqué',
+    style: 'premium',
     preview: '/templates/premium.jpg',
     colors: {
       primary: '#f59e0b',
       secondary: '#d97706',
       background: '#fffbeb',
       text: '#78350f'
-    },
-    style: 'premium'
+    }
   }
 ];
 
@@ -49,7 +49,6 @@ export const defaultTemplates: BookingTemplate[] = [
 export const defaultBookingSteps: BookingStep[] = [
   { 
     id: 'service', 
-    title: 'Choix du service', 
     name: 'Choix du service',
     description: 'Sélectionnez le service qui vous convient',
     enabled: true, 
@@ -58,7 +57,6 @@ export const defaultBookingSteps: BookingStep[] = [
   },
   { 
     id: 'date', 
-    title: 'Date et horaire',
     name: 'Date et horaire',
     description: 'Choisissez une date et un horaire disponible',
     enabled: true, 
@@ -67,7 +65,6 @@ export const defaultBookingSteps: BookingStep[] = [
   },
   { 
     id: 'client', 
-    title: 'Informations client',
     name: 'Informations client',
     description: 'Fournissez vos informations personnelles',
     enabled: true, 
@@ -76,7 +73,6 @@ export const defaultBookingSteps: BookingStep[] = [
   },
   { 
     id: 'payment', 
-    title: 'Paiement',
     name: 'Paiement',
     description: 'Effectuez votre paiement',
     enabled: true, 
@@ -92,12 +88,12 @@ export const defaultCustomTexts: BookingCustomTexts = {
   selectTimeLabel: 'Sélectionnez un horaire',
   clientInfoLabel: 'Vos informations',
   paymentMethodLabel: 'Méthode de paiement',
-  confirmationTitle: 'Réservation confirmée',
   confirmationMessage: 'Merci pour votre réservation ! Nous avons bien reçu votre demande.',
   serviceSelectionTitle: 'Sélection du service',
   serviceSelectionDescription: 'Choisissez le service qui vous convient',
   dateSelectionTitle: 'Sélection de la date',
   dateSelectionDescription: 'Choisissez une date et un horaire disponible',
   clientInfoTitle: 'Vos informations',
-  clientInfoDescription: 'Veuillez fournir vos coordonnées'
+  clientInfoDescription: 'Veuillez fournir vos coordonnées',
+  confirmationTitle: 'Réservation confirmée'
 };

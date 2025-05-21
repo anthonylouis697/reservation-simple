@@ -2,6 +2,7 @@
 import React from 'react';
 import { Service } from '@/types/service';
 import { BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
+import { defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
 
 interface ServiceSelectionProps {
   customTexts: BookingCustomTexts;
@@ -26,14 +27,17 @@ const ServiceSelection = ({
   getButtonStyle,
   primaryColor
 }: ServiceSelectionProps) => {
+  // Ensure customTexts is never undefined
+  const safeCustomTexts = customTexts || defaultCustomTexts;
+
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold">
-          {customTexts.serviceSelectionTitle || "Sélection du service"}
+          {safeCustomTexts.serviceSelectionTitle || "Sélection du service"}
         </h2>
         <p className="text-gray-600 mt-2">
-          {customTexts.serviceSelectionDescription || "Choisissez le service qui vous convient"}
+          {safeCustomTexts.serviceSelectionDescription || "Choisissez le service qui vous convient"}
         </p>
       </div>
 

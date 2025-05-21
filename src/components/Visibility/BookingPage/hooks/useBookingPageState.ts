@@ -1,7 +1,8 @@
+
 import { useState, useCallback } from 'react';
 import { 
   BookingStep, 
-  BookingLayoutType, 
+  BookingLayoutType,
   BookingCustomTexts,
   BookingPageSettings
 } from '../types';

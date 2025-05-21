@@ -3,9 +3,29 @@ import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { BookingPageSettings, BookingPageSettingsForDB, BookingStep, BookingLayoutType, BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
+import { BookingPageSettings, BookingStep, BookingLayoutType, BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
 import { defaultBookingSteps, defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
 import { Json } from '@/integrations/supabase/types';
+
+// Interface for database format of booking page settings
+interface BookingPageSettingsForDB {
+  id?: string;
+  business_id: string;
+  selected_template: string;
+  primary_color: string;
+  secondary_color: string;
+  button_corners: string;
+  welcome_message: string;
+  business_name?: string;
+  logo?: string | null;
+  custom_url?: string;
+  booking_button_text: string;
+  show_confirmation: boolean;
+  confirmation_message?: string;
+  layout_type: string;
+  steps: Json;
+  custom_texts: Json;
+}
 
 // Hook to manage booking page settings
 export const useBookingPageSettings = () => {
@@ -17,6 +37,7 @@ export const useBookingPageSettings = () => {
   // Helper function to convert app format to DB format
   const convertToDBFormat = (settings: BookingPageSettings): BookingPageSettingsForDB => {
     return {
+      id: settings.id,
       business_id: settings.businessId,
       selected_template: settings.selectedTemplate,
       primary_color: settings.primaryColor,
@@ -70,12 +91,12 @@ export const useBookingPageSettings = () => {
       secondaryColor: dbData.secondary_color,
       buttonCorners: dbData.button_corners as "rounded" | "squared" | "pill",
       welcomeMessage: dbData.welcome_message,
-      businessName: dbData.business_name,
+      businessName: dbData.business_name || 'Mon entreprise',
       logo: dbData.logo,
-      customUrl: dbData.custom_url,
+      customUrl: dbData.custom_url || '',
       bookingButtonText: dbData.booking_button_text,
       showConfirmation: dbData.show_confirmation,
-      confirmationMessage: dbData.confirmation_message,
+      confirmationMessage: dbData.confirmation_message || '',
       layoutType: dbData.layout_type as BookingLayoutType,
       steps: steps,
       customTexts: customTexts
