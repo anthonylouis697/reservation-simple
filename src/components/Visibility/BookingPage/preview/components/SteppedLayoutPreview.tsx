@@ -15,7 +15,6 @@ export const SteppedLayoutPreview: FC<SteppedLayoutPreviewProps> = ({ enabledSte
       {/* Progress Steps for stepped layout */}
       <div className="flex justify-between items-center mb-4 text-xs">
         {enabledSteps.map((step, index) => {
-          // Vérifier si icon existe avant de l'utiliser
           return (
             <div key={step.id} className="flex flex-col items-center">
               <div 
