@@ -1,10 +1,11 @@
+
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useBookingSteps } from '@/hooks/useBookingSteps';
 import { useBookingPage } from '@/components/Visibility/BookingPage/BookingPageContext';
 import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
-import { createBooking, checkAvailability, BookingData } from '@/services/bookingService';
+import { useBookingHandler } from '@/hooks/useBookingHandler';
 
 // Import components
 import StepNavigation from './StepNavigation';
@@ -58,13 +59,28 @@ const BookingContent = () => {
     setClientNotes,
     bookingComplete,
     setBookingComplete,
-    isBooking,
-    setIsBooking,
     isLoadingTimes,
     filteredServices,
     activeCategories,
     handleStartOver
   } = useBookingSteps(services, categories, steps);
+
+  // Hook pour gérer la logique de réservation
+  const {
+    isBooking,
+    setIsBooking,
+    handleBooking
+  } = useBookingHandler({
+    selectedService,
+    selectedDate,
+    selectedTime,
+    clientName,
+    clientEmail,
+    clientPhone,
+    clientNotes,
+    setCurrentStep,
+    setBookingComplete
+  });
 
   // Styles dynamiques basés sur la configuration
   const getButtonStyle = () => {
@@ -120,56 +136,6 @@ const BookingContent = () => {
   const handlePrevStep = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
-    }
-  };
-
-  // Fonction pour soumettre la réservation
-  const handleBooking = async () => {
-    if (!selectedService || !selectedDate || !selectedTime || !clientName || !clientEmail) {
-      toast.error("Informations incomplètes. Veuillez remplir tous les champs obligatoires.");
-      return;
-    }
-
-    setIsBooking(true);
-    
-    try {
-      // Vérifier à nouveau la disponibilité avant de finaliser
-      const isAvailable = await checkAvailability(selectedDate, selectedTime, selectedService.duration);
-      
-      if (!isAvailable) {
-        toast.error("Ce créneau n'est plus disponible. Veuillez en choisir un autre.");
-        // Retour à l'étape de sélection d'horaire
-        setCurrentStep(2);
-        setIsBooking(false);
-        return;
-      }
-      
-      // Préparer les données de réservation
-      const bookingData: BookingData = {
-        serviceId: selectedService.id,
-        date: selectedDate,
-        time: selectedTime,
-        client: {
-          name: clientName,
-          email: clientEmail,
-          phone: clientPhone || undefined,
-          notes: clientNotes || undefined
-        }
-      };
-      
-      // Enregistrer la réservation
-      const booking = await createBooking(bookingData);
-      
-      // Afficher le message de confirmation
-      setBookingComplete(true);
-      toast.success("Votre réservation a été enregistrée avec succès!");
-      
-      console.log("Réservation enregistrée:", booking);
-    } catch (error) {
-      console.error("Erreur lors de la création de la réservation:", error);
-      toast.error("Une erreur est survenue lors de la réservation. Veuillez réessayer.");
-    } finally {
-      setIsBooking(false);
     }
   };
 
