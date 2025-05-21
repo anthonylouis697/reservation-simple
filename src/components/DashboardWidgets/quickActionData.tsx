@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Calendar, UserPlus, Settings, BarChart3, Tag, Trash2 } from "lucide-react";
 import { QuickActionProps } from "./QuickAction";
@@ -7,6 +8,22 @@ import { initialServices, initialCategories } from "@/mock/serviceData";
 
 export const resetMockData = async (businessId: string) => {
   try {
+    // Suppression des réservations existantes
+    const { error: deleteReservationsError } = await supabase
+      .from('reservations')
+      .delete()
+      .eq('business_id', businessId);
+    
+    if (deleteReservationsError) throw deleteReservationsError;
+
+    // Suppression des clients existants
+    const { error: deleteClientsError } = await supabase
+      .from('clients')
+      .delete()
+      .eq('business_id', businessId);
+    
+    if (deleteClientsError) throw deleteClientsError;
+    
     // Suppression des services existants
     const { error: deleteServicesError } = await supabase
       .from('services')
@@ -64,6 +81,9 @@ export const resetMockData = async (businessId: string) => {
       
     if (insertServicesError) throw insertServicesError;
     
+    // Vider le stockage local
+    localStorage.removeItem('bookings');
+    
     toast.success("Données réinitialisées avec succès");
     return true;
   } catch (error) {
@@ -93,7 +113,7 @@ export const getQuickActions = (navigateFunction: (path: string) => void, busine
       icon: <Tag className="h-5 w-5 text-purple-600" />,
       label: "Nouveau service",
       description: "Créer ou modifier vos services",
-      onClick: () => navigateFunction("/settings?tab=services"),
+      onClick: () => navigateFunction("/services"),
       color: "bg-purple-100"
     },
     {
@@ -111,21 +131,6 @@ export const getQuickActions = (navigateFunction: (path: string) => void, busine
       color: "bg-indigo-100"
     }
   ];
-
-  // Ajouter l'action de réinitialisation si l'ID de l'entreprise est disponible
-  if (businessId) {
-    actions.push({
-      icon: <Trash2 className="h-5 w-5 text-red-600" />,
-      label: "Réinitialiser données",
-      description: "Remplacer par les données de démo",
-      onClick: () => {
-        if (window.confirm("Êtes-vous sûr de vouloir réinitialiser toutes les données ? Cette action supprimera tous vos services et catégories existants.")) {
-          resetMockData(businessId);
-        }
-      },
-      color: "bg-red-100"
-    });
-  }
 
   return actions;
 };

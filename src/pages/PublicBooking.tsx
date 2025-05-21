@@ -18,21 +18,9 @@ import { Service, Category } from '@/types/service';
 import { useBookingPage } from '@/components/Visibility/BookingPage/BookingPageContext';
 import { BookingPageProvider } from '@/components/Visibility/BookingPage/BookingPageContext';
 import { createBooking, checkAvailability, BookingData } from '@/services/bookingService';
-
-// Import des données de test pour l'instant
-import { initialServices, initialCategories } from '@/mock/serviceData';
+import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
 import { getAvailableTimeSlots } from '@/utils/availability';
-
-// Fonction pour charger les paramètres de la page de réservation
-const loadBookingPageSettings = () => {
-  try {
-    const savedSettings = localStorage.getItem('bookingPageSettings');
-    return savedSettings ? JSON.parse(savedSettings) : null;
-  } catch (error) {
-    console.error('Error loading booking page settings:', error);
-    return null;
-  }
-};
+import { supabase } from '@/integrations/supabase/client';
 
 const BookingContent = () => {
   const { businessSlug } = useParams();
@@ -53,9 +41,10 @@ const BookingContent = () => {
     customTexts
   } = useBookingPage();
 
+  // Récupération des services et catégories depuis la base de données
+  const { services, categories, isLoading: isLoadingData } = usePublicBookingData();
+  
   // États pour le processus de réservation
-  const [services, setServices] = useState<Service[]>(initialServices);
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -73,6 +62,11 @@ const BookingContent = () => {
   const [bookingComplete, setBookingComplete] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
   const [isLoadingTimes, setIsLoadingTimes] = useState(false);
+
+  // Réinitialiser le service sélectionné lorsque la catégorie change
+  useEffect(() => {
+    setSelectedService(null);
+  }, [selectedCategory]);
 
   // Filtrage des services par catégorie sélectionnée
   const filteredServices = selectedCategory
@@ -257,10 +251,28 @@ const BookingContent = () => {
   };
 
   // Si les données sont en chargement
-  if (!services.length || !categories.length) {
+  if (isLoadingData) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p>Chargement...</p>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Chargement des services disponibles...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Si aucun service n'est disponible
+  if (services.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <div className="text-center max-w-md">
+          <h2 className="text-2xl font-bold mb-4">Aucun service disponible</h2>
+          <p className="text-gray-600 mb-6">
+            Cette entreprise n'a pas encore configuré ses services de réservation. 
+            Veuillez réessayer ultérieurement ou contacter directement l'entreprise.
+          </p>
+        </div>
       </div>
     );
   }
@@ -634,17 +646,39 @@ const BookingContent = () => {
 };
 
 const PublicBooking = () => {
-  // Charger les paramètres de réservation depuis le stockage local
   const [isLoading, setIsLoading] = useState(true);
-
+  const { businessSlug } = useParams<{ businessSlug: string }>();
+  const [businessFound, setBusinessFound] = useState(true);
+  
   useEffect(() => {
-    // Simuler un temps de chargement pour les données
-    const timeout = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-
-    return () => clearTimeout(timeout);
-  }, []);
+    const checkBusiness = async () => {
+      try {
+        // Vérifier si l'entreprise existe
+        if (businessSlug) {
+          const { data, error } = await supabase
+            .from('businesses')
+            .select('id')
+            .eq('slug', businessSlug)
+            .single();
+            
+          if (error || !data) {
+            console.error("Entreprise introuvable:", error);
+            setBusinessFound(false);
+          }
+        }
+      } catch (error) {
+        console.error("Erreur lors de la vérification de l'entreprise:", error);
+        setBusinessFound(false);
+      } finally {
+        // Simuler un temps de chargement pour les données
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
+      }
+    };
+    
+    checkBusiness();
+  }, [businessSlug]);
 
   if (isLoading) {
     return (
@@ -652,6 +686,20 @@ const PublicBooking = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-lg">Chargement de la page de réservation...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!businessFound) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="text-center max-w-md">
+          <h2 className="text-2xl font-bold mb-4">Entreprise introuvable</h2>
+          <p className="text-gray-600 mb-6">
+            Nous n'avons pas trouvé d'entreprise correspondant à cette adresse. 
+            Veuillez vérifier l'URL ou contacter l'entreprise pour plus d'informations.
+          </p>
         </div>
       </div>
     );
