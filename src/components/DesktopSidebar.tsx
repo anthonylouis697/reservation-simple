@@ -6,7 +6,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { NavItem } from "./Navigation/NavItem";
 import { HomeMenuItem } from "./Navigation/HomeMenuItem";
 import { SignOutButton } from '@/components/Navigation/SignOutButton';
-import { User, Clock, Calendar, Users, Palette, BookOpen, Settings, CalendarDays } from 'lucide-react';
+import { User, Clock, Calendar, Users, Palette, BookOpen, Settings, CalendarDays, CalendarClock } from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
 
 export function DesktopSidebar() {
@@ -59,12 +59,20 @@ export function DesktopSidebar() {
     description: "Personnaliser votre page de réservation"
   }];
   
-  const profileNavItems = [{
-    title: "Profil",
-    href: "/account/profile",
-    icon: <User className="h-4 w-4" />,
-    description: "Gérer votre profil"
-  }];
+  const profileNavItems = [
+    {
+      title: "Profil",
+      href: "/account/profile",
+      icon: <User className="h-4 w-4" />,
+      description: "Gérer votre profil"
+    },
+    {
+      title: "Disponibilité",
+      href: "/account/availability",
+      icon: <CalendarClock className="h-4 w-4" />,
+      description: "Gérer vos disponibilités"
+    }
+  ];
   
   const settingsNavItems = [{
     title: "Paramètres",

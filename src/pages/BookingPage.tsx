@@ -49,7 +49,8 @@ export default function BookingPage() {
 
     // Fonction pour ouvrir la page de réservation dans un nouvel onglet
     const handleOpenPreview = () => {
-      window.open(`/booking/${businessSlug}`, '_blank');
+      const previewUrl = `/booking/${businessSlug}`;
+      window.open(previewUrl, '_blank');
     };
 
     // Fonction pour sauvegarder les paramètres

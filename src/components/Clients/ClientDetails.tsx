@@ -29,10 +29,19 @@ interface ClientDetailsProps {
 }
 
 export const ClientDetails = ({ client, onEdit, onDelete }: ClientDetailsProps) => {
-  const formatDate = (dateString: string | null) => {
+  const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return "Jamais";
     return new Date(dateString).toLocaleDateString("fr-FR");
   };
+
+  const getClientName = () => {
+    if (client.name) return client.name;
+    return `${client.first_name} ${client.last_name}`.trim();
+  };
+
+  const getInitials = () => {
+    return `${client.first_name?.[0] || ''}${client.last_name?.[0] || ''}`;
+  }
 
   return (
     <div className="space-y-6">
@@ -40,14 +49,14 @@ export const ClientDetails = ({ client, onEdit, onDelete }: ClientDetailsProps) 
         <div className="flex flex-col sm:flex-row sm:items-center">
           <Avatar className="h-16 w-16 mb-2 sm:mb-0 sm:mr-4">
             {client.avatar ? (
-              <AvatarImage src={client.avatar} alt={client.name} />
+              <AvatarImage src={client.avatar} alt={getClientName()} />
             ) : null}
             <AvatarFallback className="text-lg">
-              {client.name.split(" ").map((n) => n[0]).join("")}
+              {getInitials()}
             </AvatarFallback>
           </Avatar>
           <div className="text-center sm:text-left">
-            <h3 className="text-xl font-bold">{client.name}</h3>
+            <h3 className="text-xl font-bold">{getClientName()}</h3>
             <div className="flex flex-col sm:flex-row sm:items-center text-sm text-muted-foreground">
               <div className="flex items-center justify-center sm:justify-start">
                 <Mail className="h-4 w-4 mr-1" />
@@ -135,7 +144,7 @@ export const ClientDetails = ({ client, onEdit, onDelete }: ClientDetailsProps) 
                 <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
                 <span className="text-sm">Total des rendez-vous</span>
               </div>
-              <span className="text-sm font-medium">{client.totalAppointments}</span>
+              <span className="text-sm font-medium">{client.totalAppointments || 0}</span>
             </div>
             
             <div className="flex justify-between items-center">
@@ -144,7 +153,7 @@ export const ClientDetails = ({ client, onEdit, onDelete }: ClientDetailsProps) 
                 <span className="text-sm">Montant total dépensé</span>
               </div>
               <span className="text-sm font-medium">
-                {client.totalSpent.toLocaleString("fr-FR")} €
+                {(client.totalSpent || 0).toLocaleString("fr-FR")} €
               </span>
             </div>
           </CardContent>
@@ -167,7 +176,7 @@ export const ClientDetails = ({ client, onEdit, onDelete }: ClientDetailsProps) 
           <div className="text-center py-8 text-muted-foreground">
             <Clock className="h-10 w-10 mx-auto mb-2 opacity-25" />
             <p>Aucun rendez-vous à venir</p>
-            <Button variant="outline" className="mt-4" disabled>
+            <Button variant="outline" className="mt-4">
               Planifier un rendez-vous
             </Button>
           </div>

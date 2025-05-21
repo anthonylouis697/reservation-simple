@@ -15,6 +15,8 @@ interface ClientFormProps {
 export const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps) => {
   const [formData, setFormData] = useState<Omit<Client, "id"> | Client>({
     id: initialData?.id || "",
+    first_name: initialData?.first_name || "",
+    last_name: initialData?.last_name || "",
     name: initialData?.name || "",
     email: initialData?.email || "",
     phone: initialData?.phone || "",
@@ -61,16 +63,29 @@ export const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps)
   return (
     <form onSubmit={handleSubmit}>
       <div className="space-y-4 py-2 pb-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Nom complet</Label>
-          <Input
-            id="name"
-            name="name"
-            placeholder="Prénom Nom"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="first_name">Prénom</Label>
+            <Input
+              id="first_name"
+              name="first_name"
+              placeholder="Prénom"
+              value={formData.first_name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="last_name">Nom</Label>
+            <Input
+              id="last_name"
+              name="last_name"
+              placeholder="Nom"
+              value={formData.last_name}
+              onChange={handleChange}
+              required
+            />
+          </div>
         </div>
         
         <div className="space-y-2">
@@ -94,7 +109,6 @@ export const ClientForm = ({ initialData, onSubmit, onCancel }: ClientFormProps)
             placeholder="06 12 34 56 78"
             value={formData.phone}
             onChange={handleChange}
-            required
           />
         </div>
         

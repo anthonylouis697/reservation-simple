@@ -10,7 +10,7 @@ import { HomeMenuItem } from '@/components/Navigation/HomeMenuItem';
 import { SignOutButton } from '@/components/Navigation/SignOutButton';
 import { NavigationCategory } from '@/components/Navigation/NavigationCategory';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, Clock, Calendar, Users, Palette, BookOpen, Settings, CalendarDays } from 'lucide-react';
+import { User, Clock, Calendar, Users, Palette, BookOpen, Settings, CalendarDays, CalendarClock } from 'lucide-react';
 
 // Re-export components for backward compatibility
 export { HomeMenuItem as HomeNavItem } from '@/components/Navigation/HomeMenuItem';
@@ -65,12 +65,20 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
     description: "Personnaliser votre page de réservation"
   }];
   
-  const profileNavItems = [{
-    title: "Profil",
-    href: "/account/profile",
-    icon: <User className="h-4 w-4" />,
-    description: "Gérer votre profil"
-  }];
+  const profileNavItems = [
+    {
+      title: "Profil",
+      href: "/account/profile",
+      icon: <User className="h-4 w-4" />,
+      description: "Gérer votre profil"
+    },
+    {
+      title: "Disponibilité",
+      href: "/account/availability",
+      icon: <CalendarClock className="h-4 w-4" />,
+      description: "Gérer vos disponibilités"
+    }
+  ];
   
   const settingsNavItems = [{
     title: "Paramètres",
