@@ -2,6 +2,7 @@
 import { createContext, useContext, ReactNode } from 'react';
 import { BookingPageContextType } from './types';
 import { useBookingPageState } from './hooks/useBookingPageState';
+import { defaultCustomTexts } from './constants/defaultData';
 
 // Create context with default values to satisfy TypeScript
 const defaultContextValue: BookingPageContextType = {
@@ -16,7 +17,7 @@ const defaultContextValue: BookingPageContextType = {
   confirmationMessage: "Merci pour votre réservation !",
   layoutType: "stepped",
   steps: [],
-  customTexts: {},
+  customTexts: defaultCustomTexts,
   selectedTemplate: "standard",
   templates: {},
   setSelectedTemplate: () => {},

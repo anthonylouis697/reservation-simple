@@ -29,6 +29,14 @@ const PublicBookingDataContext = createContext<PublicBookingDataContextType>({
 // Custom hook to access public booking data
 export const usePublicBookingData = (): PublicBookingDataContextType => {
   const context = useContext(PublicBookingDataContext);
+  if (!context) {
+    return {
+      services: [],
+      categories: [],
+      isLoading: false,
+      error: "Context not available"
+    };
+  }
   return context;
 };
 
