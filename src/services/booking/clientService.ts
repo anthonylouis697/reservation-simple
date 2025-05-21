@@ -29,7 +29,7 @@ export const getOrCreateClient = async (client: ClientInfo, businessId: string):
       .insert({
         business_id: businessId,
         first_name: client.name.split(' ')[0],
-        last_name: client.name.split(' ').slice(1).join(' '),
+        last_name: client.name.split(' ').slice(1).join(' ') || '-',  // Ensure last_name is never empty
         email: client.email,
         phone: client.phone,
         notes: client.notes

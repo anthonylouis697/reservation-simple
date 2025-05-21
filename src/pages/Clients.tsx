@@ -62,6 +62,19 @@ export type Client = {
   };
 };
 
+// Type for database client data
+type DbClient = {
+  id: string;
+  business_id: string;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  phone: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 const Clients = () => {
   const { currentBusiness } = useBusiness();
   const [clients, setClients] = useState<Client[]>([]);
@@ -92,13 +105,19 @@ const Clients = () => {
         throw error;
       }
       
-      // Transformer les données pour correspondre au format attendu
-      const formattedClients = data.map(client => ({
-        ...client,
+      // Transform database clients to our Client type
+      const formattedClients: Client[] = (data as DbClient[]).map(client => ({
+        id: client.id,
+        first_name: client.first_name,
+        last_name: client.last_name,
         name: `${client.first_name} ${client.last_name}`,
-        totalAppointments: 0, // À compléter avec une requête COUNT des rendez-vous
-        status: "active", // Par défaut
-        totalSpent: 0 // À compléter avec une somme des paiements
+        email: client.email || '',
+        phone: client.phone || '',
+        notes: client.notes || '',
+        totalAppointments: 0, // Default value
+        status: "active" as const, // Explicitly type as "active"
+        totalSpent: 0, // Default value
+        lastVisit: null,
       }));
       
       setClients(formattedClients);
@@ -140,9 +159,14 @@ const Clients = () => {
       if (error) throw error;
       
       if (data && data[0]) {
-        const newClient = {
-          ...data[0],
+        const newClient: Client = {
+          id: data[0].id,
+          first_name: data[0].first_name,
+          last_name: data[0].last_name,
           name: `${data[0].first_name} ${data[0].last_name}`,
+          email: data[0].email || '',
+          phone: data[0].phone || '',
+          notes: data[0].notes || '',
           totalAppointments: 0,
           status: "active" as const,
           totalSpent: 0
