@@ -7,6 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
  */
 export const createDefaultBusiness = async (userId: string, firstName: string = "", lastName: string = "") => {
   try {
+    console.log("Creating default business for user:", userId);
+    
     // Generate a random slug for the business
     const randomSlug = `business-${uuidv4().substring(0, 8)}`;
     const businessName = firstName && lastName 
@@ -29,6 +31,8 @@ export const createDefaultBusiness = async (userId: string, firstName: string = 
       return null;
     }
 
+    console.log("Default business created with ID:", data.id);
+
     // Create default booking page settings
     if (data) {
       const { error: settingsError } = await supabase
@@ -46,7 +50,7 @@ export const createDefaultBusiness = async (userId: string, firstName: string = 
 
     return data?.id;
   } catch (error) {
-    console.error('Erreur:', error);
+    console.error('Erreur lors de la création de l\'entreprise par défaut:', error);
     return null;
   }
 };
