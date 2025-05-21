@@ -36,25 +36,21 @@ const PublicBooking = () => {
         // Query the database for the business
         const { data, error } = await supabase
           .from('businesses')
-          .select('id')
+          .select('id, slug')
           .eq('slug', businessSlug)
           .maybeSingle();
           
         if (error) {
           console.error("Error finding business:", error);
           setBusinessFound(false);
-          return;
-        }
-        
-        if (!data) {
+        } else if (!data) {
           console.error("Business not found for slug:", businessSlug);
           setBusinessFound(false);
-          return;
+        } else {
+          console.log("Business found:", data);
+          setBusinessId(data.id);
+          setBusinessFound(true);
         }
-        
-        console.log("Business found:", data);
-        setBusinessId(data.id);
-        setBusinessFound(true);
       } catch (error) {
         console.error("Error checking business:", error);
         setBusinessFound(false);
@@ -62,7 +58,7 @@ const PublicBooking = () => {
         // Add a small delay to simulate loading
         setTimeout(() => {
           setIsLoading(false);
-        }, 1000);
+        }, 500);
       }
     };
     
@@ -85,7 +81,7 @@ const PublicBooking = () => {
             <Helmet>
               <title>Réservation en ligne</title>
             </Helmet>
-            <BookingContent businessId={businessId} />
+            {businessId && <BookingContent businessId={businessId} />}
           </div>
         </PublicBookingDataProvider>
       </BookingPageProvider>

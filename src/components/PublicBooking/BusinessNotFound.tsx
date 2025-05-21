@@ -1,9 +1,11 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { AlertTriangle, Home, ArrowLeft } from 'lucide-react';
 
 const BusinessNotFound = () => {
+  const { businessSlug } = useParams<{ businessSlug?: string }>();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="text-center max-w-md bg-white p-8 rounded-lg shadow-md">
@@ -14,7 +16,8 @@ const BusinessNotFound = () => {
         <h2 className="text-2xl font-bold mb-4">Entreprise introuvable</h2>
         
         <p className="text-gray-600 mb-6">
-          Nous n'avons pas trouvé d'entreprise correspondant à cette adresse. 
+          Nous n'avons pas trouvé d'entreprise correspondant à cette adresse
+          {businessSlug ? ` (${businessSlug})` : ''}.
           Veuillez vérifier l'URL ou contacter l'entreprise pour plus d'informations.
         </p>
         

@@ -5,7 +5,6 @@ import { getPublicServices, getPublicCategories } from '@/services/publicBooking
 import { initialServices, initialCategories } from '@/mock/serviceData';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 export interface PublicBookingDataContextType {
   services: Service[];
@@ -50,11 +49,13 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
     const loadData = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         
         if (!businessSlug) {
           console.log("No business slug provided, using mock data");
           setServices(initialServices);
           setCategories(initialCategories);
+          setIsLoading(false);
           return;
         }
         
@@ -68,14 +69,20 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
           
         if (businessError) {
           console.error("Business lookup error:", businessError);
-          throw new Error("Could not find this business");
+          setError("Could not find this business");
+          setServices(initialServices);
+          setCategories(initialCategories);
+          setIsLoading(false);
+          return;
         }
 
         if (!businessData) {
           console.log("No business found with slug:", businessSlug);
+          setError("Business not found");
           // Use mock data if no business found
           setServices(initialServices);
           setCategories(initialCategories);
+          setIsLoading(false);
           return;
         }
         

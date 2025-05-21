@@ -47,10 +47,17 @@ interface BookingPageProviderProps {
 }
 
 export function BookingPageProvider({ children }: BookingPageProviderProps) {
+  // Get booking page state from the hook
   const bookingPageState = useBookingPageState();
+  
+  // Ensure customTexts is always defined
+  const safeBookingPageState = {
+    ...bookingPageState,
+    customTexts: bookingPageState.customTexts || defaultCustomTexts
+  };
 
   return (
-    <BookingPageContext.Provider value={bookingPageState}>
+    <BookingPageContext.Provider value={safeBookingPageState}>
       {children}
     </BookingPageContext.Provider>
   );
