@@ -37,6 +37,25 @@ export interface Booking {
   status: 'confirmed' | 'cancelled' | 'pending';
 }
 
+// Interface for the database client object
+interface DbClient {
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  notes?: string;
+}
+
+// Interface for reservation data from database
+interface DbReservation {
+  id: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  service_id: string;
+  clients?: DbClient;
+}
+
 // Fonction pour convertir une date et une heure en objet Date
 const combineDateTime = (date: Date, timeString: string): Date => {
   const [hours, minutes] = timeString.split(':').map(Number);
@@ -190,7 +209,7 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
         serviceId,
         clientName: client.name,
         clientEmail: client.email,
-        status: 'confirmed'
+        status: status
       };
     }
   } catch (error) {
@@ -228,10 +247,12 @@ export const getAllBookings = async (): Promise<Booking[]> => {
 
     if (reservations && reservations.length > 0) {
       // Transformer les données pour correspondre à l'interface Booking
-      return reservations.map(res => {
-        const client = res.clients || {};
+      return reservations.map((res: DbReservation) => {
+        const client = res.clients || {} as DbClient;
         const startTime = new Date(res.start_time);
-        const status = (res.status as 'confirmed' | 'cancelled' | 'pending') || 'pending';
+        const status = (res.status === 'confirmed' || res.status === 'cancelled' || res.status === 'pending') 
+          ? res.status as 'confirmed' | 'cancelled' | 'pending'
+          : 'pending';
         
         return {
           id: res.id,
