@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Calendar, UserPlus, Settings, BarChart3, Tag, Trash2 } from "lucide-react";
 import { QuickActionProps } from "./QuickAction";
@@ -8,13 +7,18 @@ import { initialServices, initialCategories } from "@/mock/serviceData";
 
 export const resetMockData = async (businessId: string) => {
   try {
+    toast.info("Suppression des données en cours...");
+    
     // Suppression des réservations existantes
     const { error: deleteReservationsError } = await supabase
       .from('reservations')
       .delete()
       .eq('business_id', businessId);
     
-    if (deleteReservationsError) throw deleteReservationsError;
+    if (deleteReservationsError) {
+      console.error("Erreur lors de la suppression des réservations:", deleteReservationsError);
+      throw deleteReservationsError;
+    }
 
     // Suppression des clients existants
     const { error: deleteClientsError } = await supabase
@@ -22,7 +26,10 @@ export const resetMockData = async (businessId: string) => {
       .delete()
       .eq('business_id', businessId);
     
-    if (deleteClientsError) throw deleteClientsError;
+    if (deleteClientsError) {
+      console.error("Erreur lors de la suppression des clients:", deleteClientsError);
+      throw deleteClientsError;
+    }
     
     // Suppression des services existants
     const { error: deleteServicesError } = await supabase
@@ -30,7 +37,10 @@ export const resetMockData = async (businessId: string) => {
       .delete()
       .eq('business_id', businessId);
     
-    if (deleteServicesError) throw deleteServicesError;
+    if (deleteServicesError) {
+      console.error("Erreur lors de la suppression des services:", deleteServicesError);
+      throw deleteServicesError;
+    }
     
     // Suppression des catégories existantes
     const { error: deleteCategoriesError } = await supabase
@@ -38,50 +48,12 @@ export const resetMockData = async (businessId: string) => {
       .delete()
       .eq('business_id', businessId);
     
-    if (deleteCategoriesError) throw deleteCategoriesError;
+    if (deleteCategoriesError) {
+      console.error("Erreur lors de la suppression des catégories:", deleteCategoriesError);
+      throw deleteCategoriesError;
+    }
     
-    // Création des catégories depuis les données fictives
-    const categoriesToInsert = initialCategories.map(category => ({
-      name: category.name,
-      description: category.description || null,
-      business_id: businessId,
-      position: category.order || 0
-    }));
-    
-    const { data: insertedCategories, error: insertCategoriesError } = await supabase
-      .from('service_categories')
-      .insert(categoriesToInsert)
-      .select();
-      
-    if (insertCategoriesError) throw insertCategoriesError;
-    
-    // Mapping des anciens IDs aux nouveaux IDs de catégories
-    const categoryIdMap = initialCategories.reduce((map, category, index) => {
-      if (insertedCategories && insertedCategories[index]) {
-        map[category.id] = insertedCategories[index].id;
-      }
-      return map;
-    }, {} as Record<string, string>);
-    
-    // Création des services depuis les données fictives
-    const servicesToInsert = initialServices.map(service => ({
-      name: service.name,
-      description: service.description || null,
-      business_id: businessId,
-      duration: service.duration,
-      price: service.price,
-      is_active: service.isActive,
-      category_id: service.categoryId ? categoryIdMap[service.categoryId] : null,
-      position: 0
-    }));
-    
-    const { error: insertServicesError } = await supabase
-      .from('services')
-      .insert(servicesToInsert);
-      
-    if (insertServicesError) throw insertServicesError;
-    
-    // Vider le stockage local
+    // Vider le stockage local (réservations de démo)
     localStorage.removeItem('bookings');
     
     toast.success("Données réinitialisées avec succès");

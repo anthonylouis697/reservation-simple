@@ -5,6 +5,7 @@ import { getPublicServices, getPublicCategories } from '@/services/publicBooking
 import { initialServices, initialCategories } from '@/mock/serviceData';
 import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface PublicBookingDataContextType {
   services: Service[];
@@ -30,6 +31,10 @@ export const usePublicBookingData = () => {
       try {
         setIsLoading(true);
         
+        if (!businessSlug) {
+          throw new Error("Identifiant d'entreprise manquant");
+        }
+        
         // Trouver l'entreprise par son slug
         const { data: businessData, error: businessError } = await supabase
           .from('businesses')
@@ -37,17 +42,22 @@ export const usePublicBookingData = () => {
           .eq('slug', businessSlug)
           .single();
           
-        if (businessError) {
+        if (businessError || !businessData) {
+          console.error("Erreur de recherche d'entreprise:", businessError);
           throw new Error("Impossible de trouver cette entreprise");
         }
         
         const businessId = businessData.id;
+        console.log("ID d'entreprise trouvé:", businessId);
         
         // Récupérer les services et catégories
         const [fetchedServices, fetchedCategories] = await Promise.all([
           getPublicServices(businessId),
           getPublicCategories(businessId)
         ]);
+        
+        console.log("Services récupérés:", fetchedServices.length);
+        console.log("Catégories récupérées:", fetchedCategories.length);
         
         // Si aucun service trouvé, utiliser les données fictives
         if (fetchedServices.length === 0) {

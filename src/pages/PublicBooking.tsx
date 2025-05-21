@@ -1,9 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { BookingPageProvider } from '@/components/Visibility/BookingPage/BookingPageContext';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 // Import refactored components
 import LoadingScreen from '@/components/PublicBooking/LoadingScreen';
@@ -14,12 +15,15 @@ const PublicBooking = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { businessSlug } = useParams<{ businessSlug: string }>();
   const [businessFound, setBusinessFound] = useState(true);
+  const [businessId, setBusinessId] = useState<string | null>(null);
   
   useEffect(() => {
     const checkBusiness = async () => {
       try {
         // Vérifier si l'entreprise existe
         if (businessSlug) {
+          console.log("Recherche de l'entreprise avec le slug:", businessSlug);
+          
           const { data, error } = await supabase
             .from('businesses')
             .select('id')
@@ -29,7 +33,15 @@ const PublicBooking = () => {
           if (error || !data) {
             console.error("Entreprise introuvable:", error);
             setBusinessFound(false);
+            return;
           }
+          
+          console.log("Entreprise trouvée:", data);
+          setBusinessId(data.id);
+          setBusinessFound(true);
+        } else {
+          console.error("Slug d'entreprise manquant dans l'URL");
+          setBusinessFound(false);
         }
       } catch (error) {
         console.error("Erreur lors de la vérification de l'entreprise:", error);
