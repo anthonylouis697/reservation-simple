@@ -1,27 +1,79 @@
 
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { navigationConfig } from "@/config/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { BusinessSelector } from "./BusinessSelector";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { NavItem } from "./Navigation/NavItem";
 import { HomeMenuItem } from "./Navigation/HomeMenuItem";
-import { HelpMenuItem } from "./Navigation/HelpMenuItem";
+import { HelpNavItem } from "./Navigation/HelpNavItem";
+import { SignOutButton } from '@/components/Navigation/SignOutButton';
+import { User, Clock, Calendar, Users, Palette, BookOpen, Settings } from 'lucide-react';
+import { useAuth } from "@/contexts/AuthContext";
 
 export function DesktopSidebar() {
   const { pathname } = useLocation();
   const { currentBusiness } = useBusiness();
-  const showBusinessSelector = pathname !== "/welcome" && !pathname.includes("/account");
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+  const showBusinessSelector = false; // On supprime le sélecteur d'entreprise
+
+  // Menu items simplifiés - sans les données fictives
+  const mainNavItems = [
+    {
+      title: "Réservations",
+      url: "/reservations",
+      icon: <Clock className="h-4 w-4" />,
+      description: "Gérer les réservations"
+    },
+    {
+      title: "Calendrier",
+      url: "/calendar",
+      icon: <Calendar className="h-4 w-4" />,
+      description: "Gérer votre planning"
+    },
+    {
+      title: "Clients",
+      url: "/clients",
+      icon: <Users className="h-4 w-4" />,
+      description: "Gérer vos clients"
+    }
+  ];
+  
+  const servicesNavItems = [{
+    title: "Services",
+    url: "/services",
+    icon: <BookOpen className="h-4 w-4" />,
+    description: "Gérer vos services"
+  }];
+  
+  const visibilityNavItems = [{
+    title: "Page de réservation",
+    url: "/booking-page",
+    icon: <Palette className="h-4 w-4" />,
+    description: "Personnaliser votre page de réservation"
+  }];
+  
+  const profileNavItems = [{
+    title: "Profil",
+    url: "/account/profile",
+    icon: <User className="h-4 w-4" />,
+    description: "Gérer votre profil"
+  }];
+  
+  const settingsNavItems = [{
+    title: "Paramètres",
+    url: "/settings",
+    icon: <Settings className="h-4 w-4" />,
+    description: "Paramètres de votre compte"
+  }];
 
   // Function to handle navigation
   const handleNavigation = (href: string) => {
-    window.location.href = href;
+    navigate(href);
   };
 
   // Check if navigation items should be disabled
-  const isItemDisabled = (item) => {
+  const isItemDisabled = (item: any) => {
     return !item.alwaysAccessible && !currentBusiness;
   };
 
@@ -37,16 +89,11 @@ export function DesktopSidebar() {
           </Link>
         </div>
         <ScrollArea className="flex-1 py-4 px-4">
-          {showBusinessSelector && (
-            <div className="mb-4">
-              <BusinessSelector />
-            </div>
-          )}
           
           {/* Navigation principale */}
           <div className="flex flex-col space-y-1">
             <HomeMenuItem />
-            {navigationConfig.mainNav.map((item, index) => (
+            {mainNavItems.map((item, index) => (
               <NavItem 
                 key={index} 
                 item={item}
@@ -56,7 +103,7 @@ export function DesktopSidebar() {
             ))}
             
             {/* Services pages as regular items */}
-            {navigationConfig.servicesSubNav.map((item, index) => (
+            {servicesNavItems.map((item, index) => (
               <NavItem 
                 key={`service-${index}`}
                 item={item}
@@ -66,29 +113,8 @@ export function DesktopSidebar() {
             ))}
           </div>
 
-          {/* Marketing */}
-          {navigationConfig.marketingNav.length > 0 && (
-            <>
-              <div className="mt-6 mb-2">
-                <h4 className="px-2 text-xs font-semibold text-muted-foreground">
-                  MARKETING
-                </h4>
-              </div>
-              <div className="flex flex-col space-y-1">
-                {navigationConfig.marketingNav.map((item, index) => (
-                  <NavItem 
-                    key={index} 
-                    item={item}
-                    handleNavigation={handleNavigation}
-                    disabled={isItemDisabled(item)}
-                  />
-                ))}
-              </div>
-            </>
-          )}
-
           {/* Visibilité */}
-          {navigationConfig.visibilityNav.length > 0 && (
+          {visibilityNavItems.length > 0 && (
             <>
               <div className="mt-6 mb-2">
                 <h4 className="px-2 text-xs font-semibold text-muted-foreground">
@@ -96,7 +122,7 @@ export function DesktopSidebar() {
                 </h4>
               </div>
               <div className="flex flex-col space-y-1">
-                {navigationConfig.visibilityNav.map((item, index) => (
+                {visibilityNavItems.map((item, index) => (
                   <NavItem 
                     key={index} 
                     item={item}
@@ -108,17 +134,36 @@ export function DesktopSidebar() {
             </>
           )}
 
-          {/* Navigation inférieure */}
+          {/* Compte - Profil et Paramètres */}
+          <div className="mt-6 mb-2">
+            <h4 className="px-2 text-xs font-semibold text-muted-foreground">
+              COMPTE
+            </h4>
+          </div>
+          <div className="flex flex-col space-y-1">
+            {profileNavItems.map((item, index) => (
+              <NavItem 
+                key={index} 
+                item={item}
+                handleNavigation={handleNavigation}
+                disabled={isItemDisabled(item)}
+              />
+            ))}
+            {settingsNavItems.map((item, index) => (
+              <NavItem 
+                key={index} 
+                item={item}
+                handleNavigation={handleNavigation}
+                disabled={isItemDisabled(item)}
+              />
+            ))}
+          </div>
+
+          {/* Aide et déconnexion */}
           <div className="mt-6 pt-4 border-t">
             <div className="flex flex-col space-y-1">
-              {navigationConfig.bottomNav.map((item, index) => (
-                <NavItem 
-                  key={index} 
-                  item={item}
-                  handleNavigation={handleNavigation}
-                  disabled={isItemDisabled(item)}
-                />
-              ))}
+              <HelpNavItem />
+              <SignOutButton signOut={signOut} />
             </div>
           </div>
         </ScrollArea>

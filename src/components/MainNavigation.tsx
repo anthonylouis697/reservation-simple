@@ -7,10 +7,11 @@ import { navigationConfig } from "@/config/navigation";
 import type { NavItem as NavItemType } from "@/types/navigation";
 import { NavItem } from "@/components/Navigation/NavItem";
 import { HomeMenuItem } from '@/components/Navigation/HomeMenuItem';
-import { HelpMenuItem } from '@/components/Navigation/HelpMenuItem';
+import { HelpNavItem } from '@/components/Navigation/HelpNavItem';
 import { SignOutButton } from '@/components/Navigation/SignOutButton';
 import { NavigationCategory } from '@/components/Navigation/NavigationCategory';
 import { useAuth } from '@/contexts/AuthContext';
+import { User, Clock, Calendar, Users, Palette, BookOpen, Settings } from 'lucide-react';
 
 // Re-export components for backward compatibility
 export { HomeMenuItem as HomeNavItem } from '@/components/Navigation/HomeMenuItem';
@@ -22,18 +23,55 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
   const [firstTimeUser, setFirstTimeUser] = useState(false);
   const location = useLocation();
   
-  // Combiner tous les éléments de navigation
-  const mainNavItems = [...navigationConfig.mainNav].filter(item => 
-    item.title !== "Services" && item.title !== "Profil"
-  );
-  const servicesNavItems = [...navigationConfig.servicesSubNav];
-  const profileNavItems = [...navigationConfig.profileSubNav];
-  const marketingNavItems = [...navigationConfig.marketingNav];
-  const visibilityNavItems = [...navigationConfig.visibilityNav];
-  const bottomNavItems = navigationConfig.bottomNav.filter(item => 
-    // Ne pas afficher l'item "Aide" et "Profil" ici car ils sont gérés séparément
-    item.title !== "Aide" && item.title !== "Profil"
-  );
+  // Menu items simplifiés - sans les données fictives
+  const mainNavItems = [
+    {
+      title: "Réservations",
+      url: "/reservations",
+      icon: <Clock className="h-4 w-4" />,
+      description: "Gérer les réservations"
+    },
+    {
+      title: "Calendrier",
+      url: "/calendar",
+      icon: <Calendar className="h-4 w-4" />,
+      description: "Gérer votre planning"
+    },
+    {
+      title: "Clients",
+      url: "/clients",
+      icon: <Users className="h-4 w-4" />,
+      description: "Gérer vos clients"
+    }
+  ];
+  
+  const servicesNavItems = [{
+    title: "Services",
+    url: "/services",
+    icon: <BookOpen className="h-4 w-4" />,
+    description: "Gérer vos services"
+  }];
+  
+  const visibilityNavItems = [{
+    title: "Page de réservation",
+    url: "/booking-page",
+    icon: <Palette className="h-4 w-4" />,
+    description: "Personnaliser votre page de réservation"
+  }];
+  
+  const profileNavItems = [{
+    title: "Profil",
+    url: "/account/profile",
+    icon: <User className="h-4 w-4" />,
+    description: "Gérer votre profil"
+  }];
+  
+  const settingsNavItems = [{
+    title: "Paramètres",
+    url: "/settings",
+    icon: <Settings className="h-4 w-4" />,
+    description: "Paramètres de votre compte"
+  }];
 
   // Check if user is new
   useEffect(() => {
@@ -46,21 +84,7 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
   }, []);
 
   const handleNavigation = (href: string) => {    
-    // A small animation to improve user experience
-    if (mobile) {
-      const element = document.getElementById(href);
-      if (element) {
-        element.classList.add('animate-pulse');
-        setTimeout(() => {
-          element.classList.remove('animate-pulse');
-          navigate(href);
-        }, 150);
-      } else {
-        navigate(href);
-      }
-    } else {
-      navigate(href);
-    }
+    navigate(href);
   };
 
   return (
@@ -69,7 +93,7 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
         "flex",
         mobile ? "flex-row justify-around w-full overflow-x-auto pb-safe" : "flex-col space-y-2 overflow-y-auto max-h-[calc(100vh-200px)]"
       )}>
-        {/* Ajout du lien vers l'accueil */}
+        {/* Accueil */}
         {!mobile && (
           <HomeMenuItem />
         )}
@@ -86,7 +110,7 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
           </div>
         ))}
 
-        {/* Services as regular items */}
+        {/* Services */}
         {!mobile && servicesNavItems.length > 0 && (
           <>
             <div className="mt-6 mb-2">
@@ -106,60 +130,65 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
             ))}
           </>
         )}
-
-        {/* Marketing */}
-        {!mobile && (
-          <NavigationCategory
-            title="MARKETING"
-            items={marketingNavItems}
-            handleNavigation={handleNavigation}
-          />
-        )}
         
         {/* Visibilité */}
         {!mobile && (
-          <NavigationCategory
-            title="VISIBILITÉ"
-            items={visibilityNavItems}
-            handleNavigation={handleNavigation}
-          />
+          <>
+            <div className="mt-6 mb-2">
+              <h4 className="px-2 text-xs font-semibold text-muted-foreground">
+                VISIBILITÉ
+              </h4>
+            </div>
+            {visibilityNavItems.map((item) => (
+              <div key={item.title} className="w-full">
+                <NavItem
+                  item={item}
+                  mobile={mobile}
+                  isFirstTimeUser={firstTimeUser}
+                  handleNavigation={handleNavigation}
+                />
+              </div>
+            ))}
+          </>
         )}
 
         {/* Navigation inférieure */}
-        {!mobile && bottomNavItems.length > 0 && (
+        {!mobile && (
           <div className="mt-auto pt-4">
             <div className="flex flex-col space-y-1">
-              {/* Profile items as regular menu items */}
-              {profileNavItems.length > 0 && (
-                <>
-                  <div className="mt-6 mb-2">
-                    <h4 className="px-2 text-xs font-semibold text-muted-foreground">
-                      PROFIL
-                    </h4>
+              {/* Profil et Paramètres */}
+              <>
+                <div className="mt-6 mb-2">
+                  <h4 className="px-2 text-xs font-semibold text-muted-foreground">
+                    COMPTE
+                  </h4>
+                </div>
+                {profileNavItems.map((item) => (
+                  <div key={item.title} className="w-full">
+                    <NavItem
+                      item={item}
+                      mobile={mobile}
+                      isFirstTimeUser={firstTimeUser}
+                      handleNavigation={handleNavigation}
+                    />
                   </div>
-                  {profileNavItems.map((item) => (
-                    <div key={item.title} className="w-full">
-                      <NavItem
-                        item={item}
-                        mobile={mobile}
-                        isFirstTimeUser={firstTimeUser}
-                        handleNavigation={handleNavigation}
-                      />
-                    </div>
-                  ))}
-                </>
-              )}
+                ))}
+                {settingsNavItems.map((item) => (
+                  <div key={item.title} className="w-full">
+                    <NavItem
+                      item={item}
+                      mobile={mobile}
+                      isFirstTimeUser={firstTimeUser}
+                      handleNavigation={handleNavigation}
+                    />
+                  </div>
+                ))}
+              </>
               
-              {bottomNavItems.map((item) => (
-                <NavItem 
-                  key={item.title} 
-                  item={item}
-                  mobile={mobile}
-                  isFirstTimeUser={false}
-                  handleNavigation={handleNavigation}
-                />
-              ))}
+              {/* Aide */}
+              <HelpNavItem />
               
+              {/* Déconnexion */}
               <SignOutButton signOut={signOut} />
             </div>
           </div>

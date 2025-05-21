@@ -81,19 +81,26 @@ export const defaultBookingSteps: BookingStep[] = [
   }
 ];
 
-// Define the default custom texts
+// Define the default custom texts with all needed properties
 export const defaultCustomTexts: BookingCustomTexts = {
+  // Labels used in UI components
   selectServiceLabel: 'Sélectionnez un service',
   selectDateLabel: 'Sélectionnez une date',
   selectTimeLabel: 'Sélectionnez un horaire',
   clientInfoLabel: 'Vos informations',
   paymentMethodLabel: 'Méthode de paiement',
-  confirmationMessage: 'Merci pour votre réservation ! Nous avons bien reçu votre demande.',
+  
+  // Titles and descriptions for different steps
   serviceSelectionTitle: 'Sélection du service',
   serviceSelectionDescription: 'Choisissez le service qui vous convient',
+  
   dateSelectionTitle: 'Sélection de la date',
-  dateSelectionDescription: 'Choisissez une date et un horaire disponible',
+  dateSelectionDescription: 'Choisissez une date disponible',
+  
   clientInfoTitle: 'Vos informations',
   clientInfoDescription: 'Veuillez fournir vos coordonnées',
-  confirmationTitle: 'Réservation confirmée'
+  
+  // Confirmation related texts
+  confirmationTitle: 'Réservation confirmée',
+  confirmationMessage: 'Merci pour votre réservation ! Nous avons bien reçu votre demande.'
 };
