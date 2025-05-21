@@ -75,15 +75,18 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
       };
     }
     
+    // Type assertion to avoid TypeScript errors
+    const rawData = data as any;
+    
     // Create our return value from the raw data
     const settings: AvailabilitySettings = {
       businessId,
-      regularSchedule: data.regular_schedule || defaultAvailabilitySettings.regularSchedule,
-      specialDates: data.special_dates || [],
-      blockedDates: data.blocked_dates || [],
-      bufferTimeMinutes: data.buffer_time_minutes || 15,
-      advanceBookingDays: data.advance_booking_days || 30,
-      minAdvanceHours: data.min_advance_hours || 24
+      regularSchedule: rawData.regular_schedule || defaultAvailabilitySettings.regularSchedule,
+      specialDates: rawData.special_dates || [],
+      blockedDates: rawData.blocked_dates || [],
+      bufferTimeMinutes: rawData.buffer_time_minutes || 15,
+      advanceBookingDays: rawData.advance_booking_days || 30,
+      minAdvanceHours: rawData.min_advance_hours || 24
     };
     
     return settings;

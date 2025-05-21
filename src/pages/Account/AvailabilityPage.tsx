@@ -1,17 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
-import { AccountLayout } from '@/components/Account/AccountLayout';
+import AccountLayout from '@/components/Account/AccountLayout';
 import { Helmet } from 'react-helmet';
-import { AvailabilitySettings } from '@/components/Settings/AvailabilitySettings';
+import AvailabilitySettings from '@/components/Settings/AvailabilitySettings';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { getAvailabilitySettings, saveAvailabilitySettings } from '@/services/booking/availabilityService';
-import { useBusinesses } from '@/hooks/useBusinesses';
+import { useBusiness } from '@/contexts/BusinessContext';
 import type { AvailabilitySettings as AvailabilitySettingsType, DaySchedule, TimeSlot } from '@/services/booking/availabilityService';
 
 const AvailabilityPage = () => {
-  const { currentBusiness } = useBusinesses();
+  const { currentBusiness } = useBusiness();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<AvailabilitySettingsType | null>(null);
