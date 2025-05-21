@@ -47,7 +47,8 @@ const BookingContent = ({ businessId = null }: BookingContentProps) => {
     services = [], 
     categories = [], 
     isLoading: isLoadingData = false,
-    error: dataError = null
+    error: dataError = null,
+    hasServices = false
   } = usePublicBookingData() || {};
   
   // Custom hook for booking steps
@@ -134,9 +135,13 @@ const BookingContent = ({ businessId = null }: BookingContentProps) => {
   }
 
   // If no services available
-  if (!Array.isArray(services) || services.length === 0) {
+  if (!hasServices || !Array.isArray(services) || services.length === 0) {
     return <EmptyServicesState />;
   }
+
+  console.log('Rendering BookingContent with services:', services.length);
+  console.log('Selected service:', selectedService);
+  console.log('Filtered services:', filteredServices.length);
 
   return (
     <div 

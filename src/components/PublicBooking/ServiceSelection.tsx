@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Service } from '@/types/service';
 import { BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
@@ -77,7 +78,7 @@ const ServiceSelection = ({
 
       {/* Services grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredServices &&
+        {filteredServices && filteredServices.length > 0 ? (
           filteredServices.map((service) => (
             <div
               key={service.id}
@@ -109,14 +110,13 @@ const ServiceSelection = ({
                 {service.duration} min
               </div>
             </div>
-          ))}
+          ))
+        ) : (
+          <div className="col-span-2 text-center py-8">
+            <p className="text-gray-500">Aucun service disponible</p>
+          </div>
+        )}
       </div>
-
-      {filteredServices && filteredServices.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-500">Aucun service disponible</p>
-        </div>
-      )}
     </div>
   );
 };

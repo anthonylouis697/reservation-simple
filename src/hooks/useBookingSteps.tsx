@@ -1,79 +1,100 @@
 
-import { useState, useEffect } from 'react';
-import { Service } from '@/types/service';
-import { getAvailableTimeSlots } from '@/utils/availability';
-import { checkAvailability } from '@/services/bookingService';
-import { toast } from 'sonner';
+import { useState, useEffect, useMemo } from 'react';
+import { Service, Category } from '@/types/service';
 
-export const useBookingSteps = (services: Service[], categories: any[], steps: any[]) => {
-  // États pour le processus de réservation
+interface BookingStep {
+  id: string;
+  name: string;
+  enabled: boolean;
+}
+
+interface UseBookingStepsProps {
+  services: Service[];
+  categories: Category[];
+  steps: BookingStep[];
+}
+
+export const useBookingSteps = (services: Service[] = [], categories: Category[] = [], steps: BookingStep[] = []) => {
+  // État pour la sélection du service
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  
+  // État pour la sélection de la date et de l'heure
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
-  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [isLoadingTimes, setIsLoadingTimes] = useState(false);
   
-  // États pour les informations du client
+  // État pour les informations du client
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientPhone, setClientPhone] = useState('');
   const [clientNotes, setClientNotes] = useState('');
-
-  // État pour le succès de la réservation
+  
+  // État pour le processus de réservation
+  const [currentStep, setCurrentStep] = useState(0);
   const [bookingComplete, setBookingComplete] = useState(false);
-  const [isBooking, setIsBooking] = useState(false);
-  const [isLoadingTimes, setIsLoadingTimes] = useState(false);
 
-  // Réinitialiser le service sélectionné lorsque la catégorie change
+  console.log('useBookingSteps - Services:', services.length);
+  
+  // Filtre les services en fonction de la catégorie sélectionnée
+  const filteredServices = useMemo(() => {
+    console.log('Filtering services by category:', selectedCategory);
+    console.log('Available services:', services.length);
+    if (!selectedCategory) return services;
+    return services.filter(service => service.categoryId === selectedCategory);
+  }, [selectedCategory, services]);
+  
+  // Transforme les catégories en un format utilisable par l'interface
+  const activeCategories = useMemo(() => {
+    return categories.map(cat => ({
+      id: cat.id,
+      name: cat.name
+    }));
+  }, [categories]);
+  
+  // Réinitialise le service sélectionné lorsque la catégorie change
   useEffect(() => {
     setSelectedService(null);
   }, [selectedCategory]);
-
-  // Filtrage des services par catégorie sélectionnée
-  const filteredServices = selectedCategory
-    ? services.filter(service => service.isActive && service.categoryId === selectedCategory)
-    : services.filter(service => service.isActive);
-
-  // Filtre des catégories actives
-  const activeCategories = categories.filter(cat => cat.isActive);
   
-  // Mise à jour des créneaux horaires disponibles lorsque la date est sélectionnée
+  // Simule le chargement des créneaux horaires disponibles lorsque la date change
   useEffect(() => {
-    const fetchAvailableTimes = async () => {
-      if (selectedDate && selectedService) {
-        setIsLoadingTimes(true);
-        try {
-          // Obtenir tous les créneaux potentiels
-          const allSlots = getAvailableTimeSlots(selectedDate, selectedService.duration);
-          
-          // Vérifier la disponibilité réelle de chaque créneau
-          const availabilityPromises = allSlots.map(async (slot) => {
-            const isAvailable = await checkAvailability(selectedDate, slot, selectedService.duration);
-            return { time: slot, available: isAvailable };
-          });
-          
-          const availabilityResults = await Promise.all(availabilityPromises);
-          const available = availabilityResults
-            .filter(result => result.available)
-            .map(result => result.time);
-          
-          setAvailableTimes(available);
-        } catch (error) {
-          console.error("Error fetching available times:", error);
-          toast.error("Erreur lors du chargement des horaires disponibles");
-        } finally {
-          setIsLoadingTimes(false);
-        }
-        
-        setSelectedTime(null);  // Réinitialiser le temps sélectionné
+    const generateTimes = async () => {
+      if (!selectedDate || !selectedService) {
+        setAvailableTimes([]);
+        return;
       }
+      
+      setIsLoadingTimes(true);
+      
+      // Simuler un délai de chargement
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Générer des créneaux toutes les 30 minutes de 8h à 18h
+      const times = [];
+      const startHour = 8;
+      const endHour = 18;
+      const interval = 30; // minutes
+      
+      for (let hour = startHour; hour < endHour; hour++) {
+        times.push(`${hour}:00`);
+        times.push(`${hour}:30`);
+      }
+      
+      setAvailableTimes(times);
+      setIsLoadingTimes(false);
     };
     
-    fetchAvailableTimes();
+    generateTimes();
   }, [selectedDate, selectedService]);
-
-  // Fonction pour recommencer le processus
+  
+  // Réinitialiser la sélection d'heure lorsque la date change
+  useEffect(() => {
+    setSelectedTime(null);
+  }, [selectedDate]);
+  
+  // Fonction pour recommencer le processus de réservation
   const handleStartOver = () => {
     setSelectedCategory(null);
     setSelectedService(null);
@@ -86,19 +107,25 @@ export const useBookingSteps = (services: Service[], categories: any[], steps: a
     setCurrentStep(0);
     setBookingComplete(false);
   };
-
+  
   return {
+    // Service selection
     selectedCategory,
     setSelectedCategory,
     selectedService,
     setSelectedService,
+    filteredServices,
+    activeCategories,
+    
+    // Date and time selection
     selectedDate,
     setSelectedDate,
     selectedTime,
     setSelectedTime,
     availableTimes,
-    currentStep,
-    setCurrentStep,
+    isLoadingTimes,
+    
+    // Client information
     clientName,
     setClientName,
     clientEmail,
@@ -107,13 +134,14 @@ export const useBookingSteps = (services: Service[], categories: any[], steps: a
     setClientPhone,
     clientNotes,
     setClientNotes,
+    
+    // Booking process
+    currentStep,
+    setCurrentStep,
     bookingComplete,
     setBookingComplete,
-    isBooking,
-    setIsBooking,
-    isLoadingTimes,
-    filteredServices,
-    activeCategories,
     handleStartOver
   };
 };
+
+export default useBookingSteps;
