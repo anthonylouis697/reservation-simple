@@ -19,28 +19,28 @@ interface StepNavigationProps {
 
 const StepNavigation = ({
   currentStep = 0,
-  handlePrevStep = () => {},
-  handleNextStep = () => {},
+  handlePrevStep,
+  handleNextStep,
   isBooking = false,
-  getButtonStyle = () => ({ className: "", style: { backgroundColor: "", borderColor: "" } }),
-  getCurrentStepIcon = () => null,
-  getStepLabel = (index: number) => `Étape ${index + 1}`,
+  getButtonStyle,
+  getCurrentStepIcon,
+  getStepLabel,
   bookingButtonText = "Réserver",
   activeStepsLength = 4
 }: StepNavigationProps) => {
-  // Vérifier que toutes les fonctions sont définies
+  // Ensure all handler functions have fallbacks
   const safeHandlePrevStep = handlePrevStep || (() => {});
   const safeHandleNextStep = handleNextStep || (() => {});
   const safeGetButtonStyle = getButtonStyle || (() => ({ className: "", style: { backgroundColor: "", borderColor: "" } }));
   const safeGetCurrentStepIcon = getCurrentStepIcon || (() => null);
   const safeGetStepLabel = getStepLabel || ((index: number) => `Étape ${index + 1}`);
   
-  // Récupérer les styles de bouton de manière sécurisée
+  // Get button styles safely
   const buttonStyle = safeGetButtonStyle();
   const buttonClassName = buttonStyle?.className || "";
   const buttonStyleObj = buttonStyle?.style || { backgroundColor: "", borderColor: "" };
   
-  // Récupérer l'icône et le label de l'étape actuelle
+  // Get current step icon and label safely
   const currentStepIcon = safeGetCurrentStepIcon();
   const stepLabel = safeGetStepLabel(currentStep);
   

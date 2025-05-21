@@ -18,25 +18,27 @@ interface PublicBookingDataProviderProps {
   children: ReactNode;
 }
 
-// Créer le contexte
-const PublicBookingDataContext = createContext<PublicBookingDataContextType | undefined>(undefined);
+// Create context
+const PublicBookingDataContext = createContext<PublicBookingDataContextType>({
+  services: [],
+  categories: [],
+  isLoading: true,
+  error: null
+});
 
-// Hook personnalisé pour accéder aux données de réservation publique
+// Custom hook to access public booking data
 export const usePublicBookingData = () => {
   const context = useContext(PublicBookingDataContext);
-  if (!context) {
-    throw new Error("usePublicBookingData doit être utilisé à l'intérieur d'un PublicBookingDataProvider");
-  }
   return context;
 };
 
-// Composant Provider pour le contexte de données de réservation
+// Provider component for booking data context
 export const PublicBookingDataProvider = ({ children }: PublicBookingDataProviderProps) => {
   const [services, setServices] = useState<Service[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { businessSlug } = useParams<{ businessSlug: string }>();
+  const { businessSlug } = useParams<{ businessSlug?: string }>();
   
   useEffect(() => {
     const loadData = async () => {
@@ -44,10 +46,14 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
         setIsLoading(true);
         
         if (!businessSlug) {
-          throw new Error("Identifiant d'entreprise manquant");
+          console.log("No business slug provided, using mock data");
+          setServices(initialServices);
+          setCategories(initialCategories);
+          return;
         }
         
-        // Trouver l'entreprise par son slug
+        // Find business by slug
+        console.log("Finding business with slug:", businessSlug);
         const { data: businessData, error: businessError } = await supabase
           .from('businesses')
           .select('id')
@@ -55,51 +61,58 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
           .maybeSingle();
           
         if (businessError) {
-          console.error("Erreur de recherche d'entreprise:", businessError);
-          throw new Error("Impossible de trouver cette entreprise");
+          console.error("Business lookup error:", businessError);
+          throw new Error("Could not find this business");
         }
 
         if (!businessData) {
-          console.error("Aucune entreprise trouvée avec ce slug:", businessSlug);
-          // Utiliser les données fictives si aucune entreprise n'est trouvée
+          console.log("No business found with slug:", businessSlug);
+          // Use mock data if no business found
           setServices(initialServices);
           setCategories(initialCategories);
           return;
         }
         
         const businessId = businessData.id;
-        console.log("ID d'entreprise trouvé:", businessId);
+        console.log("Business ID found:", businessId);
         
-        // Récupérer les services et catégories
-        const [fetchedServices, fetchedCategories] = await Promise.all([
-          getPublicServices(businessId),
-          getPublicCategories(businessId)
-        ]);
-        
-        console.log("Services récupérés:", fetchedServices.length);
-        console.log("Catégories récupérées:", fetchedCategories.length);
-        
-        // Si aucun service trouvé, utiliser les données fictives
-        if (fetchedServices.length === 0) {
-          console.log("Aucun service trouvé, utilisation des données fictives");
+        // Get services and categories
+        try {
+          const [fetchedServices, fetchedCategories] = await Promise.all([
+            getPublicServices(businessId),
+            getPublicCategories(businessId)
+          ]);
+          
+          console.log("Services fetched:", fetchedServices.length);
+          console.log("Categories fetched:", fetchedCategories.length);
+          
+          // Use mock data if no services found
+          if (!Array.isArray(fetchedServices) || fetchedServices.length === 0) {
+            console.log("No services found, using mock data");
+            setServices(initialServices);
+          } else {
+            setServices(fetchedServices);
+          }
+          
+          // Use mock data if no categories found
+          if (!Array.isArray(fetchedCategories) || fetchedCategories.length === 0) {
+            console.log("No categories found, using mock data");
+            setCategories(initialCategories);
+          } else {
+            setCategories(fetchedCategories);
+          }
+        } catch (fetchError) {
+          console.error("Error fetching services/categories:", fetchError);
+          // Fall back to mock data on error
           setServices(initialServices);
-        } else {
-          setServices(fetchedServices);
-        }
-        
-        // Si aucune catégorie trouvée, utiliser les données fictives
-        if (fetchedCategories.length === 0) {
-          console.log("Aucune catégorie trouvée, utilisation des données fictives");
           setCategories(initialCategories);
-        } else {
-          setCategories(fetchedCategories);
         }
         
       } catch (error) {
-        console.error("Erreur lors du chargement des données:", error);
-        setError(error instanceof Error ? error.message : "Une erreur est survenue");
+        console.error("Error loading data:", error);
+        setError(error instanceof Error ? error.message : "An error occurred");
         
-        // En cas d'erreur, on utilise les données fictives
+        // Use mock data on error
         setServices(initialServices);
         setCategories(initialCategories);
       } finally {

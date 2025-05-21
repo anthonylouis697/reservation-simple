@@ -66,7 +66,7 @@ const StepRenderer = ({
   primaryColor = "#9b87f5",
 }: StepRendererProps) => {
   
-  // S'assurer d'avoir des fonctions valides  
+  // Ensure functions have safe fallbacks
   const safeSetSelectedCategory = setSelectedCategory || (() => {});
   const safeSetSelectedService = setSelectedService || (() => {});
   const safeSetSelectedDate = setSelectedDate || (() => {});
@@ -78,6 +78,7 @@ const StepRenderer = ({
   const safeHandleStartOver = handleStartOver || (() => {});
   const safeGetButtonStyle = getButtonStyle || (() => ({ className: "", style: { backgroundColor: "", borderColor: "" } }));
   
+  // Show confirmation component if booking is complete
   if (bookingComplete) {
     return (
       <BookingConfirmation 
@@ -88,8 +89,9 @@ const StepRenderer = ({
     );
   }
 
+  // Render appropriate component based on current step
   switch (currentStep) {
-    case 0: // Sélection du service
+    case 0: // Service selection
       return (
         <ServiceSelection
           customTexts={customTexts || {}}
@@ -104,7 +106,7 @@ const StepRenderer = ({
         />
       );
 
-    case 1: // Sélection de la date
+    case 1: // Date selection
       return (
         <DateSelection
           customTexts={customTexts || {}}
@@ -114,7 +116,7 @@ const StepRenderer = ({
         />
       );
 
-    case 2: // Sélection de l'horaire
+    case 2: // Time selection
       return (
         <TimeSelection
           customTexts={customTexts || {}}
@@ -128,7 +130,7 @@ const StepRenderer = ({
         />
       );
 
-    case 3: // Informations du client
+    case 3: // Client information
       return (
         <ClientInfoForm
           customTexts={customTexts || {}}
@@ -147,7 +149,20 @@ const StepRenderer = ({
       );
 
     default:
-      return null;
+      // Fallback to service selection if step is invalid
+      return (
+        <ServiceSelection
+          customTexts={customTexts || {}}
+          activeCategories={activeCategories || []}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={safeSetSelectedCategory}
+          filteredServices={filteredServices || []}
+          selectedService={selectedService}
+          setSelectedService={safeSetSelectedService}
+          getButtonStyle={safeGetButtonStyle}
+          primaryColor={primaryColor || "#9b87f5"}
+        />
+      );
   }
 };
 

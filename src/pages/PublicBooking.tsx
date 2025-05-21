@@ -18,38 +18,48 @@ const PublicBooking = () => {
   const { businessSlug } = useParams<{ businessSlug: string }>();
   const [businessFound, setBusinessFound] = useState(true);
   const [businessId, setBusinessId] = useState<string | null>(null);
+  const navigate = useNavigate();
   
   useEffect(() => {
     const checkBusiness = async () => {
       try {
-        // Vérifier si l'entreprise existe
-        if (businessSlug) {
-          console.log("Recherche de l'entreprise avec le slug:", businessSlug);
-          
-          const { data, error } = await supabase
-            .from('businesses')
-            .select('id')
-            .eq('slug', businessSlug)
-            .single();
-            
-          if (error || !data) {
-            console.error("Entreprise introuvable:", error);
-            setBusinessFound(false);
-            return;
-          }
-          
-          console.log("Entreprise trouvée:", data);
-          setBusinessId(data.id);
-          setBusinessFound(true);
-        } else {
-          console.error("Slug d'entreprise manquant dans l'URL");
+        // Check if businessSlug exists
+        if (!businessSlug) {
+          console.error("Missing business slug in URL");
           setBusinessFound(false);
+          setIsLoading(false);
+          return;
         }
+        
+        console.log("Looking for business with slug:", businessSlug);
+        
+        // Query the database for the business
+        const { data, error } = await supabase
+          .from('businesses')
+          .select('id')
+          .eq('slug', businessSlug)
+          .maybeSingle();
+          
+        if (error) {
+          console.error("Error finding business:", error);
+          setBusinessFound(false);
+          return;
+        }
+        
+        if (!data) {
+          console.error("Business not found for slug:", businessSlug);
+          setBusinessFound(false);
+          return;
+        }
+        
+        console.log("Business found:", data);
+        setBusinessId(data.id);
+        setBusinessFound(true);
       } catch (error) {
-        console.error("Erreur lors de la vérification de l'entreprise:", error);
+        console.error("Error checking business:", error);
         setBusinessFound(false);
       } finally {
-        // Simuler un temps de chargement pour les données
+        // Add a small delay to simulate loading
         setTimeout(() => {
           setIsLoading(false);
         }, 1000);
@@ -57,7 +67,7 @@ const PublicBooking = () => {
     };
     
     checkBusiness();
-  }, [businessSlug]);
+  }, [businessSlug, navigate]);
 
   if (isLoading) {
     return <LoadingScreen />;

@@ -24,15 +24,19 @@ interface DeleteBookingDialogProps {
 
 export const DeleteBookingDialog = ({
   open = false,
-  onOpenChange = () => {},
+  onOpenChange,
   booking = null,
   service = null,
   isProcessing = false,
-  onConfirmDelete = () => {}
+  onConfirmDelete
 }: DeleteBookingDialogProps) => {
+  // Safety check for required props and booking
   if (!booking) return null;
+  
+  const safeOnOpenChange = onOpenChange || (() => {});
+  const safeOnConfirmDelete = onConfirmDelete || (() => {});
 
-  // Vérifier et transformer la date en objet Date si nécessaire
+  // Safely transform date to Date object if needed
   let bookingDate: Date;
   try {
     bookingDate = booking.date instanceof Date 
@@ -43,7 +47,7 @@ export const DeleteBookingDialog = ({
     bookingDate = new Date();
   }
 
-  // Récupérer les données client de manière sécurisée
+  // Safely get client data
   const clientName = 
     booking.client && 
     typeof booking.client === 'object' && 
@@ -55,7 +59,7 @@ export const DeleteBookingDialog = ({
   const bookingTime = booking.time || "Heure non spécifiée";
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={safeOnOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Supprimer la réservation</DialogTitle>
@@ -82,14 +86,14 @@ export const DeleteBookingDialog = ({
         <DialogFooter>
           <Button 
             variant="outline" 
-            onClick={() => onOpenChange(false)}
+            onClick={() => safeOnOpenChange(false)}
             disabled={isProcessing}
           >
             Annuler
           </Button>
           <Button 
             variant="destructive" 
-            onClick={onConfirmDelete}
+            onClick={safeOnConfirmDelete}
             disabled={isProcessing}
           >
             {isProcessing ? "Suppression..." : "Supprimer"}
