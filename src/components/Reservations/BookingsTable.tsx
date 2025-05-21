@@ -1,7 +1,7 @@
 
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Booking } from '@/services/bookingService';
+import { Booking } from '@/services/booking/types';
 import { Service } from '@/types/service';
 import { 
   Table, 
@@ -56,6 +56,7 @@ export const BookingsTable = ({
         <TableBody>
           {bookings.map((booking) => {
             const service = getServiceById(booking.serviceId);
+            // Ensure booking.date is properly converted to a Date object
             const bookingDate = booking.date instanceof Date 
               ? booking.date 
               : new Date(booking.date);

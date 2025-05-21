@@ -1,7 +1,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Check, Trash2 } from 'lucide-react';
-import { Booking } from '@/services/bookingService';
+import { Booking } from '@/services/booking/types';
 
 interface BookingActionsProps {
   booking: Booking;

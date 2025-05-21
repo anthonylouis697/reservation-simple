@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CalendarCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import { Booking, getAllBookings, updateBookingStatus, deleteBooking } from '@/services/bookingService';
+import { getAllBookings, updateBookingStatus, deleteBooking } from '@/services/booking';
+import { Booking } from '@/services/booking/types';
 import { Service } from '@/types/service';
 import { initialServices } from '@/mock/serviceData';
 import { LoadingState } from '@/components/Reservations/LoadingState';
@@ -27,8 +28,15 @@ const Reservations = () => {
   useEffect(() => {
     const fetchBookings = async () => {
       try {
+        setIsLoading(true);
         const fetchedBookings = await getAllBookings();
-        setBookings(fetchedBookings);
+        
+        // Ensure all bookings have proper structure
+        const validBookings = fetchedBookings.filter(booking => 
+          booking && booking.id && booking.client && typeof booking.client === 'object'
+        );
+        
+        setBookings(validBookings);
       } catch (error) {
         console.error('Error fetching bookings:', error);
         toast.error('Erreur lors du chargement des réservations');
