@@ -35,6 +35,7 @@ export const loadUserProfile = async (userId: string) => {
 
       // Create a default business if none exists
       if (!businessData) {
+        console.log("Aucune entreprise trouvée, création d'une entreprise par défaut");
         const businessId = await createDefaultBusiness(userId, profileData.first_name, profileData.last_name);
         return { profile: profileData, businessId };
       }

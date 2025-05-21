@@ -55,6 +55,7 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
           console.log("No business slug provided, using mock data");
           setServices(initialServices);
           setCategories(initialCategories);
+          setIsLoading(false);
           return;
         }
         
@@ -71,6 +72,7 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
           setError("Could not find this business");
           setServices(initialServices);
           setCategories(initialCategories);
+          setIsLoading(false);
           return;
         }
 
@@ -80,6 +82,7 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
           // Use mock data if no business found
           setServices(initialServices);
           setCategories(initialCategories);
+          setIsLoading(false);
           return;
         }
         
@@ -93,31 +96,23 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
             getPublicCategories(businessId)
           ]);
           
-          console.log("Services fetched:", fetchedServices.length);
-          console.log("Categories fetched:", fetchedCategories.length);
+          console.log("Services fetched:", fetchedServices?.length || 0);
+          console.log("Categories fetched:", fetchedCategories?.length || 0);
           
-          // Use mock data if no services found
-          if (!Array.isArray(fetchedServices) || fetchedServices.length === 0) {
-            console.log("No services found, using mock data");
-            setServices(initialServices);
-          } else {
-            setServices(fetchedServices);
-          }
-          
-          // Use mock data if no categories found
-          if (!Array.isArray(fetchedCategories) || fetchedCategories.length === 0) {
-            console.log("No categories found, using mock data");
-            setCategories(initialCategories);
-          } else {
-            setCategories(fetchedCategories);
-          }
+          // Use validated data if found, otherwise use mock data
+          setServices(Array.isArray(fetchedServices) && fetchedServices.length > 0 
+            ? fetchedServices 
+            : initialServices);
+            
+          setCategories(Array.isArray(fetchedCategories) && fetchedCategories.length > 0 
+            ? fetchedCategories 
+            : initialCategories);
         } catch (fetchError) {
           console.error("Error fetching services/categories:", fetchError);
           // Fall back to mock data on error
           setServices(initialServices);
           setCategories(initialCategories);
         }
-        
       } catch (error) {
         console.error("Error loading data:", error);
         setError(error instanceof Error ? error.message : "An error occurred");
@@ -133,9 +128,13 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
     loadData();
   }, [businessSlug]);
   
+  // Ensure values are always arrays
+  const safeServices = Array.isArray(services) ? services : [];
+  const safeCategories = Array.isArray(categories) ? categories : [];
+  
   const contextValue: PublicBookingDataContextType = {
-    services,
-    categories,
+    services: safeServices,
+    categories: safeCategories,
     isLoading,
     error
   };

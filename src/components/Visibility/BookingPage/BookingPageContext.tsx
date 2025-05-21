@@ -50,10 +50,18 @@ export function BookingPageProvider({ children }: BookingPageProviderProps) {
   // Get booking page state from the hook
   const bookingPageState = useBookingPageState();
   
-  // Ensure customTexts is always defined
-  const safeBookingPageState = {
+  // Ensure that all critical properties are defined with safe defaults
+  const safeBookingPageState: BookingPageContextType = {
+    ...defaultContextValue,
     ...bookingPageState,
-    customTexts: bookingPageState.customTexts || defaultCustomTexts
+    customTexts: bookingPageState.customTexts || defaultCustomTexts,
+    steps: Array.isArray(bookingPageState.steps) ? bookingPageState.steps : [],
+    primaryColor: bookingPageState.primaryColor || "#9b87f5",
+    secondaryColor: bookingPageState.secondaryColor || "#7E69AB",
+    buttonCorners: bookingPageState.buttonCorners || "rounded",
+    bookingButtonText: bookingPageState.bookingButtonText || "Réserver",
+    layoutType: bookingPageState.layoutType || "stepped",
+    selectedTemplate: bookingPageState.selectedTemplate || "standard"
   };
 
   return (

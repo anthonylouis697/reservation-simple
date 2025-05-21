@@ -11,12 +11,14 @@ import { Check, Copy, ExternalLink, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useBookingPage } from "@/components/Visibility/BookingPage/BookingPageContext";
 import { BookingPageProvider } from "@/components/Visibility/BookingPage/BookingPageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function BookingPage() {
   const { currentTab } = useVisibilityNavigation();
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const { user, businessId } = useAuth();
 
   // Composant pour le contenu principal
   const PageContent = () => {

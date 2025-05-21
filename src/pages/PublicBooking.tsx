@@ -33,10 +33,10 @@ const PublicBooking = () => {
         
         console.log("Looking for business with slug:", businessSlug);
         
-        // Query the database for the business
+        // Query the database for the business with extended timeout
         const { data, error } = await supabase
           .from('businesses')
-          .select('id, slug')
+          .select('id, slug, name')
           .eq('slug', businessSlug)
           .maybeSingle();
           

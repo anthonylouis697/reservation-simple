@@ -68,8 +68,11 @@ const StepRenderer = ({
   primaryColor = "#9b87f5",
 }: StepRendererProps) => {
   
-  // Ensure customTexts is never undefined or null
+  // Ensure customTexts is never undefined or null by providing a default
   const safeCustomTexts = customTexts || defaultCustomTexts;
+  const safeActiveCategories = Array.isArray(activeCategories) ? activeCategories : [];
+  const safeFilteredServices = Array.isArray(filteredServices) ? filteredServices : [];
+  const safeAvailableTimes = Array.isArray(availableTimes) ? availableTimes : [];
   
   // Show confirmation component if booking is complete
   if (bookingComplete) {
@@ -88,10 +91,10 @@ const StepRenderer = ({
       return (
         <ServiceSelection
           customTexts={safeCustomTexts}
-          activeCategories={activeCategories}
+          activeCategories={safeActiveCategories}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
-          filteredServices={filteredServices}
+          filteredServices={safeFilteredServices}
           selectedService={selectedService}
           setSelectedService={setSelectedService}
           getButtonStyle={getButtonStyle}
@@ -114,7 +117,7 @@ const StepRenderer = ({
         <TimeSelection
           customTexts={safeCustomTexts}
           isLoadingTimes={isLoadingTimes}
-          availableTimes={availableTimes}
+          availableTimes={safeAvailableTimes}
           selectedTime={selectedTime}
           setSelectedTime={setSelectedTime}
           selectedService={selectedService}
@@ -146,10 +149,10 @@ const StepRenderer = ({
       return (
         <ServiceSelection
           customTexts={safeCustomTexts}
-          activeCategories={activeCategories}
+          activeCategories={safeActiveCategories}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
-          filteredServices={filteredServices}
+          filteredServices={safeFilteredServices}
           selectedService={selectedService}
           setSelectedService={setSelectedService}
           getButtonStyle={getButtonStyle}

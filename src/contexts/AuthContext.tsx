@@ -11,6 +11,7 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   profile: any | null;
+  businessId: string | null;
   isLoading: boolean;
   signUp: (email: string, password: string, options?: { first_name?: string; last_name?: string }) => Promise<boolean>;
   signIn: (email: string, password: string) => Promise<void>;
@@ -24,6 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
+  const [businessId, setBusinessId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
@@ -49,8 +51,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Important : utiliser setTimeout pour éviter les deadlocks avec Supabase
           setTimeout(() => {
             loadUserProfile(currentSession.user.id)
-              .then(({ profile: userProfile }) => {
+              .then(({ profile: userProfile, businessId: userBusinessId }) => {
                 setProfile(userProfile);
+                setBusinessId(userBusinessId);
                 setIsLoading(false);
               })
               .catch(error => {
@@ -67,6 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           console.log("Auth state change: No user session");
           setProfile(null);
+          setBusinessId(null);
           setIsLoading(false);
           
           // La redirection vers /login pour les routes protégées est gérée par le composant RequireAuth
@@ -87,8 +91,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Important : utiliser setTimeout pour éviter les deadlocks avec Supabase
         setTimeout(() => {
           loadUserProfile(currentSession.user.id)
-            .then(({ profile: userProfile }) => {
+            .then(({ profile: userProfile, businessId: userBusinessId }) => {
               setProfile(userProfile);
+              setBusinessId(userBusinessId);
               setIsLoading(false);
             })
             .catch(error => {
@@ -117,19 +122,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [navigate, location.pathname]);
 
-  // Log d'état d'authentification
-  useEffect(() => {
-    if (user && !isLoading) {
-      console.log("User is authenticated:", user.email);
-    }
-  }, [user, isLoading]);
-
   return (
     <AuthContext.Provider
       value={{
         session,
         user,
         profile,
+        businessId,
         isLoading: isLoading || authLoading,
         signUp,
         signIn,

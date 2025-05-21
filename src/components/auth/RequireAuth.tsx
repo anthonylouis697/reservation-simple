@@ -9,12 +9,12 @@ interface RequireAuthProps {
 }
 
 const RequireAuth = ({ children }: RequireAuthProps) => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, businessId } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    console.log("RequireAuth check:", { user: !!user, isLoading, path: location.pathname });
+    console.log("RequireAuth check:", { user: !!user, isLoading, businessId, path: location.pathname });
     
     // Seulement rediriger si le chargement est terminé et qu'il n'y a pas d'utilisateur
     if (!isLoading && !user) {
