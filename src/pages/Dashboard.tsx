@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
@@ -16,6 +15,7 @@ import { AppointmentsSection } from '@/components/Dashboard/AppointmentsSection'
 import { SetupGuide } from '@/components/Dashboard/SetupGuide';
 import { VisibilityBoostPromo } from '@/components/Dashboard/VisibilityBoostPromo';
 import { DashboardLoading } from '@/components/Dashboard/DashboardLoading';
+import { BookingLinkCard } from '@/components/Dashboard/BookingLinkCard';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
 
@@ -32,7 +32,7 @@ const Dashboard = () => {
     }
   }, [user, authLoading]);
   
-  // Si toujours en chargement, afficher un indicateur
+  // If still loading, display loading indicator
   if (authLoading || businessLoading || !isReady) {
     return <DashboardLoading />;
   }
@@ -61,6 +61,7 @@ const Dashboard = () => {
   // The main content of the dashboard
   const mainContent = (
     <>
+      <BookingLinkCard />
       <RevenueChart />
       <AppointmentsSection />
       <UpcomingEvents />

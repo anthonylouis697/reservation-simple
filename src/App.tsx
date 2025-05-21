@@ -14,6 +14,7 @@ import NotFound from '@/pages/NotFound';
 import RequireAuth from '@/components/auth/RequireAuth';
 import BookingPage from '@/pages/BookingPage';
 import BookingCustomization from '@/pages/BookingCustomization';
+import BookingLink from '@/pages/BookingLink';
 import AdditionalServices from '@/pages/AdditionalServices';
 import Marketing from '@/pages/Marketing';
 import Visibility from '@/pages/Visibility';
@@ -56,6 +57,7 @@ function App() {
               <Route path="/statistics" element={<RequireAuth><Statistics /></RequireAuth>} />
               <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
               <Route path="/booking-page" element={<RequireAuth><BookingPage /></RequireAuth>} />
+              <Route path="/booking-link" element={<RequireAuth><BookingLink /></RequireAuth>} />
               <Route path="/booking-customization" element={<RequireAuth><BookingCustomization /></RequireAuth>} />
               <Route path="/visibility-boost" element={<RequireAuth><Visibility /></RequireAuth>} />
               <Route path="/marketing" element={<RequireAuth><Marketing /></RequireAuth>} />

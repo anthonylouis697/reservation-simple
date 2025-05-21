@@ -1,4 +1,3 @@
-
 import {
   CalendarDays,
   LayoutDashboard,
@@ -15,7 +14,8 @@ import {
   Database,
   PackageCheck,
   Rocket,
-  Building2
+  Building2,
+  Link
 } from "lucide-react";
 import { ReactNode } from "react";
 import { NavItem } from "@/types/navigation";
@@ -86,6 +86,12 @@ export const navigationItems = {
     href: "/booking-page",
     icon: <Globe className="h-5 w-5" />,
     description: "Configuration de votre page de réservation",
+  },
+  bookingPageLink: {
+    title: "Lien de réservation",
+    href: "/booking-link",
+    icon: <Link className="h-5 w-5" />,
+    description: "Votre lien de réservation public",
   },
   customization: {
     title: "Personnalisation",
@@ -159,6 +165,7 @@ export const navigationConfig: NavigationConfig = {
   ],
   visibilityNav: [
     navigationItems.bookingPage,
+    navigationItems.bookingPageLink,
   ],
   profileSubNav: [
     navigationItems.profile,
