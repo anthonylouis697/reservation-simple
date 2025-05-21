@@ -76,6 +76,9 @@ export const BookingsTable = ({
               ? booking.client.email 
               : "";
             
+            const servicePrice = service?.price || 0;
+            const serviceName = service?.name || "Service inconnu";
+            
             return (
               <TableRow key={booking.id}>
                 <TableCell>
@@ -88,8 +91,8 @@ export const BookingsTable = ({
                     <p className="text-sm text-muted-foreground">{clientEmail}</p>
                   </div>
                 </TableCell>
-                <TableCell>{service?.name || "Service inconnu"}</TableCell>
-                <TableCell>{service?.price || 0} €</TableCell>
+                <TableCell>{serviceName}</TableCell>
+                <TableCell>{servicePrice} €</TableCell>
                 <TableCell>
                   <StatusBadge status={booking.status} />
                 </TableCell>

@@ -69,7 +69,7 @@ const StepRenderer = ({
   if (bookingComplete) {
     return (
       <BookingConfirmation 
-        confirmationMessage={confirmationMessage}
+        confirmationMessage={confirmationMessage || "Merci pour votre réservation !"}
         handleStartOver={handleStartOver}
         getButtonStyle={getButtonStyle}
       />
@@ -80,22 +80,22 @@ const StepRenderer = ({
     case 0: // Sélection du service
       return (
         <ServiceSelection
-          customTexts={customTexts}
-          activeCategories={activeCategories}
+          customTexts={customTexts || {}}
+          activeCategories={activeCategories || []}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
-          filteredServices={filteredServices}
+          filteredServices={filteredServices || []}
           selectedService={selectedService}
           setSelectedService={setSelectedService}
           getButtonStyle={getButtonStyle}
-          primaryColor={primaryColor}
+          primaryColor={primaryColor || "#9b87f5"}
         />
       );
 
     case 1: // Sélection de la date
       return (
         <DateSelection
-          customTexts={customTexts}
+          customTexts={customTexts || {}}
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
           selectedService={selectedService}
@@ -105,9 +105,9 @@ const StepRenderer = ({
     case 2: // Sélection de l'horaire
       return (
         <TimeSelection
-          customTexts={customTexts}
+          customTexts={customTexts || {}}
           isLoadingTimes={isLoadingTimes}
-          availableTimes={availableTimes}
+          availableTimes={availableTimes || []}
           selectedTime={selectedTime}
           setSelectedTime={setSelectedTime}
           selectedService={selectedService}
@@ -119,14 +119,14 @@ const StepRenderer = ({
     case 3: // Informations du client
       return (
         <ClientInfoForm
-          customTexts={customTexts}
-          clientName={clientName}
+          customTexts={customTexts || {}}
+          clientName={clientName || ""}
           setClientName={setClientName}
-          clientEmail={clientEmail}
+          clientEmail={clientEmail || ""}
           setClientEmail={setClientEmail}
-          clientPhone={clientPhone}
+          clientPhone={clientPhone || ""}
           setClientPhone={setClientPhone}
-          clientNotes={clientNotes}
+          clientNotes={clientNotes || ""}
           setClientNotes={setClientNotes}
           selectedService={selectedService}
           selectedDate={selectedDate}

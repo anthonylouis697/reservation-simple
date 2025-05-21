@@ -42,6 +42,8 @@ export const DeleteBookingDialog = ({
     ? booking.client.name 
     : "Client inconnu";
 
+  const serviceName = service?.name || "Service inconnu";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -57,7 +59,7 @@ export const DeleteBookingDialog = ({
             <strong>Client :</strong> {clientName}
           </p>
           <p>
-            <strong>Service :</strong> {service?.name || "Service inconnu"}
+            <strong>Service :</strong> {serviceName}
           </p>
           <p>
             <strong>Date :</strong> {format(bookingDate, 'dd/MM/yyyy', { locale: fr })}

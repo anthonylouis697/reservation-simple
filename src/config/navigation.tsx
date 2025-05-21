@@ -39,17 +39,17 @@ export const navigationItems = {
     icon: <Users className="h-5 w-5" />,
     description: "Gestion de votre clientèle",
   },
-  reservations: {
-    title: "Réservations",
-    href: "/reservations",
-    icon: <CalendarClock className="h-5 w-5" />,
-    description: "Consultez vos réservations",
-  },
   services: {
     title: "Services",
     href: "/services",
     icon: <ListChecks className="h-5 w-5" />,
     description: "Gérez vos prestations",
+  },
+  reservations: {
+    title: "Réservations",
+    href: "/reservations",
+    icon: <CalendarClock className="h-5 w-5" />,
+    description: "Consultez vos réservations",
   },
   events: {
     title: "Événements",
@@ -143,11 +143,9 @@ type NavigationConfig = {
 
 export const navigationConfig: NavigationConfig = {
   mainNav: [
-    navigationItems.welcome,
     navigationItems.dashboard,
     navigationItems.calendar,
     navigationItems.clients,
-    navigationItems.services,
     navigationItems.reservations,
     navigationItems.statistics,
     navigationItems.payments,
@@ -170,7 +168,6 @@ export const navigationConfig: NavigationConfig = {
   bottomNav: [
     navigationItems.addons,
     navigationItems.help,
-    navigationItems.profile,
     navigationItems.settings,
   ],
 };

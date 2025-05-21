@@ -126,16 +126,16 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     <div 
       className="max-w-4xl mx-auto p-4 md:p-8" 
       style={{ 
-        '--primary-color': primaryColor,
-        '--secondary-color': secondaryColor
+        '--primary-color': primaryColor || '#9b87f5',
+        '--secondary-color': secondaryColor || '#7E69AB'
       } as React.CSSProperties}
     >
       {/* En-tête */}
       <BusinessHeader
-        businessName={businessName}
-        welcomeMessage={welcomeMessage}
-        logo={logo}
-        primaryColor={primaryColor}
+        businessName={businessName || ""}
+        welcomeMessage={welcomeMessage || ""}
+        logo={logo || ""}
+        primaryColor={primaryColor || ""}
       />
       
       {/* Contenu de l'étape en cours via le StepRenderer */}
@@ -166,7 +166,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
         confirmationMessage={confirmationMessage || ""}
         handleStartOver={handleStartOver}
         getButtonStyle={getButtonStyle}
-        primaryColor={primaryColor}
+        primaryColor={primaryColor || ""}
       />
       
       {/* Navigation des étapes */}
