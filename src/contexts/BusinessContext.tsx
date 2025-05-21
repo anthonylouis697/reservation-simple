@@ -31,7 +31,19 @@ interface BusinessContextType {
   deleteBusiness: (id: string) => Promise<boolean>;
 }
 
-const BusinessContext = createContext<BusinessContextType | undefined>(undefined);
+// Create a default value for the context
+const defaultContextValue: BusinessContextType = {
+  businesses: [],
+  isLoading: true,
+  currentBusiness: null,
+  setCurrentBusiness: () => {},
+  refreshBusinesses: async () => {},
+  createBusiness: async () => null,
+  updateBusiness: async () => null,
+  deleteBusiness: async () => false
+};
+
+const BusinessContext = createContext<BusinessContextType>(defaultContextValue);
 
 export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, businessId } = useAuth();
