@@ -24,22 +24,22 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
   
   // Récupération des données de style de la page de réservation
   const { 
-    businessName, 
-    welcomeMessage, 
-    primaryColor, 
-    secondaryColor, 
-    buttonCorners, 
-    logo, 
-    bookingButtonText,
-    showConfirmation,
-    confirmationMessage,
-    layoutType,
-    steps,
-    customTexts
+    businessName = "", 
+    welcomeMessage = "", 
+    primaryColor = "#9b87f5", 
+    secondaryColor = "#7E69AB", 
+    buttonCorners = "rounded", 
+    logo = "", 
+    bookingButtonText = "Réserver",
+    showConfirmation = true,
+    confirmationMessage = "Merci pour votre réservation !",
+    layoutType = "stepped",
+    steps = [],
+    customTexts = {}
   } = useBookingPage();
 
   // Récupération des services et catégories depuis la base de données
-  const { services, categories, isLoading: isLoadingData } = usePublicBookingData();
+  const { services = [], categories = [], isLoading: isLoadingData = false } = usePublicBookingData();
   
   // Hook personnalisé pour gérer les étapes de réservation
   const {
@@ -51,28 +51,28 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     setSelectedDate,
     selectedTime,
     setSelectedTime,
-    availableTimes,
-    currentStep,
+    availableTimes = [],
+    currentStep = 0,
     setCurrentStep,
-    clientName,
+    clientName = "",
     setClientName,
-    clientEmail,
+    clientEmail = "",
     setClientEmail,
-    clientPhone,
+    clientPhone = "",
     setClientPhone,
-    clientNotes,
+    clientNotes = "",
     setClientNotes,
-    bookingComplete,
+    bookingComplete = false,
     setBookingComplete,
-    isLoadingTimes,
-    filteredServices,
-    activeCategories,
+    isLoadingTimes = false,
+    filteredServices = [],
+    activeCategories = [],
     handleStartOver
   } = useBookingSteps(services, categories, steps);
 
   // Hook pour gérer la logique de réservation
   const {
-    isBooking,
+    isBooking = false,
     handleBooking
   } = useBookingHandler({
     businessId,
@@ -107,7 +107,10 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
   });
 
   // Hook pour gérer les styles des boutons
-  const { getButtonStyle } = useButtonStyle({ buttonCorners, primaryColor });
+  const { getButtonStyle } = useButtonStyle({ 
+    buttonCorners: buttonCorners || "rounded", 
+    primaryColor: primaryColor || "#9b87f5" 
+  });
 
   // Si les données sont en chargement
   if (isLoadingData) {
@@ -115,12 +118,9 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
   }
 
   // Si aucun service n'est disponible
-  if (services.length === 0) {
+  if (!services || services.length === 0) {
     return <EmptyServicesState />;
   }
-  
-  // S'assurer que customTexts est un objet et non pas null/undefined
-  const safeCustomTexts = customTexts || {};
 
   return (
     <div 
@@ -132,27 +132,27 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     >
       {/* En-tête */}
       <BusinessHeader
-        businessName={businessName || ""}
-        welcomeMessage={welcomeMessage || ""}
-        logo={logo || ""}
-        primaryColor={primaryColor || ""}
+        businessName={businessName}
+        welcomeMessage={welcomeMessage}
+        logo={logo}
+        primaryColor={primaryColor}
       />
       
       {/* Contenu de l'étape en cours via le StepRenderer */}
       <StepRenderer
         currentStep={currentStep}
         bookingComplete={bookingComplete}
-        customTexts={safeCustomTexts}
-        activeCategories={activeCategories}
+        customTexts={customTexts || {}}
+        activeCategories={activeCategories || []}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
-        filteredServices={filteredServices}
+        filteredServices={filteredServices || []}
         selectedService={selectedService}
         setSelectedService={setSelectedService}
         selectedDate={selectedDate}
         setSelectedDate={setSelectedDate}
         isLoadingTimes={isLoadingTimes}
-        availableTimes={availableTimes}
+        availableTimes={availableTimes || []}
         selectedTime={selectedTime}
         setSelectedTime={setSelectedTime}
         clientName={clientName}
@@ -163,10 +163,10 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
         setClientPhone={setClientPhone}
         clientNotes={clientNotes}
         setClientNotes={setClientNotes}
-        confirmationMessage={confirmationMessage || ""}
+        confirmationMessage={confirmationMessage}
         handleStartOver={handleStartOver}
         getButtonStyle={getButtonStyle}
-        primaryColor={primaryColor || ""}
+        primaryColor={primaryColor}
       />
       
       {/* Navigation des étapes */}
@@ -179,7 +179,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
           getButtonStyle={getButtonStyle}
           getCurrentStepIcon={getCurrentStepIcon}
           getStepLabel={getStepLabel}
-          bookingButtonText={bookingButtonText || "Réserver"}
+          bookingButtonText={bookingButtonText}
           activeStepsLength={getActiveStepsLength()}
         />
       )}

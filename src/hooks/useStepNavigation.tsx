@@ -20,10 +20,10 @@ export const useStepNavigation = ({
   selectedTime,
   clientName,
   clientEmail,
-  currentStep,
+  currentStep = 0,
   setCurrentStep,
   handleBooking,
-  steps
+  steps = []
 }: StepNavigationProps) => {
   // Function for passing to the next step
   const handleNextStep = () => {
@@ -49,7 +49,7 @@ export const useStepNavigation = ({
     }
     
     // If we're at the last step, finalize the booking
-    const activeSteps = steps.filter(step => step.enabled);
+    const activeSteps = Array.isArray(steps) ? steps.filter(step => step?.enabled) : [];
     if (currentStep === activeSteps.length - 1) {
       handleBooking();
       return;
@@ -67,17 +67,17 @@ export const useStepNavigation = ({
 
   // Get the label for the current step
   const getStepLabel = (index: number) => {
-    const activeSteps = steps.filter(step => step.enabled);
+    const activeSteps = Array.isArray(steps) ? steps.filter(step => step?.enabled) : [];
     if (index >= 0 && index < activeSteps.length) {
-      return activeSteps[index].customLabel || activeSteps[index].name;
+      return activeSteps[index]?.customLabel || activeSteps[index]?.name || `Étape ${index + 1}`;
     }
-    return "";
+    return `Étape ${index + 1}`;
   };
 
   // Get the icon for the current step
   const getCurrentStepIcon = () => {
-    const activeSteps = steps.filter(step => step.enabled);
-    if (currentStep >= 0 && currentStep < activeSteps.length) {
+    const activeSteps = Array.isArray(steps) ? steps.filter(step => step?.enabled) : [];
+    if (currentStep >= 0 && currentStep < activeSteps.length && activeSteps[currentStep]?.icon) {
       const StepIcon = activeSteps[currentStep].icon;
       return <StepIcon className="h-6 w-6" />;
     }
@@ -86,7 +86,7 @@ export const useStepNavigation = ({
 
   // Get the count of active steps
   const getActiveStepsLength = () => {
-    return steps.filter(step => step.enabled).length;
+    return Array.isArray(steps) ? steps.filter(step => step?.enabled).length : 4; // Default to 4 steps
   };
 
   return {

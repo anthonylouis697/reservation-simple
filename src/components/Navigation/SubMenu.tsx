@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { NavItem } from '@/types/navigation';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { NavItem as NavItemComponent } from '@/components/Navigation/NavItem';
+import { Link } from 'react-router-dom';
 
 interface SubMenuProps {
   title: string;
@@ -13,6 +14,7 @@ interface SubMenuProps {
   setIsOpen: (open: boolean) => void;
   mobile?: boolean;
   handleNavigation?: (href: string) => void;
+  href?: string;
 }
 
 export function SubMenu({ 
@@ -21,7 +23,8 @@ export function SubMenu({
   isOpen = false, 
   setIsOpen, 
   mobile = false,
-  handleNavigation
+  handleNavigation,
+  href
 }: SubMenuProps) {
   // S'assurer que items est toujours un tableau
   const safeItems = Array.isArray(items) ? items : [];
@@ -44,7 +47,23 @@ export function SubMenu({
   }
   
   // Si aucun item n'est disponible, ne pas rendre le menu
-  if (safeItems.length === 0) return null;
+  if (safeItems.length === 0 && !href) return null;
+  
+  // If we have an href, make the button navigate there instead of opening a submenu
+  if (href) {
+    return (
+      <Button
+        variant="ghost"
+        className="w-full justify-start text-left"
+        onClick={() => handleNavigation && handleNavigation(href)}
+      >
+        <div className="flex items-center">
+          {safeItems[0]?.icon && <div className="mr-2">{safeItems[0].icon}</div>}
+          <span>{title}</span>
+        </div>
+      </Button>
+    );
+  }
   
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">

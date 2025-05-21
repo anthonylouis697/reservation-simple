@@ -25,14 +25,13 @@ const StepNavigation = ({
   getButtonStyle,
   getCurrentStepIcon,
   getStepLabel,
-  bookingButtonText,
-  activeStepsLength
+  bookingButtonText = "Réserver",
+  activeStepsLength = 4
 }: StepNavigationProps) => {
-  // Utiliser des valeurs par défaut pour éviter les erreurs
+  // Ensure we have valid values for all properties
   const buttonStyle = getButtonStyle ? getButtonStyle() : { className: "", style: { backgroundColor: "", borderColor: "" } };
   const currentStepIcon = getCurrentStepIcon ? getCurrentStepIcon() : null;
   const stepLabel = getStepLabel ? getStepLabel(currentStep) : `Étape ${currentStep + 1}`;
-  const safeActiveStepsLength = activeStepsLength || 4; // Valeur par défaut
   
   return (
     <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
@@ -63,7 +62,7 @@ const StepNavigation = ({
               <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
               Traitement...
             </>
-          ) : currentStep === safeActiveStepsLength - 1 ? (
+          ) : currentStep === activeStepsLength - 1 ? (
             bookingButtonText || "Réserver"
           ) : (
             "Suivant"

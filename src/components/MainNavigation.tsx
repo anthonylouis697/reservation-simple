@@ -8,7 +8,6 @@ import type { NavItem as NavItemType } from "@/types/navigation";
 import { NavItem } from "@/components/Navigation/NavItem";
 import { HomeMenuItem } from '@/components/Navigation/HomeMenuItem';
 import { HelpMenuItem } from '@/components/Navigation/HelpMenuItem';
-import { SubMenu } from '@/components/Navigation/SubMenu';
 import { SignOutButton } from '@/components/Navigation/SignOutButton';
 import { NavigationCategory } from '@/components/Navigation/NavigationCategory';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,37 +20,20 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
   const [firstTimeUser, setFirstTimeUser] = useState(false);
-  const [servicesOpen, setServicesOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
   const location = useLocation();
   
   // Combiner tous les éléments de navigation
   const mainNavItems = [...navigationConfig.mainNav].filter(item => 
     item.title !== "Services" && item.title !== "Profil"
   );
-  const servicesSubNavItems = [...navigationConfig.servicesSubNav];
-  const profileSubNavItems = [...navigationConfig.profileSubNav];
+  const servicesNavItems = [...navigationConfig.servicesSubNav];
+  const profileNavItems = [...navigationConfig.profileSubNav];
   const marketingNavItems = [...navigationConfig.marketingNav];
   const visibilityNavItems = [...navigationConfig.visibilityNav];
   const bottomNavItems = navigationConfig.bottomNav.filter(item => 
     // Ne pas afficher l'item "Aide" et "Profil" ici car ils sont gérés séparément
     item.title !== "Aide" && item.title !== "Profil"
   );
-
-  // Vérifier si les sous-menus doivent être ouverts en fonction de l'URL
-  useEffect(() => {
-    // Ouvrir le sous-menu Services si nous sommes sur une page liée aux services ou aux événements
-    if (location.pathname.includes('/services') || location.pathname.includes('/events')) {
-      setServicesOpen(true);
-    }
-    
-    // Ouvrir le sous-menu Profil si nous sommes sur une page liée au profil, à l'entreprise ou à la disponibilité
-    if (location.pathname.includes('/account/profile') || 
-        location.pathname.includes('/settings/business') || 
-        location.pathname.includes('/settings/availability')) {
-      setProfileOpen(true);
-    }
-  }, [location.pathname]);
 
   // Check if user is new
   useEffect(() => {
@@ -104,15 +86,26 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
           </div>
         ))}
 
-        {/* Sous-menu Services */}
-        <SubMenu 
-          title="Services" 
-          items={servicesSubNavItems} 
-          isOpen={servicesOpen} 
-          setIsOpen={setServicesOpen}
-          mobile={mobile}
-          handleNavigation={handleNavigation}
-        />
+        {/* Services as regular items */}
+        {!mobile && servicesNavItems.length > 0 && (
+          <>
+            <div className="mt-6 mb-2">
+              <h4 className="px-2 text-xs font-semibold text-muted-foreground">
+                SERVICES
+              </h4>
+            </div>
+            {servicesNavItems.map((item) => (
+              <div key={item.title} className="w-full">
+                <NavItem
+                  item={item}
+                  mobile={mobile}
+                  isFirstTimeUser={firstTimeUser}
+                  handleNavigation={handleNavigation}
+                />
+              </div>
+            ))}
+          </>
+        )}
 
         {/* Marketing */}
         {!mobile && (
@@ -136,15 +129,26 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
         {!mobile && bottomNavItems.length > 0 && (
           <div className="mt-auto pt-4">
             <div className="flex flex-col space-y-1">
-              {/* Sous-menu Profil */}
-              <SubMenu 
-                title="Profil" 
-                items={profileSubNavItems} 
-                isOpen={profileOpen} 
-                setIsOpen={setProfileOpen}
-                mobile={mobile}
-                handleNavigation={handleNavigation}
-              />
+              {/* Profile items as regular menu items */}
+              {profileNavItems.length > 0 && (
+                <>
+                  <div className="mt-6 mb-2">
+                    <h4 className="px-2 text-xs font-semibold text-muted-foreground">
+                      PROFIL
+                    </h4>
+                  </div>
+                  {profileNavItems.map((item) => (
+                    <div key={item.title} className="w-full">
+                      <NavItem
+                        item={item}
+                        mobile={mobile}
+                        isFirstTimeUser={firstTimeUser}
+                        handleNavigation={handleNavigation}
+                      />
+                    </div>
+                  ))}
+                </>
+              )}
               
               {bottomNavItems.map((item) => (
                 <NavItem 

@@ -32,10 +32,10 @@ export const DeleteBookingDialog = ({
 }: DeleteBookingDialogProps) => {
   if (!booking) return null;
 
-  // Convertir en objet Date si ce n'est pas déjà le cas
+  // Ensure we have valid data to prevent errors
   const bookingDate = booking.date instanceof Date 
     ? booking.date 
-    : new Date(booking.date);
+    : new Date(booking.date || Date.now());
 
   // Récupérer les données client de manière sécurisée
   const clientName = booking.client && typeof booking.client === 'object' && booking.client.name 
@@ -43,6 +43,7 @@ export const DeleteBookingDialog = ({
     : "Client inconnu";
 
   const serviceName = service?.name || "Service inconnu";
+  const bookingTime = booking.time || "Heure non spécifiée";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -65,7 +66,7 @@ export const DeleteBookingDialog = ({
             <strong>Date :</strong> {format(bookingDate, 'dd/MM/yyyy', { locale: fr })}
           </p>
           <p>
-            <strong>Heure :</strong> {booking.time || "Heure non spécifiée"}
+            <strong>Heure :</strong> {bookingTime}
           </p>
         </div>
         
