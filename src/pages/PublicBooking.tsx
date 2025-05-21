@@ -3,8 +3,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { BookingPageProvider } from '@/components/Visibility/BookingPage/BookingPageContext';
+import { PublicBookingDataProvider } from '@/components/Visibility/BookingPage/PublicBookingData';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Import refactored components
 import LoadingScreen from '@/components/PublicBooking/LoadingScreen';
@@ -66,14 +68,18 @@ const PublicBooking = () => {
   }
 
   return (
-    <BookingPageProvider>
-      <div className="min-h-screen bg-gray-50">
-        <Helmet>
-          <title>Réservation en ligne</title>
-        </Helmet>
-        <BookingContent />
-      </div>
-    </BookingPageProvider>
+    <ErrorBoundary>
+      <BookingPageProvider>
+        <PublicBookingDataProvider>
+          <div className="min-h-screen bg-gray-50">
+            <Helmet>
+              <title>Réservation en ligne</title>
+            </Helmet>
+            <BookingContent businessId={businessId} />
+          </div>
+        </PublicBookingDataProvider>
+      </BookingPageProvider>
+    </ErrorBoundary>
   );
 };
 

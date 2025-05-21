@@ -1,11 +1,16 @@
+
 import React from 'react';
 import { Calendar, UserPlus, Settings, BarChart3, Tag, Trash2 } from "lucide-react";
 import { QuickActionProps } from "./QuickAction";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { initialServices, initialCategories } from "@/mock/serviceData";
 
 export const resetMockData = async (businessId: string) => {
+  if (!businessId) {
+    toast.error("ID d'entreprise non défini");
+    return false;
+  }
+
   try {
     toast.info("Suppression des données en cours...");
     
@@ -19,8 +24,10 @@ export const resetMockData = async (businessId: string) => {
       console.error("Erreur lors de la suppression des réservations:", deleteReservationsError);
       throw deleteReservationsError;
     }
+    
+    toast.success("Réservations supprimées avec succès");
 
-    // Suppression des clients existants
+    // Suppression des clients existants (sauf si utilisés ailleurs)
     const { error: deleteClientsError } = await supabase
       .from('clients')
       .delete()
@@ -30,6 +37,8 @@ export const resetMockData = async (businessId: string) => {
       console.error("Erreur lors de la suppression des clients:", deleteClientsError);
       throw deleteClientsError;
     }
+    
+    toast.success("Clients supprimés avec succès");
     
     // Suppression des services existants
     const { error: deleteServicesError } = await supabase
@@ -42,6 +51,8 @@ export const resetMockData = async (businessId: string) => {
       throw deleteServicesError;
     }
     
+    toast.success("Services supprimés avec succès");
+    
     // Suppression des catégories existantes
     const { error: deleteCategoriesError } = await supabase
       .from('service_categories')
@@ -53,10 +64,12 @@ export const resetMockData = async (businessId: string) => {
       throw deleteCategoriesError;
     }
     
+    toast.success("Catégories supprimées avec succès");
+    
     // Vider le stockage local (réservations de démo)
     localStorage.removeItem('bookings');
     
-    toast.success("Données réinitialisées avec succès");
+    toast.success("Toutes les données ont été réinitialisées avec succès");
     return true;
   } catch (error) {
     console.error("Erreur lors de la réinitialisation des données:", error);

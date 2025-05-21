@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { Service, Category } from '@/types/service';
 import { getPublicServices, getPublicCategories } from '@/services/publicBookingService';
 import { initialServices, initialCategories } from '@/mock/serviceData';
@@ -15,11 +15,23 @@ interface PublicBookingDataContextType {
 }
 
 interface PublicBookingDataProviderProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
+
+// Créer le contexte
+const PublicBookingDataContext = createContext<PublicBookingDataContextType | undefined>(undefined);
 
 // Hook personnalisé pour accéder aux données de réservation publique
 export const usePublicBookingData = () => {
+  const context = useContext(PublicBookingDataContext);
+  if (!context) {
+    throw new Error("usePublicBookingData doit être utilisé à l'intérieur d'un PublicBookingDataProvider");
+  }
+  return context;
+};
+
+// Composant Provider pour le contexte de données de réservation
+export const PublicBookingDataProvider = ({ children }: PublicBookingDataProviderProps) => {
   const [services, setServices] = useState<Service[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,11 +52,19 @@ export const usePublicBookingData = () => {
           .from('businesses')
           .select('id')
           .eq('slug', businessSlug)
-          .single();
+          .maybeSingle();
           
-        if (businessError || !businessData) {
+        if (businessError) {
           console.error("Erreur de recherche d'entreprise:", businessError);
           throw new Error("Impossible de trouver cette entreprise");
+        }
+
+        if (!businessData) {
+          console.error("Aucune entreprise trouvée avec ce slug:", businessSlug);
+          // Utiliser les données fictives si aucune entreprise n'est trouvée
+          setServices(initialServices);
+          setCategories(initialCategories);
+          return;
         }
         
         const businessId = businessData.id;
@@ -90,16 +110,16 @@ export const usePublicBookingData = () => {
     loadData();
   }, [businessSlug]);
   
-  return { services, categories, isLoading, error };
-};
+  const contextValue: PublicBookingDataContextType = {
+    services,
+    categories,
+    isLoading,
+    error
+  };
 
-// Composant Provider pour le contexte de données de réservation
-export const PublicBookingDataProvider = ({ children }: PublicBookingDataProviderProps) => {
-  const data = usePublicBookingData();
-  
   return (
-    <div className="booking-data-context">
+    <PublicBookingDataContext.Provider value={contextValue}>
       {children}
-    </div>
+    </PublicBookingDataContext.Provider>
   );
 };

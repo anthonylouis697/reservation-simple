@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Home, ArrowLeft } from 'lucide-react';
 
 const BusinessNotFound = () => {
   return (
@@ -19,17 +19,22 @@ const BusinessNotFound = () => {
         </p>
         
         <div className="text-sm text-gray-500 mt-8">
-          <p>Possibles raisons:</p>
+          <p>Raisons possibles :</p>
           <ul className="list-disc list-inside mt-2 text-left">
             <li>L'URL est mal orthographiée</li>
             <li>L'entreprise a changé son identifiant</li>
             <li>L'entreprise n'est plus active</li>
+            <li>L'entreprise n'a pas encore configuré sa page de réservation</li>
           </ul>
         </div>
         
-        <div className="mt-8">
-          <Link to="/" className="text-blue-600 hover:text-blue-800 underline">
-            Retour à l'accueil
+        <div className="mt-8 space-y-3">
+          <button onClick={() => window.location.reload()} className="w-full flex items-center justify-center gap-2 text-blue-600 hover:text-blue-800 underline">
+            <ArrowLeft className="h-4 w-4" /> Actualiser la page
+          </button>
+          
+          <Link to="/" className="w-full flex items-center justify-center gap-2 text-blue-600 hover:text-blue-800 underline">
+            <Home className="h-4 w-4" /> Retour à l'accueil
           </Link>
         </div>
       </div>

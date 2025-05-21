@@ -15,7 +15,11 @@ import LoadingScreen from './LoadingScreen';
 import EmptyServicesState from './EmptyServicesState';
 import BusinessHeader from './BusinessHeader';
 
-const BookingContent = () => {
+interface BookingContentProps {
+  businessId: string | null;
+}
+
+const BookingContent = ({ businessId }: BookingContentProps) => {
   const { businessSlug } = useParams();
   
   // Récupération des données de style de la page de réservation
@@ -71,6 +75,7 @@ const BookingContent = () => {
     isBooking,
     handleBooking
   } = useBookingHandler({
+    businessId,
     selectedService,
     selectedDate,
     selectedTime,

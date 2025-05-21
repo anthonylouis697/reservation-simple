@@ -5,6 +5,7 @@ import { createBooking, checkAvailability, BookingData } from '@/services/bookin
 import { Service } from '@/types/service';
 
 interface BookingHandlerProps {
+  businessId: string | null;
   selectedService: Service | null;
   selectedDate: Date | undefined;
   selectedTime: string | null;
@@ -17,6 +18,7 @@ interface BookingHandlerProps {
 }
 
 export const useBookingHandler = ({
+  businessId,
   selectedService,
   selectedDate,
   selectedTime,
@@ -31,7 +33,7 @@ export const useBookingHandler = ({
   
   // Fonction pour soumettre la réservation
   const handleBooking = async () => {
-    if (!selectedService || !selectedDate || !selectedTime || !clientName || !clientEmail) {
+    if (!selectedService || !selectedDate || !selectedTime || !clientName || !clientEmail || !businessId) {
       toast.error("Informations incomplètes. Veuillez remplir tous les champs obligatoires.");
       return;
     }
@@ -52,6 +54,7 @@ export const useBookingHandler = ({
       
       // Préparer les données de réservation
       const bookingData: BookingData = {
+        businessId: businessId,
         serviceId: selectedService.id,
         date: selectedDate,
         time: selectedTime,
