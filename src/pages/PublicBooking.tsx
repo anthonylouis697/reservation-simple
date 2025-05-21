@@ -39,6 +39,7 @@ const BusinessFinder = () => {
         if (!business) {
           console.error("Business not found for slug:", businessSlug);
           setBusinessFound(false);
+          setBusinessId(null);
         } else {
           console.log("Business found:", business);
           setBusinessId(business.id);
@@ -47,6 +48,7 @@ const BusinessFinder = () => {
       } catch (error) {
         console.error("Error checking business:", error);
         setBusinessFound(false);
+        setBusinessId(null);
       } finally {
         // Ajoute un petit délai pour simuler le chargement
         setTimeout(() => {

@@ -1,80 +1,75 @@
 
-import { supabase } from "@/integrations/supabase/client";
-import { Service, Category } from "@/types/service";
+import { supabase } from '@/integrations/supabase/client';
+import { Service, Category } from '@/types/service';
 
 /**
- * Récupère les services depuis la base de données pour l'affichage sur la page de réservation publique
+ * Récupère les services publics pour une entreprise spécifique
+ * @param businessId L'ID de l'entreprise
+ * @returns Liste des services actifs pour cette entreprise
  */
-export const getPublicServices = async (businessId: string): Promise<Service[]> => {
+export const getPublicServices = async (businessId: string): Promise<Service[] | null> => {
   try {
-    // Récupérer les services depuis Supabase
-    const { data: servicesData, error: servicesError } = await supabase
+    const { data, error } = await supabase
       .from('services')
-      .select(`
-        *,
-        service_categories(*)
-      `)
+      .select('*')
       .eq('business_id', businessId)
+      .eq('is_active', true)
       .order('position');
       
-    if (servicesError) throw servicesError;
+    if (error) {
+      console.error('Erreur lors de la récupération des services:', error);
+      return null;
+    }
     
-    if (!servicesData) return [];
-    
-    // Transformer les données pour correspondre au format Service[]
-    const services: Service[] = servicesData.map(service => ({
+    return data.map(service => ({
       id: service.id,
       name: service.name,
       description: service.description || '',
       duration: service.duration,
-      price: service.price,
-      location: 'Cabinet principal', // Valeur par défaut
-      capacity: 1, // Valeur par défaut
-      category: service.service_categories ? service.service_categories.name : 'Non catégorisé',
+      price: Number(service.price),
+      location: '',
+      capacity: 1,
+      category: '',
       categoryId: service.category_id || undefined,
-      bufferTimeBefore: 5, // Valeur par défaut
-      bufferTimeAfter: 5, // Valeur par défaut
-      assignedEmployees: [], // Valeur par défaut
-      isRecurring: false, // Valeur par défaut
+      bufferTimeBefore: 0,
+      bufferTimeAfter: 0,
+      assignedEmployees: [],
+      isRecurring: false,
       isActive: service.is_active
     }));
-    
-    return services;
   } catch (error) {
-    console.error("Erreur lors de la récupération des services:", error);
-    return [];
+    console.error('Erreur lors de la récupération des services:', error);
+    return null;
   }
 };
 
 /**
- * Récupère les catégories depuis la base de données pour l'affichage sur la page de réservation publique
+ * Récupère les catégories de services pour une entreprise spécifique
+ * @param businessId L'ID de l'entreprise
+ * @returns Liste des catégories de services pour cette entreprise
  */
-export const getPublicCategories = async (businessId: string): Promise<Category[]> => {
+export const getPublicCategories = async (businessId: string): Promise<Category[] | null> => {
   try {
-    // Récupérer les catégories depuis Supabase
-    const { data: categoriesData, error: categoriesError } = await supabase
+    const { data, error } = await supabase
       .from('service_categories')
       .select('*')
       .eq('business_id', businessId)
       .order('position');
       
-    if (categoriesError) throw categoriesError;
+    if (error) {
+      console.error('Erreur lors de la récupération des catégories:', error);
+      return null;
+    }
     
-    if (!categoriesData) return [];
-    
-    // Transformer les données pour correspondre au format Category[]
-    const categories: Category[] = categoriesData.map(category => ({
+    return data.map(category => ({
       id: category.id,
       name: category.name,
       description: category.description || undefined,
-      isActive: true, // Par défaut les catégories sont actives
-      order: category.position,
-      color: '#' + Math.floor(Math.random()*16777215).toString(16) // Couleur aléatoire
+      isActive: true,
+      order: category.position
     }));
-    
-    return categories;
   } catch (error) {
-    console.error("Erreur lors de la récupération des catégories:", error);
-    return [];
+    console.error('Erreur lors de la récupération des catégories:', error);
+    return null;
   }
 };

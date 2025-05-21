@@ -21,7 +21,7 @@ import { AlertCircle } from 'lucide-react';
 
 const Dashboard = () => {
   const { user, isLoading: authLoading } = useAuth();
-  const { currentBusiness, isLoading: businessLoading } = useBusiness();
+  const { currentBusiness, isLoading: businessLoading, refreshBusinesses } = useBusiness();
   const [isReady, setIsReady] = useState(false);
   
   // Vérifier que l'utilisateur et l'entreprise sont bien chargés
@@ -50,7 +50,7 @@ const Dashboard = () => {
             Il semble que vous n'ayez pas encore d'entreprise configurée. 
             Veuillez contacter l'administrateur ou rafraîchir la page.
           </p>
-          <Button onClick={() => window.location.reload()}>
+          <Button onClick={() => refreshBusinesses()}>
             Rafraîchir la page
           </Button>
         </div>

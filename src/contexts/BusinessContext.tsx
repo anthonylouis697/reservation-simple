@@ -187,12 +187,16 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return false;
   };
 
-  // Nouvelle fonction pour trouver une entreprise par son slug
+  // Fonction améliorée pour trouver une entreprise par son slug
   const findBusinessBySlug = async (slug: string): Promise<Business | null> => {
     try {
-      console.log("Searching for business with slug:", slug);
-      if (!slug) return null;
+      if (!slug) {
+        console.error("Slug cannot be empty");
+        return null;
+      }
 
+      console.log("Searching for business with slug:", slug);
+      
       const { data, error } = await supabase
         .from('businesses')
         .select('*')
@@ -212,7 +216,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       console.log("Found business by slug:", data.name);
       return data as Business;
     } catch (error) {
-      console.error("Error searching business by slug:", error);
+      console.error("Error in findBusinessBySlug:", error);
       return null;
     }
   };
