@@ -34,7 +34,7 @@ interface BusinessContextType {
 const BusinessContext = createContext<BusinessContextType | undefined>(undefined);
 
 export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, businessId } = useAuth();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [currentBusiness, setCurrentBusiness] = useState<Business | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,80 +49,46 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('businesses')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // In our simplified model, we only fetch the single business for this user
+      if (businessId) {
+        const { data, error } = await supabase
+          .from('businesses')
+          .select('*')
+          .eq('id', businessId)
+          .single();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      const businessList = data as Business[];
-      setBusinesses(businessList);
-      
-      // Si on n'a pas encore de business courante, on prend la première
-      if (!currentBusiness && businessList.length > 0) {
-        setCurrentBusiness(businessList[0]);
-      }
-      // Si la business courante n'est plus dans la liste, on remet à null
-      else if (currentBusiness && !businessList.some(b => b.id === currentBusiness.id)) {
-        setCurrentBusiness(businessList.length > 0 ? businessList[0] : null);
+        if (data) {
+          setBusinesses([data]);
+          setCurrentBusiness(data);
+        } else {
+          setBusinesses([]);
+          setCurrentBusiness(null);
+        }
+      } else {
+        setBusinesses([]);
+        setCurrentBusiness(null);
       }
     } catch (error: any) {
-      console.error('Erreur lors du chargement des entreprises:', error);
-      toast.error('Impossible de charger vos entreprises');
+      console.error('Erreur lors du chargement de l\'entreprise:', error);
+      toast.error('Impossible de charger votre entreprise');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Charger les entreprises au démarrage et quand l'utilisateur change
+  // Charger l'entreprise au démarrage et quand l'utilisateur ou le businessId change
   useEffect(() => {
     refreshBusinesses();
-  }, [user]);
+  }, [user, businessId]);
 
   const createBusiness = async (
     businessData: Omit<Business, 'id' | 'created_at' | 'updated_at'>
   ): Promise<Business | null> => {
-    if (!user) {
-      toast.error('Vous devez être connecté pour créer une entreprise');
-      return null;
-    }
-
-    try {
-      const newBusiness = {
-        ...businessData,
-        owner_id: user.id,
-      };
-
-      const { data, error } = await supabase
-        .from('businesses')
-        .insert(newBusiness)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      const createdBusiness = data as Business;
-      
-      // Mettre à jour la liste des entreprises
-      await refreshBusinesses();
-      
-      // Définir la nouvelle entreprise comme courante
-      setCurrentBusiness(createdBusiness);
-
-      toast.success('Entreprise créée avec succès !');
-      return createdBusiness;
-    } catch (error: any) {
-      console.error('Erreur lors de la création de l\'entreprise:', error);
-      
-      if (error.code === '23505') {
-        toast.error('Cette URL personnalisée est déjà utilisée. Veuillez en choisir une autre.');
-      } else {
-        toast.error("Une erreur est survenue lors de la création de l'entreprise");
-      }
-      
-      return null;
-    }
+    // In our simplified model, we don't allow creating multiple businesses
+    toast.error('Dans cette version, chaque utilisateur ne peut avoir qu\'une seule entreprise.');
+    return null;
   };
 
   const updateBusiness = async (
@@ -146,13 +112,9 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       const updatedBusiness = data as Business;
       
-      // Mettre à jour la liste des entreprises
-      await refreshBusinesses();
-      
-      // Mettre à jour l'entreprise courante si c'est celle qui est modifiée
-      if (currentBusiness && currentBusiness.id === id) {
-        setCurrentBusiness(updatedBusiness);
-      }
+      // Mettre à jour l'entreprise dans le contexte
+      setBusinesses([updatedBusiness]);
+      setCurrentBusiness(updatedBusiness);
 
       toast.success('Entreprise mise à jour avec succès !');
       return updatedBusiness;
@@ -170,29 +132,9 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   const deleteBusiness = async (id: string): Promise<boolean> => {
-    if (!user) {
-      toast.error('Vous devez être connecté pour supprimer une entreprise');
-      return false;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('businesses')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      // Mettre à jour la liste des entreprises
-      await refreshBusinesses();
-      
-      toast.success('Entreprise supprimée avec succès !');
-      return true;
-    } catch (error: any) {
-      console.error('Erreur lors de la suppression de l\'entreprise:', error);
-      toast.error("Une erreur est survenue lors de la suppression de l'entreprise");
-      return false;
-    }
+    // In our simplified model, we don't allow deleting the only business
+    toast.error('Dans cette version, vous ne pouvez pas supprimer votre entreprise.');
+    return false;
   };
 
   const value = {

@@ -1,11 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { BookingPageProvider } from '@/components/Visibility/BookingPage/BookingPageContext';
 import { PublicBookingDataProvider } from '@/components/Visibility/BookingPage/PublicBookingData';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Import refactored components
@@ -18,7 +17,6 @@ const PublicBooking = () => {
   const { businessSlug } = useParams<{ businessSlug: string }>();
   const [businessFound, setBusinessFound] = useState(false);
   const [businessId, setBusinessId] = useState<string | null>(null);
-  const navigate = useNavigate();
   
   useEffect(() => {
     const checkBusiness = async () => {
