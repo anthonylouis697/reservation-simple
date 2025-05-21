@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -74,7 +73,7 @@ const TimeSelection = ({
     }
   }, [selectedDate, selectedService, businessId, availableTimes]);
 
-  // Générer des créneaux horaires plus réalistes en fonction du jour
+  // Generate time slots based on the day
   const generateTimeSlotsForDate = (date: Date | undefined) => {
     if (!date) return [];
     
@@ -103,7 +102,7 @@ const TimeSelection = ({
     return baseSlots;
   };
 
-  // Organiser les créneaux horaires par période de la journée
+  // Organize time slots by time of day
   const organizeTimeSlots = (slots: string[]) => {
     const morning: string[] = [];
     const afternoon: string[] = [];

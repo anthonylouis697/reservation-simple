@@ -42,7 +42,7 @@ export const useBookingHandler = ({
     
     try {
       // Vérifier à nouveau la disponibilité avant de finaliser
-      const isAvailable = await checkAvailability(selectedDate, selectedTime, selectedService.duration);
+      const isAvailable = await checkAvailability(businessId, selectedDate, selectedTime, selectedService.duration);
       
       if (!isAvailable) {
         toast.error("Ce créneau n'est plus disponible. Veuillez en choisir un autre.");

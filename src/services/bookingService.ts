@@ -6,6 +6,7 @@ export {
   updateBookingStatus, 
   deleteBooking,
   checkAvailability,
+  getAvailableTimeSlots,
   combineDateTime,
   type ClientInfo,
   type BookingData,
