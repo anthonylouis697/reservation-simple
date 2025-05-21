@@ -9,7 +9,7 @@ import BookingConfirmation from './BookingConfirmation';
 interface StepRendererProps {
   currentStep: number;
   bookingComplete: boolean;
-  customTexts: any;
+  customTexts: Record<string, string>;
   activeCategories: any[];
   selectedCategory: string | null;
   setSelectedCategory: (categoryId: string | null) => void;

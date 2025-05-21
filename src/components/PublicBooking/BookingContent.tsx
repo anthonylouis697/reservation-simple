@@ -118,6 +118,9 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
   if (services.length === 0) {
     return <EmptyServicesState />;
   }
+  
+  // S'assurer que customTexts est un objet et non pas null/undefined
+  const safeCustomTexts = customTexts || {};
 
   return (
     <div 
@@ -139,7 +142,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
       <StepRenderer
         currentStep={currentStep}
         bookingComplete={bookingComplete}
-        customTexts={customTexts}
+        customTexts={safeCustomTexts}
         activeCategories={activeCategories}
         selectedCategory={selectedCategory}
         setSelectedCategory={setSelectedCategory}
@@ -160,7 +163,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
         setClientPhone={setClientPhone}
         clientNotes={clientNotes}
         setClientNotes={setClientNotes}
-        confirmationMessage={confirmationMessage}
+        confirmationMessage={confirmationMessage || ""}
         handleStartOver={handleStartOver}
         getButtonStyle={getButtonStyle}
         primaryColor={primaryColor}
@@ -176,7 +179,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
           getButtonStyle={getButtonStyle}
           getCurrentStepIcon={getCurrentStepIcon}
           getStepLabel={getStepLabel}
-          bookingButtonText={bookingButtonText}
+          bookingButtonText={bookingButtonText || "Réserver"}
           activeStepsLength={getActiveStepsLength()}
         />
       )}

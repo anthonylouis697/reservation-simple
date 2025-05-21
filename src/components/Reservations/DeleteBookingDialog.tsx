@@ -37,8 +37,8 @@ export const DeleteBookingDialog = ({
     ? booking.date 
     : new Date(booking.date);
 
-  // Ensure client object exists
-  const clientName = booking.client && booking.client.name 
+  // Ensure client object exists and has name property
+  const clientName = booking.client && typeof booking.client === 'object' && booking.client.name 
     ? booking.client.name 
     : "Client inconnu";
 

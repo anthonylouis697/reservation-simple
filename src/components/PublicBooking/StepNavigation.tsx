@@ -51,8 +51,8 @@ const StepNavigation = ({
         <Button 
           onClick={handleNextStep}
           disabled={isBooking}
-          className={buttonStyle.className}
-          style={buttonStyle.style}
+          className={buttonStyle.className || ""}
+          style={buttonStyle.style || {}}
         >
           {isBooking ? (
             <>
@@ -60,7 +60,7 @@ const StepNavigation = ({
               Traitement...
             </>
           ) : currentStep === activeStepsLength - 1 ? (
-            bookingButtonText
+            bookingButtonText || "Réserver"
           ) : (
             "Suivant"
           )}

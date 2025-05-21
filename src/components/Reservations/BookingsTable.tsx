@@ -55,22 +55,37 @@ export const BookingsTable = ({
         </TableHeader>
         <TableBody>
           {bookings.map((booking) => {
+            // Ensure booking is valid and has required fields
+            if (!booking || !booking.id || !booking.serviceId) {
+              return null;
+            }
+
             const service = getServiceById(booking.serviceId);
+            
             // Ensure booking.date is properly converted to a Date object
             const bookingDate = booking.date instanceof Date 
               ? booking.date 
               : new Date(booking.date);
+            
+            // Ensure client object is properly handled
+            const clientName = booking.client && typeof booking.client === 'object' && booking.client.name 
+              ? booking.client.name 
+              : "Client inconnu";
+            
+            const clientEmail = booking.client && typeof booking.client === 'object' && booking.client.email 
+              ? booking.client.email 
+              : "";
             
             return (
               <TableRow key={booking.id}>
                 <TableCell>
                   {format(bookingDate, 'dd/MM/yyyy', { locale: fr })}
                 </TableCell>
-                <TableCell>{booking.time}</TableCell>
+                <TableCell>{booking.time || "-"}</TableCell>
                 <TableCell>
                   <div>
-                    <p className="font-medium">{booking.client.name}</p>
-                    <p className="text-sm text-muted-foreground">{booking.client.email}</p>
+                    <p className="font-medium">{clientName}</p>
+                    <p className="text-sm text-muted-foreground">{clientEmail}</p>
                   </div>
                 </TableCell>
                 <TableCell>{service?.name || "Service inconnu"}</TableCell>
