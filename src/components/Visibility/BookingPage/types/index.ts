@@ -1,4 +1,3 @@
-
 import { LucideIcon } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
 
@@ -82,36 +81,36 @@ export interface BookingPageSettings {
 
 // Context type
 export interface BookingPageContextType {
-  templates: BookingTemplate[];
-  selectedTemplate: string;
-  setSelectedTemplate: (template: string) => void;
+  businessName: string;
+  welcomeMessage: string;
   primaryColor: string;
-  setPrimaryColor: (color: string) => void;
   secondaryColor: string;
-  setSecondaryColor: (color: string) => void;
-  buttonCorners: "rounded" | "squared" | "pill";
-  setButtonCorners: (corners: "rounded" | "squared" | "pill") => void;
+  buttonCorners: 'rounded' | 'squared' | 'pill';
+  logo: string | null;
+  bookingButtonText: string;
+  showConfirmation: boolean;
+  confirmationMessage: string;
+  layoutType: BookingLayoutType;
   steps: BookingStep[];
+  customTexts: BookingCustomTexts;
+  selectedTemplate: string;
+  templates: Record<string, any>;
+  setSelectedTemplate: (template: string) => void;
+  setPrimaryColor: (color: string) => void;
+  setSecondaryColor: (color: string) => void;
+  setButtonCorners: (corners: 'rounded' | 'squared' | 'pill') => void;
   setSteps: (steps: BookingStep[]) => void;
   handleStepChange: (id: string, enabled: boolean) => void;
   updateStepLabel: (id: string, label: string) => void;
-  businessName: string;
   setBusinessName: (name: string) => void;
-  welcomeMessage: string;
   setWelcomeMessage: (message: string) => void;
-  logo: string | null;
   setLogo: (logo: string | null) => void;
   customUrl: string;
   setCustomUrl: (url: string) => void;
-  bookingButtonText: string;
   setBookingButtonText: (text: string) => void;
-  showConfirmation: boolean;
   setShowConfirmation: (show: boolean) => void;
-  confirmationMessage: string;
   setConfirmationMessage: (message: string) => void;
-  layoutType: BookingLayoutType;
   setLayoutType: (type: BookingLayoutType) => void;
-  customTexts: BookingCustomTexts;
   updateCustomText: (key: keyof BookingCustomTexts, value: string) => void;
   saveBookingPageSettings: () => Promise<void>;
 }

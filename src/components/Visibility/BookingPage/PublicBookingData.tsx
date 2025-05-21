@@ -7,7 +7,7 @@ import { useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface PublicBookingDataContextType {
+export interface PublicBookingDataContextType {
   services: Service[];
   categories: Category[];
   isLoading: boolean;
@@ -18,7 +18,7 @@ interface PublicBookingDataProviderProps {
   children: ReactNode;
 }
 
-// Create context
+// Create context with default values
 const PublicBookingDataContext = createContext<PublicBookingDataContextType>({
   services: [],
   categories: [],
@@ -27,7 +27,7 @@ const PublicBookingDataContext = createContext<PublicBookingDataContextType>({
 });
 
 // Custom hook to access public booking data
-export const usePublicBookingData = () => {
+export const usePublicBookingData = (): PublicBookingDataContextType => {
   const context = useContext(PublicBookingDataContext);
   return context;
 };

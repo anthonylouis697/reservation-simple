@@ -7,6 +7,7 @@ import { usePublicBookingData } from '@/components/Visibility/BookingPage/Public
 import { useBookingHandler } from '@/hooks/useBookingHandler';
 import { useStepNavigation } from '@/hooks/useStepNavigation';
 import { useButtonStyle } from '@/hooks/useButtonStyle';
+import { BookingPageContextType } from '@/components/Visibility/BookingPage/types';
 
 // Import components
 import StepNavigation from './StepNavigation';
@@ -22,25 +23,68 @@ interface BookingContentProps {
 const BookingContent = ({ businessId = null }: BookingContentProps) => {
   const { businessSlug } = useParams<{ businessSlug?: string }>();
   
-  // Get booking page style data with default values
-  const bookingPageData = useBookingPage() || {};
+  // Get booking page style data with explicit type and default values
+  const bookingPageData: BookingPageContextType = useBookingPage() || {
+    businessName: "",
+    welcomeMessage: "",
+    primaryColor: "#9b87f5",
+    secondaryColor: "#7E69AB",
+    buttonCorners: "rounded" as const,
+    logo: "",
+    bookingButtonText: "Réserver",
+    showConfirmation: true,
+    confirmationMessage: "Merci pour votre réservation !",
+    layoutType: "stepped" as const,
+    steps: [],
+    customTexts: {},
+    // Including other required properties with default values
+    selectedTemplate: "standard",
+    templates: {},
+    setSelectedTemplate: () => {},
+    setPrimaryColor: () => {},
+    setSecondaryColor: () => {},
+    setButtonCorners: () => {},
+    setSteps: () => {},
+    handleStepChange: () => {},
+    updateStepLabel: () => {},
+    setBusinessName: () => {},
+    setWelcomeMessage: () => {},
+    setLogo: () => {},
+    customUrl: "",
+    setCustomUrl: () => {},
+    setBookingButtonText: () => {},
+    setShowConfirmation: () => {},
+    setConfirmationMessage: () => {},
+    setLayoutType: () => {},
+    updateCustomText: () => {},
+    saveBookingPageSettings: async () => {}
+  };
+  
+  // Destructure with default values to prevent undefined errors
   const { 
     businessName = "", 
     welcomeMessage = "", 
     primaryColor = "#9b87f5", 
     secondaryColor = "#7E69AB", 
-    buttonCorners = "rounded", 
+    buttonCorners = "rounded" as const, 
     logo = "", 
     bookingButtonText = "Réserver",
     showConfirmation = true,
     confirmationMessage = "Merci pour votre réservation !",
-    layoutType = "stepped",
+    layoutType = "stepped" as const,
     steps = [],
     customTexts = {}
   } = bookingPageData;
 
-  // Get services and categories
-  const publicBookingData = usePublicBookingData() || {};
+  // Get services and categories with explicit type
+  const publicBookingData = usePublicBookingData() || {
+    services: [],
+    categories: [],
+    isLoading: false,
+    error: null
+  };
+  
+  // Destructure with default values
   const { 
     services = [], 
     categories = [], 
@@ -99,7 +143,7 @@ const BookingContent = ({ businessId = null }: BookingContentProps) => {
   const {
     isBooking = false,
     handleBooking = () => {}
-  } = bookingHandler;
+  } = bookingHandler || {};
 
   // Hook for step navigation
   const stepNavigation = useStepNavigation({
@@ -120,7 +164,7 @@ const BookingContent = ({ businessId = null }: BookingContentProps) => {
     getStepLabel = () => "",
     getCurrentStepIcon = () => null,
     getActiveStepsLength = () => 4
-  } = stepNavigation;
+  } = stepNavigation || {};
 
   // Hook for button styling
   const buttonStyleHook = useButtonStyle({ 
