@@ -6,7 +6,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { NavItem } from "./Navigation/NavItem";
 import { HomeMenuItem } from "./Navigation/HomeMenuItem";
 import { SignOutButton } from '@/components/Navigation/SignOutButton';
-import { User, Clock, Calendar, Users, Palette, BookOpen, Settings, CalendarDays, CalendarClock } from 'lucide-react';
+import { User, Clock, Calendar, Users, Palette, BookOpen, CalendarDays, CalendarClock } from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
 
 export function DesktopSidebar() {
@@ -73,13 +73,6 @@ export function DesktopSidebar() {
       description: "Gérer vos disponibilités"
     }
   ];
-  
-  const settingsNavItems = [{
-    title: "Paramètres",
-    href: "/settings",
-    icon: <Settings className="h-4 w-4" />,
-    description: "Paramètres de votre compte"
-  }];
 
   // Function to handle navigation
   const handleNavigation = (href: string) => {
@@ -163,14 +156,6 @@ export function DesktopSidebar() {
           </div>
           <div className="flex flex-col space-y-1">
             {profileNavItems.map((item, index) => (
-              <NavItem 
-                key={index} 
-                item={item}
-                handleNavigation={handleNavigation}
-                disabled={isItemDisabled(item)}
-              />
-            ))}
-            {settingsNavItems.map((item, index) => (
               <NavItem 
                 key={index} 
                 item={item}

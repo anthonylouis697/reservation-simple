@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Service } from '@/types/service';
 import { BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
 import { defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
 import { Clock } from 'lucide-react';
+import { getAvailableTimeSlots } from '@/services/booking/availabilityService';
 
 interface TimeSelectionProps {
   customTexts: BookingCustomTexts;
@@ -16,6 +17,7 @@ interface TimeSelectionProps {
   selectedService: Service | null;
   selectedDate: Date | undefined;
   getButtonStyle: () => { className: string; style: { backgroundColor: string; borderColor: string } };
+  businessId?: string;
 }
 
 const TimeSelection = ({
@@ -26,12 +28,52 @@ const TimeSelection = ({
   setSelectedTime,
   selectedService,
   selectedDate,
-  getButtonStyle
+  getButtonStyle,
+  businessId
 }: TimeSelectionProps) => {
+  const [timeSlots, setTimeSlots] = useState<string[]>(availableTimes);
+  const [loading, setLoading] = useState(isLoadingTimes);
+
   // Ensure customTexts has safe defaults
   const safeCustomTexts = customTexts || defaultCustomTexts;
   const selectTimeLabel = safeCustomTexts.selectTimeLabel || "Sélectionnez un horaire";
-  
+
+  // Load time slots from API when selectedDate or selectedService changes
+  useEffect(() => {
+    const fetchTimeSlots = async () => {
+      if (!selectedDate || !selectedService || !businessId) {
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const availableSlots = await getAvailableTimeSlots(
+          businessId,
+          selectedDate,
+          selectedService.duration
+        );
+        setTimeSlots(availableSlots);
+      } catch (error) {
+        console.error("Error fetching time slots:", error);
+        setTimeSlots([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Use provided availableTimes if present, otherwise fetch from API
+    if (availableTimes && availableTimes.length > 0) {
+      setTimeSlots(availableTimes);
+      setLoading(false);
+    } else if (businessId) {
+      fetchTimeSlots();
+    } else {
+      // Fallback to generate mock times for demo purposes
+      setTimeSlots(generateTimeSlotsForDate(selectedDate));
+      setLoading(false);
+    }
+  }, [selectedDate, selectedService, businessId, availableTimes]);
+
   // Générer des créneaux horaires plus réalistes en fonction du jour
   const generateTimeSlotsForDate = (date: Date | undefined) => {
     if (!date) return [];
@@ -60,11 +102,6 @@ const TimeSelection = ({
     
     return baseSlots;
   };
-  
-  // Use the provided availableTimes or generate mock times
-  const displayTimes = availableTimes && availableTimes.length > 0 
-    ? availableTimes 
-    : generateTimeSlotsForDate(selectedDate);
 
   // Organiser les créneaux horaires par période de la journée
   const organizeTimeSlots = (slots: string[]) => {
@@ -86,7 +123,7 @@ const TimeSelection = ({
     return { morning, afternoon, evening };
   };
   
-  const { morning, afternoon, evening } = organizeTimeSlots(displayTimes);
+  const { morning, afternoon, evening } = organizeTimeSlots(timeSlots);
 
   return (
     <div className="space-y-6">
@@ -111,7 +148,7 @@ const TimeSelection = ({
         )}
       </div>
       
-      {isLoadingTimes ? (
+      {loading ? (
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-800"></div>
         </div>
@@ -209,7 +246,7 @@ const TimeSelection = ({
         </div>
       )}
       
-      {!isLoadingTimes && displayTimes.length === 0 && (
+      {!loading && timeSlots.length === 0 && (
         <div className="text-center py-8">
           <p className="text-gray-500">Aucun horaire disponible pour cette date</p>
           <p className="text-sm text-gray-500 mt-2">Veuillez sélectionner une autre date</p>

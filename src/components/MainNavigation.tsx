@@ -10,7 +10,7 @@ import { HomeMenuItem } from '@/components/Navigation/HomeMenuItem';
 import { SignOutButton } from '@/components/Navigation/SignOutButton';
 import { NavigationCategory } from '@/components/Navigation/NavigationCategory';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, Clock, Calendar, Users, Palette, BookOpen, Settings, CalendarDays, CalendarClock } from 'lucide-react';
+import { User, Clock, Calendar, Users, Palette, BookOpen, CalendarDays, CalendarClock } from 'lucide-react';
 
 // Re-export components for backward compatibility
 export { HomeMenuItem as HomeNavItem } from '@/components/Navigation/HomeMenuItem';
@@ -79,13 +79,6 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
       description: "Gérer vos disponibilités"
     }
   ];
-  
-  const settingsNavItems = [{
-    title: "Paramètres",
-    href: "/settings",
-    icon: <Settings className="h-4 w-4" />,
-    description: "Paramètres de votre compte"
-  }];
 
   // Check if user is new
   useEffect(() => {
@@ -170,7 +163,7 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
         {!mobile && (
           <div className="mt-auto pt-4">
             <div className="flex flex-col space-y-1">
-              {/* Profil et Paramètres */}
+              {/* Profil et Disponibilité */}
               <>
                 <div className="mt-6 mb-2">
                   <h4 className="px-2 text-xs font-semibold text-muted-foreground">
@@ -178,16 +171,6 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
                   </h4>
                 </div>
                 {profileNavItems.map((item) => (
-                  <div key={item.title} className="w-full">
-                    <NavItem
-                      item={item}
-                      mobile={mobile}
-                      isFirstTimeUser={firstTimeUser}
-                      handleNavigation={handleNavigation}
-                    />
-                  </div>
-                ))}
-                {settingsNavItems.map((item) => (
                   <div key={item.title} className="w-full">
                     <NavItem
                       item={item}
