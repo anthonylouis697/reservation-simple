@@ -7,13 +7,9 @@ import { useBookingPage } from '@/components/Visibility/BookingPage/BookingPageC
 import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
 import { createBooking, checkAvailability, BookingData } from '@/services/bookingService';
 
-// Import steps components
-import BookingConfirmation from './BookingConfirmation';
-import ServiceSelection from './ServiceSelection';
-import DateSelection from './DateSelection';
-import TimeSelection from './TimeSelection';
-import ClientInfoForm from './ClientInfoForm';
+// Import components
 import StepNavigation from './StepNavigation';
+import StepRenderer from './StepRenderer';
 
 const BookingContent = () => {
   const { businessSlug } = useParams();
@@ -221,83 +217,6 @@ const BookingContent = () => {
     );
   }
 
-  // Affichage du contenu en fonction de l'étape du processus
-  const renderStepContent = () => {
-    const activeSteps = steps.filter(step => step.enabled);
-    
-    if (bookingComplete) {
-      return (
-        <BookingConfirmation 
-          confirmationMessage={confirmationMessage}
-          handleStartOver={handleStartOver}
-          getButtonStyle={getButtonStyle}
-        />
-      );
-    }
-
-    switch (currentStep) {
-      case 0: // Sélection du service
-        return (
-          <ServiceSelection
-            customTexts={customTexts}
-            activeCategories={activeCategories}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            filteredServices={filteredServices}
-            selectedService={selectedService}
-            setSelectedService={setSelectedService}
-            getButtonStyle={getButtonStyle}
-            primaryColor={primaryColor}
-          />
-        );
-
-      case 1: // Sélection de la date
-        return (
-          <DateSelection
-            customTexts={customTexts}
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            selectedService={selectedService}
-          />
-        );
-
-      case 2: // Sélection de l'horaire
-        return (
-          <TimeSelection
-            customTexts={customTexts}
-            isLoadingTimes={isLoadingTimes}
-            availableTimes={availableTimes}
-            selectedTime={selectedTime}
-            setSelectedTime={setSelectedTime}
-            selectedService={selectedService}
-            selectedDate={selectedDate}
-            getButtonStyle={getButtonStyle}
-          />
-        );
-
-      case 3: // Informations du client
-        return (
-          <ClientInfoForm
-            customTexts={customTexts}
-            clientName={clientName}
-            setClientName={setClientName}
-            clientEmail={clientEmail}
-            setClientEmail={setClientEmail}
-            clientPhone={clientPhone}
-            setClientPhone={setClientPhone}
-            clientNotes={clientNotes}
-            setClientNotes={setClientNotes}
-            selectedService={selectedService}
-            selectedDate={selectedDate}
-            selectedTime={selectedTime}
-          />
-        );
-
-      default:
-        return null;
-    }
-  };
-
   return (
     <div 
       className="max-w-4xl mx-auto p-4 md:p-8" 
@@ -317,8 +236,36 @@ const BookingContent = () => {
         {welcomeMessage && <p className="mt-2 text-gray-600">{welcomeMessage}</p>}
       </div>
       
-      {/* Contenu de l'étape en cours */}
-      {renderStepContent()}
+      {/* Contenu de l'étape en cours via le StepRenderer */}
+      <StepRenderer
+        currentStep={currentStep}
+        bookingComplete={bookingComplete}
+        customTexts={customTexts}
+        activeCategories={activeCategories}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        filteredServices={filteredServices}
+        selectedService={selectedService}
+        setSelectedService={setSelectedService}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        isLoadingTimes={isLoadingTimes}
+        availableTimes={availableTimes}
+        selectedTime={selectedTime}
+        setSelectedTime={setSelectedTime}
+        clientName={clientName}
+        setClientName={setClientName}
+        clientEmail={clientEmail}
+        setClientEmail={setClientEmail}
+        clientPhone={clientPhone}
+        setClientPhone={setClientPhone}
+        clientNotes={clientNotes}
+        setClientNotes={setClientNotes}
+        confirmationMessage={confirmationMessage}
+        handleStartOver={handleStartOver}
+        getButtonStyle={getButtonStyle}
+        primaryColor={primaryColor}
+      />
       
       {/* Navigation des étapes */}
       {!bookingComplete && (
