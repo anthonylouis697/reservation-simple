@@ -26,7 +26,7 @@ export const StepPreview: FC<StepPreviewProps> = ({ step, isActive = false }) =>
     case 'service':
       return (
         <div className="space-y-2">
-          <Label className="text-xs">{step.customLabel || customTexts.selectServiceLabel}</Label>
+          <Label className="text-xs">{step.customLabel || customTexts?.selectServiceLabel || 'Select a service'}</Label>
           <div 
             className={cn(
               "border rounded p-2 text-sm cursor-pointer",
@@ -40,12 +40,12 @@ export const StepPreview: FC<StepPreviewProps> = ({ step, isActive = false }) =>
     case 'date':
       return (
         <div className="space-y-2">
-          <Label className="text-xs">{step.customLabel || customTexts.selectDateLabel}</Label>
+          <Label className="text-xs">{step.customLabel || customTexts?.selectDateLabel || 'Select a date'}</Label>
           <div className="border rounded p-2 text-sm text-center">
             [Calendrier]
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">{customTexts.selectTimeLabel}</Label>
+            <Label className="text-xs">{customTexts?.selectTimeLabel || 'Select a time'}</Label>
             <div className="flex flex-wrap gap-1 text-xs">
               <div 
                 className={`py-1 px-2 ${getButtonClasses()} text-white cursor-pointer`}
@@ -66,7 +66,7 @@ export const StepPreview: FC<StepPreviewProps> = ({ step, isActive = false }) =>
     case 'client':
       return (
         <div className="space-y-2">
-          <Label className="text-xs">{step.customLabel || customTexts.clientInfoLabel}</Label>
+          <Label className="text-xs">{step.customLabel || customTexts?.clientInfoLabel || 'Client information'}</Label>
           <div className="space-y-1">
             <div className="h-6 bg-gray-100 rounded mb-1"></div>
             <div className="h-6 bg-gray-100 rounded"></div>
@@ -76,7 +76,7 @@ export const StepPreview: FC<StepPreviewProps> = ({ step, isActive = false }) =>
     case 'payment':
       return (
         <div className="space-y-2">
-          <Label className="text-xs">{step.customLabel || customTexts.paymentMethodLabel}</Label>
+          <Label className="text-xs">{step.customLabel || customTexts?.paymentMethodLabel || 'Payment method'}</Label>
           <div className="flex gap-2">
             <div className="h-10 w-14 bg-gray-100 rounded flex items-center justify-center text-xs">VISA</div>
             <div className="h-10 w-14 bg-gray-100 rounded flex items-center justify-center text-xs">MC</div>

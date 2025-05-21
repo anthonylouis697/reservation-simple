@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useBusiness } from "@/contexts/BusinessContext";
-import { ExternalLink, Copy } from "lucide-react";
+import { ExternalLink, Copy, Link } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -32,7 +32,10 @@ export const BookingLinkCard = () => {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">Votre page de réservation</CardTitle>
+        <div className="flex items-center gap-2">
+          <Link className="h-5 w-5 text-primary" />
+          <CardTitle className="text-lg">Votre page de réservation</CardTitle>
+        </div>
         <CardDescription>
           Partagez ce lien avec vos clients pour qu'ils puissent réserver en ligne
         </CardDescription>

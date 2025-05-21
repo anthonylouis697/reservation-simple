@@ -13,6 +13,7 @@ export const AllInOneLayoutPreview: FC<AllInOneLayoutPreviewProps> = ({ enabledS
   return (
     <div className="space-y-6 py-2">
       {enabledSteps.map((step) => {
+        // Vérifier si StepIcon existe avant de l'utiliser
         const StepIcon = step.icon;
         return (
           <div key={step.id} className="border-b pb-4 last:border-b-0 last:pb-0">
