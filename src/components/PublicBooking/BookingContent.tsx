@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -10,6 +9,9 @@ import { createBooking, checkAvailability, BookingData } from '@/services/bookin
 // Import components
 import StepNavigation from './StepNavigation';
 import StepRenderer from './StepRenderer';
+import LoadingScreen from './LoadingScreen';
+import EmptyServicesState from './EmptyServicesState';
+import BusinessHeader from './BusinessHeader';
 
 const BookingContent = () => {
   const { businessSlug } = useParams();
@@ -192,29 +194,12 @@ const BookingContent = () => {
 
   // Si les données sont en chargement
   if (isLoadingData) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Chargement des services disponibles...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   // Si aucun service n'est disponible
   if (services.length === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <div className="text-center max-w-md">
-          <h2 className="text-2xl font-bold mb-4">Aucun service disponible</h2>
-          <p className="text-gray-600 mb-6">
-            Cette entreprise n'a pas encore configuré ses services de réservation. 
-            Veuillez réessayer ultérieurement ou contacter directement l'entreprise.
-          </p>
-        </div>
-      </div>
-    );
+    return <EmptyServicesState />;
   }
 
   return (
@@ -226,15 +211,12 @@ const BookingContent = () => {
       } as React.CSSProperties}
     >
       {/* En-tête */}
-      <div className="mb-8 text-center">
-        {logo && (
-          <div className="mb-4 flex justify-center">
-            <img src={logo} alt={businessName} className="h-16" />
-          </div>
-        )}
-        <h1 className="text-3xl font-bold" style={{ color: primaryColor }}>{businessName}</h1>
-        {welcomeMessage && <p className="mt-2 text-gray-600">{welcomeMessage}</p>}
-      </div>
+      <BusinessHeader
+        businessName={businessName}
+        welcomeMessage={welcomeMessage}
+        logo={logo}
+        primaryColor={primaryColor}
+      />
       
       {/* Contenu de l'étape en cours via le StepRenderer */}
       <StepRenderer
