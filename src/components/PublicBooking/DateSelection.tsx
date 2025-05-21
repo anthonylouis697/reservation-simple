@@ -1,14 +1,13 @@
 
-import { Calendar } from '@/components/ui/calendar';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Service } from '@/types/service';
+import React from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Calendar } from '@/components/ui/calendar';
+import { Service } from '@/types/service';
+import { BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
 
 interface DateSelectionProps {
-  customTexts: {
-    selectDateLabel?: string;
-  };
+  customTexts: BookingCustomTexts;
   selectedDate: Date | undefined;
   setSelectedDate: (date: Date | undefined) => void;
   selectedService: Service | null;
@@ -20,57 +19,53 @@ const DateSelection = ({
   setSelectedDate,
   selectedService
 }: DateSelectionProps) => {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  const twoMonthsFromNow = new Date();
+  twoMonthsFromNow.setMonth(twoMonthsFromNow.getMonth() + 2);
+
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">
-        {customTexts.selectDateLabel || "Sélectionnez une date"}
-      </h2>
-      
-      <div className="flex flex-col sm:flex-row gap-6">
-        <div className="border rounded-md p-2 flex-1">
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={setSelectedDate}
-            disabled={(date) => {
-              // Désactiver les dates passées
-              return date < new Date(new Date().setHours(0, 0, 0, 0));
-            }}
-            locale={fr}
-            className="p-3 pointer-events-auto"
-          />
-        </div>
-        
-        <div className="flex-1">
-          <Card>
-            <CardHeader>
-              <CardTitle>Détails du service</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span>Service:</span>
-                  <span className="font-medium">{selectedService?.name}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Durée:</span>
-                  <span>{selectedService?.duration} min</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Prix:</span>
-                  <span className="font-medium">{selectedService?.price} €</span>
-                </div>
-                {selectedDate && (
-                  <div className="flex justify-between">
-                    <span>Date:</span>
-                    <span>{format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })}</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold">
+          {customTexts.dateSelectionTitle || "Sélection de la date"}
+        </h2>
+        <p className="text-gray-600 mt-2">
+          {customTexts.dateSelectionDescription || "Choisissez une date disponible"}
+        </p>
+        {selectedService && (
+          <div className="mt-4 p-3 bg-gray-50 rounded-md inline-block">
+            <p className="font-medium">{selectedService.name}</p>
+            <p className="text-sm text-gray-500">
+              {selectedService.duration} min - {new Intl.NumberFormat("fr-FR", {
+                style: "currency",
+                currency: "EUR",
+              }).format(selectedService.price)}
+            </p>
+          </div>
+        )}
       </div>
+      
+      <div className="flex justify-center">
+        <Calendar
+          mode="single"
+          selected={selectedDate}
+          onSelect={setSelectedDate}
+          locale={fr}
+          className="rounded-md border"
+          fromDate={tomorrow}
+          toDate={twoMonthsFromNow}
+        />
+      </div>
+      
+      {selectedDate && (
+        <div className="mt-6 text-center">
+          <p className="text-green-600 font-medium">
+            Date sélectionnée: {format(selectedDate, 'EEEE d MMMM yyyy', { locale: fr })}
+          </p>
+        </div>
+      )}
     </div>
   );
 };

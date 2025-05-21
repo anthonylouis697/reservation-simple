@@ -1,5 +1,6 @@
 
 import { Service } from '@/types/service';
+import { BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
 import ServiceSelection from './ServiceSelection';
 import DateSelection from './DateSelection';
 import TimeSelection from './TimeSelection';
@@ -9,7 +10,7 @@ import BookingConfirmation from './BookingConfirmation';
 interface StepRendererProps {
   currentStep: number;
   bookingComplete: boolean;
-  customTexts: Record<string, string>;
+  customTexts: BookingCustomTexts;
   activeCategories: any[];
   selectedCategory: string | null;
   setSelectedCategory: (categoryId: string | null) => void;
@@ -39,7 +40,7 @@ interface StepRendererProps {
 const StepRenderer = ({
   currentStep = 0,
   bookingComplete = false,
-  customTexts = {},
+  customTexts,
   activeCategories = [],
   selectedCategory = null,
   setSelectedCategory = () => {},
@@ -94,7 +95,7 @@ const StepRenderer = ({
     case 0: // Service selection
       return (
         <ServiceSelection
-          customTexts={customTexts || {}}
+          customTexts={customTexts}
           activeCategories={activeCategories || []}
           selectedCategory={selectedCategory}
           setSelectedCategory={safeSetSelectedCategory}
@@ -109,7 +110,7 @@ const StepRenderer = ({
     case 1: // Date selection
       return (
         <DateSelection
-          customTexts={customTexts || {}}
+          customTexts={customTexts}
           selectedDate={selectedDate}
           setSelectedDate={safeSetSelectedDate}
           selectedService={selectedService}
@@ -119,7 +120,7 @@ const StepRenderer = ({
     case 2: // Time selection
       return (
         <TimeSelection
-          customTexts={customTexts || {}}
+          customTexts={customTexts}
           isLoadingTimes={isLoadingTimes}
           availableTimes={availableTimes || []}
           selectedTime={selectedTime}
@@ -133,7 +134,7 @@ const StepRenderer = ({
     case 3: // Client information
       return (
         <ClientInfoForm
-          customTexts={customTexts || {}}
+          customTexts={customTexts}
           clientName={clientName}
           setClientName={safeSetClientName}
           clientEmail={clientEmail}
@@ -152,7 +153,7 @@ const StepRenderer = ({
       // Fallback to service selection if step is invalid
       return (
         <ServiceSelection
-          customTexts={customTexts || {}}
+          customTexts={customTexts}
           activeCategories={activeCategories || []}
           selectedCategory={selectedCategory}
           setSelectedCategory={safeSetSelectedCategory}

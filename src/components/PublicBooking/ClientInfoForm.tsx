@@ -1,17 +1,12 @@
 
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Service } from '@/types/service';
+import React from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Service } from '@/types/service';
+import { BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
 
 interface ClientInfoFormProps {
-  customTexts: {
-    clientInfoLabel?: string;
-  };
+  customTexts: BookingCustomTexts;
   clientName: string;
   setClientName: (name: string) => void;
   clientEmail: string;
@@ -41,79 +36,89 @@ const ClientInfoForm = ({
 }: ClientInfoFormProps) => {
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold">
-        {customTexts.clientInfoLabel || "Vos informations"}
-      </h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="clientName">Nom complet*</Label>
-          <Input
-            id="clientName"
-            value={clientName}
-            onChange={(e) => setClientName(e.target.value)}
-            placeholder="Votre nom et prénom"
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="clientEmail">Email*</Label>
-          <Input
-            id="clientEmail"
-            type="email"
-            value={clientEmail}
-            onChange={(e) => setClientEmail(e.target.value)}
-            placeholder="votre@email.com"
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="clientPhone">Téléphone</Label>
-          <Input
-            id="clientPhone"
-            value={clientPhone}
-            onChange={(e) => setClientPhone(e.target.value)}
-            placeholder="Votre numéro de téléphone"
-          />
-        </div>
-        <div className="col-span-1 md:col-span-2">
-          <Label htmlFor="clientNotes">Notes ou demandes particulières</Label>
-          <Textarea
-            id="clientNotes"
-            value={clientNotes}
-            onChange={(e) => setClientNotes(e.target.value)}
-            placeholder="Informations supplémentaires..."
-            rows={3}
-          />
-        </div>
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-bold">
+          {customTexts.clientInfoTitle || "Vos informations"}
+        </h2>
+        <p className="text-gray-600 mt-2">
+          {customTexts.clientInfoDescription || "Veuillez fournir vos coordonnées"}
+        </p>
+        
+        {selectedService && selectedDate && selectedTime && (
+          <div className="mt-4 p-3 bg-gray-50 rounded-md inline-block">
+            <p className="font-medium">{selectedService.name}</p>
+            <p className="text-sm text-gray-500">
+              {format(selectedDate, 'EEEE d MMMM yyyy', { locale: fr })} à {selectedTime}
+            </p>
+            <p className="text-sm text-gray-500">
+              {selectedService.duration} min - {new Intl.NumberFormat("fr-FR", {
+                style: "currency",
+                currency: "EUR",
+              }).format(selectedService.price)}
+            </p>
+          </div>
+        )}
       </div>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Récapitulatif de la réservation</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span>Service:</span>
-              <span className="font-medium">{selectedService?.name}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Date:</span>
-              <span>{selectedDate ? format(selectedDate, "EEEE d MMMM yyyy", { locale: fr }) : ''}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Heure:</span>
-              <span>{selectedTime}</span>
-            </div>
-            <Separator />
-            <div className="flex justify-between">
-              <span>Prix total:</span>
-              <span className="font-medium text-lg">{selectedService?.price} €</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <form className="space-y-4 max-w-md mx-auto">
+        <div>
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            Nom complet *
+          </label>
+          <input
+            id="name"
+            type="text"
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            value={clientName}
+            onChange={(e) => setClientName(e.target.value)}
+            placeholder="Votre nom"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            Email *
+          </label>
+          <input
+            id="email"
+            type="email"
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            value={clientEmail}
+            onChange={(e) => setClientEmail(e.target.value)}
+            placeholder="votre.email@exemple.com"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+            Téléphone
+          </label>
+          <input
+            id="phone"
+            type="tel"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            value={clientPhone}
+            onChange={(e) => setClientPhone(e.target.value)}
+            placeholder="06 XX XX XX XX"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
+            Notes additionnelles
+          </label>
+          <textarea
+            id="notes"
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            value={clientNotes}
+            onChange={(e) => setClientNotes(e.target.value)}
+            placeholder="Informations supplémentaires à nous communiquer..."
+          />
+        </div>
+      </form>
     </div>
   );
 };
