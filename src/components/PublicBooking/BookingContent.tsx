@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useBookingSteps } from '@/hooks/useBookingSteps';
@@ -6,7 +7,6 @@ import { usePublicBookingData } from '@/components/Visibility/BookingPage/Public
 import { useBookingHandler } from '@/hooks/useBookingHandler';
 import { useStepNavigation } from '@/hooks/useStepNavigation';
 import { useButtonStyle } from '@/hooks/useButtonStyle';
-import { BookingPageContextType, BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
 import { defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
 
 // Import components
@@ -40,18 +40,15 @@ const BookingContent = ({ businessId = null }: BookingContentProps) => {
     layoutType = "stepped" as const,
     steps = [],
     customTexts = defaultCustomTexts
-  } = bookingPageContext;
+  } = bookingPageContext || {};
 
   // Get services and categories
-  const publicBookingData = usePublicBookingData();
-  
-  // Destructure with default values
   const { 
     services = [], 
     categories = [], 
     isLoading: isLoadingData = false,
     error: dataError = null
-  } = publicBookingData;
+  } = usePublicBookingData() || {};
   
   // Custom hook for booking steps
   const bookingSteps = useBookingSteps(
@@ -60,6 +57,7 @@ const BookingContent = ({ businessId = null }: BookingContentProps) => {
     Array.isArray(steps) ? steps : []
   );
   
+  // Safely destructure bookingSteps with default values
   const {
     selectedCategory = null,
     setSelectedCategory = () => {},
@@ -86,10 +84,13 @@ const BookingContent = ({ businessId = null }: BookingContentProps) => {
     filteredServices = [],
     activeCategories = [],
     handleStartOver = () => {}
-  } = bookingSteps;
+  } = bookingSteps || {};
 
-  // Hook for booking handling
-  const bookingHandler = useBookingHandler({
+  // Hook for booking handling with safe defaults
+  const {
+    isBooking = false,
+    handleBooking = () => {}
+  } = useBookingHandler({
     businessId,
     selectedService,
     selectedDate,
@@ -100,14 +101,9 @@ const BookingContent = ({ businessId = null }: BookingContentProps) => {
     clientNotes,
     setCurrentStep,
     setBookingComplete
-  });
-  
-  const {
-    isBooking = false,
-    handleBooking = () => {}
-  } = bookingHandler || {};
+  }) || {};
 
-  // Hook for step navigation
+  // Create stepNavigation with safe defaults
   const stepNavigation = useStepNavigation({
     selectedService,
     selectedDate,
@@ -128,15 +124,9 @@ const BookingContent = ({ businessId = null }: BookingContentProps) => {
     getActiveStepsLength = () => 4
   } = stepNavigation || {};
 
-  // Hook for button styling
-  const buttonStyleHook = useButtonStyle({ 
-    buttonCorners: buttonCorners || "rounded", 
-    primaryColor: primaryColor || "#9b87f5" 
-  });
-  
-  const { 
-    getButtonStyle = () => ({ className: "", style: { backgroundColor: "", borderColor: "" } }) 
-  } = buttonStyleHook || {};
+  // Hook for button styling with safe defaults
+  const { getButtonStyle = () => ({ className: "", style: { backgroundColor: "", borderColor: "" } }) } = 
+    useButtonStyle({ buttonCorners: buttonCorners || "rounded", primaryColor: primaryColor || "#9b87f5" }) || {};
 
   // If data is loading
   if (isLoadingData) {
@@ -166,65 +156,47 @@ const BookingContent = ({ businessId = null }: BookingContentProps) => {
       
       {/* Current step content */}
       <StepRenderer
-        currentStep={bookingSteps.currentStep}
-        bookingComplete={bookingSteps.bookingComplete}
+        currentStep={currentStep}
+        bookingComplete={bookingComplete}
         customTexts={customTexts || defaultCustomTexts}
-        activeCategories={bookingSteps.activeCategories || []}
-        selectedCategory={bookingSteps.selectedCategory}
-        setSelectedCategory={bookingSteps.setSelectedCategory}
-        filteredServices={bookingSteps.filteredServices || []}
-        selectedService={bookingSteps.selectedService}
-        setSelectedService={bookingSteps.setSelectedService}
-        selectedDate={bookingSteps.selectedDate}
-        setSelectedDate={bookingSteps.setSelectedDate}
-        isLoadingTimes={bookingSteps.isLoadingTimes}
-        availableTimes={bookingSteps.availableTimes || []}
-        selectedTime={bookingSteps.selectedTime}
-        setSelectedTime={bookingSteps.setSelectedTime}
-        clientName={bookingSteps.clientName}
-        setClientName={bookingSteps.setClientName}
-        clientEmail={bookingSteps.clientEmail}
-        setClientEmail={bookingSteps.setClientEmail}
-        clientPhone={bookingSteps.clientPhone}
-        setClientPhone={bookingSteps.setClientPhone}
-        clientNotes={bookingSteps.clientNotes}
-        setClientNotes={bookingSteps.setClientNotes}
+        activeCategories={activeCategories || []}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        filteredServices={filteredServices || []}
+        selectedService={selectedService}
+        setSelectedService={setSelectedService}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        isLoadingTimes={isLoadingTimes}
+        availableTimes={availableTimes || []}
+        selectedTime={selectedTime}
+        setSelectedTime={setSelectedTime}
+        clientName={clientName}
+        setClientName={setClientName}
+        clientEmail={clientEmail}
+        setClientEmail={setClientEmail}
+        clientPhone={clientPhone}
+        setClientPhone={setClientPhone}
+        clientNotes={clientNotes}
+        setClientNotes={setClientNotes}
         confirmationMessage={confirmationMessage || ""}
-        handleStartOver={bookingSteps.handleStartOver}
-        getButtonStyle={useButtonStyle({ buttonCorners, primaryColor }).getButtonStyle}
+        handleStartOver={handleStartOver}
+        getButtonStyle={getButtonStyle}
         primaryColor={primaryColor || ""}
       />
       
       {/* Step navigation */}
-      {!bookingSteps.bookingComplete && (
+      {!bookingComplete && (
         <StepNavigation 
-          currentStep={bookingSteps.currentStep}
-          handlePrevStep={useStepNavigation({
-            ...bookingSteps,
-            steps
-          }).handlePrevStep}
-          handleNextStep={useStepNavigation({
-            ...bookingSteps,
-            steps
-          }).handleNextStep}
-          isBooking={useBookingHandler({
-            businessId,
-            ...bookingSteps
-          }).isBooking || false}
-          getButtonStyle={useButtonStyle({ buttonCorners, primaryColor }).getButtonStyle}
-          getCurrentStepIcon={useStepNavigation({
-            ...bookingSteps,
-            steps
-          }).getCurrentStepIcon}
-          getStepLabel={useStepNavigation({
-            ...bookingSteps,
-            steps
-          }).getStepLabel}
+          currentStep={currentStep}
+          handlePrevStep={handlePrevStep}
+          handleNextStep={handleNextStep}
+          isBooking={isBooking}
+          getButtonStyle={getButtonStyle}
+          getCurrentStepIcon={getCurrentStepIcon}
+          getStepLabel={getStepLabel}
           bookingButtonText={bookingButtonText}
-          activeStepsLength={useStepNavigation({
-            ...bookingSteps,
-            steps
-          }).getActiveStepsLength()}
+          activeStepsLength={getActiveStepsLength()}
         />
       )}
     </div>

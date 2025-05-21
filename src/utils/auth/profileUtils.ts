@@ -7,6 +7,8 @@ import { createDefaultBusiness } from './businessUtils';
  */
 export const loadUserProfile = async (userId: string) => {
   try {
+    console.log('Loading profile for user:', userId);
+    
     // Load profile
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
@@ -36,10 +38,12 @@ export const loadUserProfile = async (userId: string) => {
       if (!businessData || businessData.length === 0) {
         console.log("Aucune entreprise trouvée, création d'une entreprise par défaut");
         const businessId = await createDefaultBusiness(userId, profileData.first_name, profileData.last_name);
+        console.log("Entreprise créée avec ID:", businessId);
         return { profile: profileData, businessId };
       }
       
       // Return the first business ID if multiple exist
+      console.log("Entreprise existante trouvée:", businessData[0].id);
       return { profile: profileData, businessId: businessData[0].id };
     }
     

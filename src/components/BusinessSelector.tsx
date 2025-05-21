@@ -7,10 +7,12 @@ export function BusinessSelector() {
   const { currentBusiness, isLoading } = useBusiness();
 
   if (isLoading) {
-    return <div className="flex items-center space-x-2">
-      <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-      <span>Chargement...</span>
-    </div>;
+    return (
+      <div className="flex items-center space-x-2">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+        <span>Chargement...</span>
+      </div>
+    );
   }
 
   return (

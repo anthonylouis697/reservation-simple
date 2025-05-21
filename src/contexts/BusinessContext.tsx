@@ -65,10 +65,11 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           setCurrentBusiness(data[0]);
         } else {
           // No business found with this ID
+          console.warn(`No business found with ID: ${businessId}`);
           setBusinesses([]);
           setCurrentBusiness(null);
         }
-      } else {
+      } else if (user.id) {
         // If no businessId in auth context, fetch all businesses for this user
         const { data, error } = await supabase
           .from('businesses')
@@ -81,8 +82,10 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           // We found businesses, set the first one as current
           setBusinesses(data);
           setCurrentBusiness(data[0]);
+          console.log('Loaded businesses:', data.length, 'Current:', data[0].name);
         } else {
           // No businesses found for this user
+          console.warn(`No businesses found for user: ${user.id}`);
           setBusinesses([]);
           setCurrentBusiness(null);
         }
@@ -99,6 +102,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Charger l'entreprise au démarrage et quand l'utilisateur ou le businessId change
   useEffect(() => {
+    console.log('Business context effect triggered - User:', user?.id, 'BusinessId:', businessId);
     refreshBusinesses();
   }, [user, businessId]);
 

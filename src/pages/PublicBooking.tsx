@@ -79,7 +79,7 @@ const PublicBooking = () => {
             <Helmet>
               <title>Réservation en ligne</title>
             </Helmet>
-            {businessId && <BookingContent businessId={businessId} />}
+            <BookingContent businessId={businessId} />
           </div>
         </PublicBookingDataProvider>
       </BookingPageProvider>
