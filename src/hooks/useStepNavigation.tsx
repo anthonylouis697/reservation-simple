@@ -3,31 +3,36 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface StepNavigationProps {
-  selectedService: any;
-  selectedDate: Date | undefined;
-  selectedTime: string | null;
-  clientName: string;
-  clientEmail: string;
-  currentStep: number;
-  setCurrentStep: (step: number) => void;
-  handleBooking: () => void;
-  steps: any[];
+  selectedService?: any;
+  selectedDate?: Date | null | undefined;
+  selectedTime?: string | null;
+  clientName?: string;
+  clientEmail?: string;
+  currentStep?: number;
+  setCurrentStep?: (step: number) => void;
+  handleBooking?: () => void;
+  steps?: any[];
 }
 
 export const useStepNavigation = ({
-  selectedService,
-  selectedDate,
-  selectedTime,
-  clientName,
-  clientEmail,
+  selectedService = null,
+  selectedDate = undefined,
+  selectedTime = null,
+  clientName = "",
+  clientEmail = "",
   currentStep = 0,
-  setCurrentStep,
-  handleBooking,
+  setCurrentStep = () => {},
+  handleBooking = () => {},
   steps = []
 }: StepNavigationProps) => {
-  // Function for passing to the next step
+  // Fonctions sécurisées avec des valeurs par défaut
+  const safeSetCurrentStep = setCurrentStep || (() => {});
+  const safeHandleBooking = handleBooking || (() => {});
+  const safeSteps = Array.isArray(steps) ? steps : [];
+  
+  // Fonction pour passer à l'étape suivante
   const handleNextStep = () => {
-    // Validation of current step
+    // Validation de l'étape actuelle
     if (currentStep === 0 && !selectedService) {
       toast.error("Veuillez sélectionner un service");
       return;
@@ -48,45 +53,73 @@ export const useStepNavigation = ({
       return;
     }
     
-    // If we're at the last step, finalize the booking
-    const activeSteps = Array.isArray(steps) ? steps.filter(step => step?.enabled) : [];
+    // Filtrer les étapes actives de manière sécurisée
+    const activeSteps = safeSteps.filter(step => step && typeof step === 'object' && step.enabled);
+    
+    // Si nous sommes à la dernière étape, finaliser la réservation
     if (currentStep === activeSteps.length - 1) {
-      handleBooking();
+      safeHandleBooking();
       return;
     }
     
-    setCurrentStep(currentStep + 1);
+    safeSetCurrentStep(currentStep + 1);
   };
 
-  // Function to go back to previous step
+  // Fonction pour revenir à l'étape précédente
   const handlePrevStep = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      safeSetCurrentStep(currentStep - 1);
     }
   };
 
-  // Get the label for the current step
+  // Obtenir le label pour l'étape actuelle
   const getStepLabel = (index: number) => {
-    const activeSteps = Array.isArray(steps) ? steps.filter(step => step?.enabled) : [];
-    if (index >= 0 && index < activeSteps.length) {
-      return activeSteps[index]?.customLabel || activeSteps[index]?.name || `Étape ${index + 1}`;
+    try {
+      const safeSteps = Array.isArray(steps) ? steps : [];
+      const activeSteps = safeSteps.filter(step => step && typeof step === 'object' && step.enabled);
+      
+      if (index >= 0 && index < activeSteps.length) {
+        const currentStep = activeSteps[index];
+        if (currentStep && typeof currentStep === 'object') {
+          return currentStep.customLabel || currentStep.name || `Étape ${index + 1}`;
+        }
+      }
+    } catch (error) {
+      console.error("Erreur dans getStepLabel:", error);
     }
+    
     return `Étape ${index + 1}`;
   };
 
-  // Get the icon for the current step
+  // Obtenir l'icône pour l'étape actuelle
   const getCurrentStepIcon = () => {
-    const activeSteps = Array.isArray(steps) ? steps.filter(step => step?.enabled) : [];
-    if (currentStep >= 0 && currentStep < activeSteps.length && activeSteps[currentStep]?.icon) {
-      const StepIcon = activeSteps[currentStep].icon;
-      return <StepIcon className="h-6 w-6" />;
+    try {
+      const safeSteps = Array.isArray(steps) ? steps : [];
+      const activeSteps = safeSteps.filter(step => step && typeof step === 'object' && step.enabled);
+      
+      if (currentStep >= 0 && currentStep < activeSteps.length) {
+        const step = activeSteps[currentStep];
+        if (step && typeof step === 'object' && step.icon) {
+          const StepIcon = step.icon;
+          return <StepIcon className="h-6 w-6" />;
+        }
+      }
+    } catch (error) {
+      console.error("Erreur dans getCurrentStepIcon:", error);
     }
+    
     return null;
   };
 
-  // Get the count of active steps
+  // Obtenir le nombre d'étapes actives
   const getActiveStepsLength = () => {
-    return Array.isArray(steps) ? steps.filter(step => step?.enabled).length : 4; // Default to 4 steps
+    try {
+      const safeSteps = Array.isArray(steps) ? steps : [];
+      return safeSteps.filter(step => step && typeof step === 'object' && step.enabled).length;
+    } catch (error) {
+      console.error("Erreur dans getActiveStepsLength:", error);
+      return 4; // Valeur par défaut
+    }
   };
 
   return {

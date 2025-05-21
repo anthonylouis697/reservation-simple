@@ -19,10 +19,10 @@ interface BookingContentProps {
   businessId: string | null;
 }
 
-const BookingContent = ({ businessId }: BookingContentProps) => {
-  const { businessSlug } = useParams();
+const BookingContent = ({ businessId = null }: BookingContentProps) => {
+  const { businessSlug } = useParams<{ businessSlug?: string }>();
   
-  // Récupération des données de style de la page de réservation
+  // Récupération des données de style de la page de réservation avec des valeurs par défaut
   const { 
     businessName = "", 
     welcomeMessage = "", 
@@ -36,44 +36,48 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     layoutType = "stepped",
     steps = [],
     customTexts = {}
-  } = useBookingPage();
+  } = useBookingPage() || {};
 
-  // Récupération des services et catégories depuis la base de données
-  const { services = [], categories = [], isLoading: isLoadingData = false } = usePublicBookingData();
+  // Récupération des services et catégories avec des valeurs par défaut
+  const { 
+    services = [], 
+    categories = [], 
+    isLoading: isLoadingData = false 
+  } = usePublicBookingData();
   
   // Hook personnalisé pour gérer les étapes de réservation
   const {
-    selectedCategory,
-    setSelectedCategory,
-    selectedService,
-    setSelectedService,
-    selectedDate,
-    setSelectedDate,
-    selectedTime,
-    setSelectedTime,
+    selectedCategory = null,
+    setSelectedCategory = () => {},
+    selectedService = null,
+    setSelectedService = () => {},
+    selectedDate = undefined,
+    setSelectedDate = () => {},
+    selectedTime = null,
+    setSelectedTime = () => {},
     availableTimes = [],
     currentStep = 0,
-    setCurrentStep,
+    setCurrentStep = () => {},
     clientName = "",
-    setClientName,
+    setClientName = () => {},
     clientEmail = "",
-    setClientEmail,
+    setClientEmail = () => {},
     clientPhone = "",
-    setClientPhone,
+    setClientPhone = () => {},
     clientNotes = "",
-    setClientNotes,
+    setClientNotes = () => {},
     bookingComplete = false,
-    setBookingComplete,
+    setBookingComplete = () => {},
     isLoadingTimes = false,
     filteredServices = [],
     activeCategories = [],
-    handleStartOver
-  } = useBookingSteps(services, categories, steps);
+    handleStartOver = () => {}
+  } = useBookingSteps(services || [], categories || [], steps || []);
 
   // Hook pour gérer la logique de réservation
   const {
     isBooking = false,
-    handleBooking
+    handleBooking = () => {}
   } = useBookingHandler({
     businessId,
     selectedService,
@@ -89,11 +93,11 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
 
   // Hook pour gérer la navigation entre les étapes
   const {
-    handleNextStep,
-    handlePrevStep,
-    getStepLabel,
-    getCurrentStepIcon,
-    getActiveStepsLength
+    handleNextStep = () => {},
+    handlePrevStep = () => {},
+    getStepLabel = () => "",
+    getCurrentStepIcon = () => null,
+    getActiveStepsLength = () => 4
   } = useStepNavigation({
     selectedService,
     selectedDate,
@@ -107,10 +111,12 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
   });
 
   // Hook pour gérer les styles des boutons
-  const { getButtonStyle } = useButtonStyle({ 
+  const { 
+    getButtonStyle = () => ({ className: "", style: { backgroundColor: "", borderColor: "" } }) 
+  } = useButtonStyle({ 
     buttonCorners: buttonCorners || "rounded", 
     primaryColor: primaryColor || "#9b87f5" 
-  });
+  }) || {};
 
   // Si les données sont en chargement
   if (isLoadingData) {
@@ -132,10 +138,10 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     >
       {/* En-tête */}
       <BusinessHeader
-        businessName={businessName}
-        welcomeMessage={welcomeMessage}
-        logo={logo}
-        primaryColor={primaryColor}
+        businessName={businessName || ""}
+        welcomeMessage={welcomeMessage || ""}
+        logo={logo || ""}
+        primaryColor={primaryColor || ""}
       />
       
       {/* Contenu de l'étape en cours via le StepRenderer */}
@@ -163,10 +169,10 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
         setClientPhone={setClientPhone}
         clientNotes={clientNotes}
         setClientNotes={setClientNotes}
-        confirmationMessage={confirmationMessage}
+        confirmationMessage={confirmationMessage || ""}
         handleStartOver={handleStartOver}
         getButtonStyle={getButtonStyle}
-        primaryColor={primaryColor}
+        primaryColor={primaryColor || ""}
       />
       
       {/* Navigation des étapes */}

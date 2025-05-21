@@ -17,32 +17,41 @@ interface DeleteBookingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   booking: Booking | null;
-  service?: Service;
+  service?: Service | null;
   isProcessing: boolean;
   onConfirmDelete: () => void;
 }
 
 export const DeleteBookingDialog = ({
-  open,
-  onOpenChange,
-  booking,
-  service,
-  isProcessing,
-  onConfirmDelete
+  open = false,
+  onOpenChange = () => {},
+  booking = null,
+  service = null,
+  isProcessing = false,
+  onConfirmDelete = () => {}
 }: DeleteBookingDialogProps) => {
   if (!booking) return null;
 
-  // Ensure we have valid data to prevent errors
-  const bookingDate = booking.date instanceof Date 
-    ? booking.date 
-    : new Date(booking.date || Date.now());
+  // Vérifier et transformer la date en objet Date si nécessaire
+  let bookingDate: Date;
+  try {
+    bookingDate = booking.date instanceof Date 
+      ? booking.date 
+      : new Date(booking.date || Date.now());
+  } catch (error) {
+    console.error("Erreur lors de la conversion de la date:", error);
+    bookingDate = new Date();
+  }
 
   // Récupérer les données client de manière sécurisée
-  const clientName = booking.client && typeof booking.client === 'object' && booking.client.name 
-    ? booking.client.name 
-    : "Client inconnu";
+  const clientName = 
+    booking.client && 
+    typeof booking.client === 'object' && 
+    booking.client.name 
+      ? booking.client.name 
+      : "Client inconnu";
 
-  const serviceName = service?.name || "Service inconnu";
+  const serviceName = service && service.name ? service.name : "Service inconnu";
   const bookingTime = booking.time || "Heure non spécifiée";
 
   return (

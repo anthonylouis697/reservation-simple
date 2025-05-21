@@ -37,20 +37,20 @@ interface StepRendererProps {
 }
 
 const StepRenderer = ({
-  currentStep,
-  bookingComplete,
+  currentStep = 0,
+  bookingComplete = false,
   customTexts = {},
   activeCategories = [],
-  selectedCategory,
+  selectedCategory = null,
   setSelectedCategory = () => {},
   filteredServices = [],
-  selectedService,
+  selectedService = null,
   setSelectedService = () => {},
-  selectedDate,
+  selectedDate = undefined,
   setSelectedDate = () => {},
   isLoadingTimes = false,
   availableTimes = [],
-  selectedTime,
+  selectedTime = null,
   setSelectedTime = () => {},
   clientName = "",
   setClientName = () => {},
@@ -66,12 +66,24 @@ const StepRenderer = ({
   primaryColor = "#9b87f5",
 }: StepRendererProps) => {
   
+  // S'assurer d'avoir des fonctions valides  
+  const safeSetSelectedCategory = setSelectedCategory || (() => {});
+  const safeSetSelectedService = setSelectedService || (() => {});
+  const safeSetSelectedDate = setSelectedDate || (() => {});
+  const safeSetSelectedTime = setSelectedTime || (() => {});
+  const safeSetClientName = setClientName || (() => {});
+  const safeSetClientEmail = setClientEmail || (() => {});
+  const safeSetClientPhone = setClientPhone || (() => {});
+  const safeSetClientNotes = setClientNotes || (() => {});
+  const safeHandleStartOver = handleStartOver || (() => {});
+  const safeGetButtonStyle = getButtonStyle || (() => ({ className: "", style: { backgroundColor: "", borderColor: "" } }));
+  
   if (bookingComplete) {
     return (
       <BookingConfirmation 
         confirmationMessage={confirmationMessage}
-        handleStartOver={handleStartOver}
-        getButtonStyle={getButtonStyle}
+        handleStartOver={safeHandleStartOver}
+        getButtonStyle={safeGetButtonStyle}
       />
     );
   }
@@ -80,24 +92,24 @@ const StepRenderer = ({
     case 0: // Sélection du service
       return (
         <ServiceSelection
-          customTexts={customTexts}
-          activeCategories={activeCategories}
+          customTexts={customTexts || {}}
+          activeCategories={activeCategories || []}
           selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          filteredServices={filteredServices}
+          setSelectedCategory={safeSetSelectedCategory}
+          filteredServices={filteredServices || []}
           selectedService={selectedService}
-          setSelectedService={setSelectedService}
-          getButtonStyle={getButtonStyle}
-          primaryColor={primaryColor}
+          setSelectedService={safeSetSelectedService}
+          getButtonStyle={safeGetButtonStyle}
+          primaryColor={primaryColor || "#9b87f5"}
         />
       );
 
     case 1: // Sélection de la date
       return (
         <DateSelection
-          customTexts={customTexts}
+          customTexts={customTexts || {}}
           selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
+          setSelectedDate={safeSetSelectedDate}
           selectedService={selectedService}
         />
       );
@@ -105,29 +117,29 @@ const StepRenderer = ({
     case 2: // Sélection de l'horaire
       return (
         <TimeSelection
-          customTexts={customTexts}
+          customTexts={customTexts || {}}
           isLoadingTimes={isLoadingTimes}
-          availableTimes={availableTimes}
+          availableTimes={availableTimes || []}
           selectedTime={selectedTime}
-          setSelectedTime={setSelectedTime}
+          setSelectedTime={safeSetSelectedTime}
           selectedService={selectedService}
           selectedDate={selectedDate}
-          getButtonStyle={getButtonStyle}
+          getButtonStyle={safeGetButtonStyle}
         />
       );
 
     case 3: // Informations du client
       return (
         <ClientInfoForm
-          customTexts={customTexts}
+          customTexts={customTexts || {}}
           clientName={clientName}
-          setClientName={setClientName}
+          setClientName={safeSetClientName}
           clientEmail={clientEmail}
-          setClientEmail={setClientEmail}
+          setClientEmail={safeSetClientEmail}
           clientPhone={clientPhone}
-          setClientPhone={setClientPhone}
+          setClientPhone={safeSetClientPhone}
           clientNotes={clientNotes}
-          setClientNotes={setClientNotes}
+          setClientNotes={safeSetClientNotes}
           selectedService={selectedService}
           selectedDate={selectedDate}
           selectedTime={selectedTime}

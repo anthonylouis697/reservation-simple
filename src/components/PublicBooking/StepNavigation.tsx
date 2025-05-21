@@ -7,31 +7,42 @@ interface StepNavigationProps {
   handlePrevStep: () => void;
   handleNextStep: () => void;
   isBooking: boolean;
-  getButtonStyle: () => { 
-    className: string; 
-    style: { backgroundColor: string; borderColor: string } 
+  getButtonStyle?: () => { 
+    className?: string; 
+    style?: { backgroundColor?: string; borderColor?: string } 
   };
-  getCurrentStepIcon: () => ReactNode;
-  getStepLabel: (index: number) => string;
-  bookingButtonText: string;
-  activeStepsLength: number;
+  getCurrentStepIcon?: () => ReactNode;
+  getStepLabel?: (index: number) => string;
+  bookingButtonText?: string;
+  activeStepsLength?: number;
 }
 
 const StepNavigation = ({
-  currentStep,
-  handlePrevStep,
-  handleNextStep,
-  isBooking,
-  getButtonStyle,
-  getCurrentStepIcon,
-  getStepLabel,
+  currentStep = 0,
+  handlePrevStep = () => {},
+  handleNextStep = () => {},
+  isBooking = false,
+  getButtonStyle = () => ({ className: "", style: { backgroundColor: "", borderColor: "" } }),
+  getCurrentStepIcon = () => null,
+  getStepLabel = (index: number) => `Étape ${index + 1}`,
   bookingButtonText = "Réserver",
   activeStepsLength = 4
 }: StepNavigationProps) => {
-  // Ensure we have valid values for all properties
-  const buttonStyle = getButtonStyle ? getButtonStyle() : { className: "", style: { backgroundColor: "", borderColor: "" } };
-  const currentStepIcon = getCurrentStepIcon ? getCurrentStepIcon() : null;
-  const stepLabel = getStepLabel ? getStepLabel(currentStep) : `Étape ${currentStep + 1}`;
+  // Vérifier que toutes les fonctions sont définies
+  const safeHandlePrevStep = handlePrevStep || (() => {});
+  const safeHandleNextStep = handleNextStep || (() => {});
+  const safeGetButtonStyle = getButtonStyle || (() => ({ className: "", style: { backgroundColor: "", borderColor: "" } }));
+  const safeGetCurrentStepIcon = getCurrentStepIcon || (() => null);
+  const safeGetStepLabel = getStepLabel || ((index: number) => `Étape ${index + 1}`);
+  
+  // Récupérer les styles de bouton de manière sécurisée
+  const buttonStyle = safeGetButtonStyle();
+  const buttonClassName = buttonStyle?.className || "";
+  const buttonStyleObj = buttonStyle?.style || { backgroundColor: "", borderColor: "" };
+  
+  // Récupérer l'icône et le label de l'étape actuelle
+  const currentStepIcon = safeGetCurrentStepIcon();
+  const stepLabel = safeGetStepLabel(currentStep);
   
   return (
     <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
@@ -44,7 +55,7 @@ const StepNavigation = ({
         {currentStep > 0 && (
           <Button
             variant="outline"
-            onClick={handlePrevStep}
+            onClick={safeHandlePrevStep}
             disabled={isBooking}
           >
             Précédent
@@ -52,10 +63,10 @@ const StepNavigation = ({
         )}
         
         <Button 
-          onClick={handleNextStep}
+          onClick={safeHandleNextStep}
           disabled={isBooking}
-          className={buttonStyle?.className || ""}
-          style={buttonStyle?.style || {}}
+          className={buttonClassName}
+          style={buttonStyleObj}
         >
           {isBooking ? (
             <>
@@ -63,7 +74,7 @@ const StepNavigation = ({
               Traitement...
             </>
           ) : currentStep === activeStepsLength - 1 ? (
-            bookingButtonText || "Réserver"
+            bookingButtonText
           ) : (
             "Suivant"
           )}
