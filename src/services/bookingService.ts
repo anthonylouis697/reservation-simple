@@ -128,7 +128,7 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
     
     // Créer la réservation
     const bookingId = uuidv4();
-    const status = 'confirmed';
+    const status = 'confirmed' as const;
     
     // Dans un environnement réel, enregistrer la réservation dans la base de données
     try {
@@ -158,7 +158,7 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
         serviceId: serviceId,
         clientName: client.name,
         clientEmail: client.email,
-        status: status as 'confirmed'
+        status: status
       };
     } catch (error) {
       console.error("Erreur lors de l'enregistrement de la réservation:", error);
@@ -231,18 +231,19 @@ export const getAllBookings = async (): Promise<Booking[]> => {
       return reservations.map(res => {
         const client = res.clients || {};
         const startTime = new Date(res.start_time);
+        const status = (res.status as 'confirmed' | 'cancelled' | 'pending') || 'pending';
         
         return {
           id: res.id,
           date: startTime,
           time: `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}`,
-          status: res.status || 'pending',
+          status: status,
           serviceId: res.service_id,
           client: {
             name: `${client.first_name || ''} ${client.last_name || ''}`.trim(),
             email: client.email || '',
-            phone: client.phone,
-            notes: client.notes
+            phone: client.phone || undefined,
+            notes: client.notes || undefined
           }
         };
       });
@@ -255,17 +256,21 @@ export const getAllBookings = async (): Promise<Booking[]> => {
       const parsedBookings = JSON.parse(storedBookings);
       return parsedBookings.map((booking: any) => {
         const startTime = new Date(booking.startTime);
+        const bookingStatus = booking.status === 'confirmed' || booking.status === 'cancelled' || booking.status === 'pending' 
+          ? booking.status 
+          : 'pending';
+        
         return {
           id: booking.id,
           date: startTime,
           time: `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}`,
-          status: booking.status || 'confirmed',
+          status: bookingStatus as 'confirmed' | 'cancelled' | 'pending',
           serviceId: booking.serviceId,
           client: {
             name: booking.clientName || '',
             email: booking.clientEmail || '',
-            phone: booking.clientPhone || '',
-            notes: booking.clientNotes || ''
+            phone: booking.clientPhone || undefined,
+            notes: booking.clientNotes || undefined
           }
         };
       });
@@ -281,17 +286,21 @@ export const getAllBookings = async (): Promise<Booking[]> => {
       const parsedBookings = JSON.parse(storedBookings);
       return parsedBookings.map((booking: any) => {
         const startTime = new Date(booking.startTime);
+        const bookingStatus = booking.status === 'confirmed' || booking.status === 'cancelled' || booking.status === 'pending' 
+          ? booking.status 
+          : 'pending';
+        
         return {
           id: booking.id,
           date: startTime,
           time: `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}`,
-          status: booking.status || 'confirmed',
+          status: bookingStatus as 'confirmed' | 'cancelled' | 'pending',
           serviceId: booking.serviceId,
           client: {
             name: booking.clientName || '',
             email: booking.clientEmail || '',
-            phone: booking.clientPhone || '',
-            notes: booking.clientNotes || ''
+            phone: booking.clientPhone || undefined,
+            notes: booking.clientNotes || undefined
           }
         };
       });
