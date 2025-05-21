@@ -4,31 +4,15 @@ import { Helmet } from 'react-helmet';
 import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Table, 
-  TableHeader, 
-  TableBody, 
-  TableRow, 
-  TableHead, 
-  TableCell 
-} from '@/components/ui/table';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription, 
-  DialogFooter 
-} from '@/components/ui/dialog';
-import { format, parseISO } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { CalendarCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import { CalendarCheck, Check, Trash2 } from 'lucide-react';
 import { Booking, getAllBookings, updateBookingStatus, deleteBooking } from '@/services/bookingService';
 import { Service } from '@/types/service';
 import { initialServices } from '@/mock/serviceData';
+import { LoadingState } from '@/components/Reservations/LoadingState';
+import { BookingsTable } from '@/components/Reservations/BookingsTable';
+import { DeleteBookingDialog } from '@/components/Reservations/DeleteBookingDialog';
 
 const Reservations = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -39,7 +23,7 @@ const Reservations = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Charger les réservations au chargement de la page
+  // Load reservations on page load
   useEffect(() => {
     const fetchBookings = async () => {
       try {
@@ -56,7 +40,7 @@ const Reservations = () => {
     fetchBookings();
   }, []);
 
-  // Filtrage des réservations selon l'onglet actif
+  // Filter bookings according to active tab
   const filteredBookings = bookings.filter(booking => {
     if (activeTab === 'all') return true;
     if (activeTab === 'pending') return booking.status === 'pending';
@@ -65,18 +49,18 @@ const Reservations = () => {
     return true;
   });
 
-  // Trouver un service par son ID
+  // Find a service by its ID
   const getServiceById = (id: string): Service | undefined => {
     return services.find(service => service.id === id);
   };
 
-  // Gérer la confirmation d'une réservation
+  // Handle booking confirmation
   const handleConfirmBooking = async (booking: Booking) => {
     setIsProcessing(true);
     try {
       await updateBookingStatus(booking.id, 'confirmed');
       
-      // Mettre à jour l'état local
+      // Update local state
       setBookings(prev => 
         prev.map(b => 
           b.id === booking.id ? { ...b, status: 'confirmed' } : b
@@ -92,13 +76,13 @@ const Reservations = () => {
     }
   };
 
-  // Gérer l'annulation d'une réservation
+  // Handle booking cancellation
   const handleCancelBooking = async (booking: Booking) => {
     setIsProcessing(true);
     try {
       await updateBookingStatus(booking.id, 'cancelled');
       
-      // Mettre à jour l'état local
+      // Update local state
       setBookings(prev => 
         prev.map(b => 
           b.id === booking.id ? { ...b, status: 'cancelled' } : b
@@ -114,13 +98,13 @@ const Reservations = () => {
     }
   };
 
-  // Ouvrir la boîte de dialogue de suppression
+  // Open the delete dialog
   const openDeleteDialog = (booking: Booking) => {
     setSelectedBooking(booking);
     setShowDeleteDialog(true);
   };
 
-  // Gérer la suppression d'une réservation
+  // Handle booking deletion
   const handleDeleteBooking = async () => {
     if (!selectedBooking) return;
     
@@ -129,7 +113,7 @@ const Reservations = () => {
       const success = await deleteBooking(selectedBooking.id);
       
       if (success) {
-        // Mettre à jour l'état local
+        // Update local state
         setBookings(prev => prev.filter(b => b.id !== selectedBooking.id));
         toast.success('Réservation supprimée');
       }
@@ -140,30 +124,6 @@ const Reservations = () => {
       toast.error('Erreur lors de la suppression de la réservation');
     } finally {
       setIsProcessing(false);
-    }
-  };
-
-  // Fonction pour obtenir le style de badge selon le statut
-  const getStatusBadgeStyle = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200';
-      case 'confirmed':
-        return 'bg-green-100 text-green-800 hover:bg-green-200';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 hover:bg-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  // Formatter le statut pour l'affichage
-  const formatStatus = (status: string) => {
-    switch (status) {
-      case 'pending': return 'En attente';
-      case 'confirmed': return 'Confirmée';
-      case 'cancelled': return 'Annulée';
-      default: return status;
     }
   };
 
@@ -209,99 +169,16 @@ const Reservations = () => {
               
               <TabsContent value={activeTab}>
                 {isLoading ? (
-                  <div className="flex justify-center items-center py-12">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                      <p>Chargement des réservations...</p>
-                    </div>
-                  </div>
-                ) : filteredBookings.length === 0 ? (
-                  <div className="text-center py-12 border rounded-lg">
-                    <p className="text-muted-foreground">Aucune réservation trouvée.</p>
-                  </div>
+                  <LoadingState />
                 ) : (
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Date</TableHead>
-                          <TableHead>Heure</TableHead>
-                          <TableHead>Client</TableHead>
-                          <TableHead>Service</TableHead>
-                          <TableHead>Prix</TableHead>
-                          <TableHead>Statut</TableHead>
-                          <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredBookings.map((booking) => {
-                          const service = getServiceById(booking.serviceId);
-                          const bookingDate = booking.date instanceof Date 
-                            ? booking.date 
-                            : new Date(booking.date);
-                          
-                          return (
-                            <TableRow key={booking.id}>
-                              <TableCell>
-                                {format(bookingDate, 'dd/MM/yyyy', { locale: fr })}
-                              </TableCell>
-                              <TableCell>{booking.time}</TableCell>
-                              <TableCell>
-                                <div>
-                                  <p className="font-medium">{booking.client.name}</p>
-                                  <p className="text-sm text-muted-foreground">{booking.client.email}</p>
-                                </div>
-                              </TableCell>
-                              <TableCell>{service?.name || "Service inconnu"}</TableCell>
-                              <TableCell>{service?.price || 0} €</TableCell>
-                              <TableCell>
-                                <Badge 
-                                  variant="outline"
-                                  className={getStatusBadgeStyle(booking.status)}
-                                >
-                                  {formatStatus(booking.status)}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <div className="flex justify-end gap-2">
-                                  {booking.status === 'pending' && (
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline"
-                                      onClick={() => handleConfirmBooking(booking)}
-                                      disabled={isProcessing}
-                                    >
-                                      <Check className="h-4 w-4 mr-1" />
-                                      Confirmer
-                                    </Button>
-                                  )}
-                                  {booking.status !== 'cancelled' && (
-                                    <Button 
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleCancelBooking(booking)}
-                                      disabled={isProcessing}
-                                    >
-                                      Annuler
-                                    </Button>
-                                  )}
-                                  <Button 
-                                    size="sm"
-                                    variant="ghost"
-                                    className="text-destructive hover:text-destructive/80"
-                                    onClick={() => openDeleteDialog(booking)}
-                                    disabled={isProcessing}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
+                  <BookingsTable 
+                    bookings={filteredBookings}
+                    getServiceById={getServiceById}
+                    isProcessing={isProcessing}
+                    onConfirm={handleConfirmBooking}
+                    onCancel={handleCancelBooking}
+                    onDelete={openDeleteDialog}
+                  />
                 )}
               </TabsContent>
             </Tabs>
@@ -309,57 +186,14 @@ const Reservations = () => {
         </Card>
       </div>
 
-      {/* Dialogue de confirmation de suppression */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Supprimer la réservation</DialogTitle>
-            <DialogDescription>
-              Êtes-vous sûr de vouloir supprimer définitivement cette réservation ? Cette action ne peut pas être annulée.
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedBooking && (
-            <div className="py-4">
-              <p>
-                <strong>Client :</strong> {selectedBooking.client.name}
-              </p>
-              <p>
-                <strong>Service :</strong> {getServiceById(selectedBooking.serviceId)?.name || "Service inconnu"}
-              </p>
-              <p>
-                <strong>Date :</strong> {format(
-                  selectedBooking.date instanceof Date 
-                    ? selectedBooking.date 
-                    : new Date(selectedBooking.date), 
-                  'dd/MM/yyyy', 
-                  { locale: fr }
-                )}
-              </p>
-              <p>
-                <strong>Heure :</strong> {selectedBooking.time}
-              </p>
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowDeleteDialog(false)}
-              disabled={isProcessing}
-            >
-              Annuler
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDeleteBooking}
-              disabled={isProcessing}
-            >
-              {isProcessing ? "Suppression..." : "Supprimer"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DeleteBookingDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        booking={selectedBooking}
+        service={selectedBooking ? getServiceById(selectedBooking.serviceId) : undefined}
+        isProcessing={isProcessing}
+        onConfirmDelete={handleDeleteBooking}
+      />
     </AppLayout>
   );
 };
