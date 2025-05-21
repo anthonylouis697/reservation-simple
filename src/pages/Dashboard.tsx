@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { OnboardingGuide } from '@/components/OnboardingGuide';
 import { useAuth } from '@/contexts/AuthContext';
+import { useBusiness } from '@/contexts/BusinessContext';
 import { QuickActions } from '@/components/DashboardWidgets/QuickActions';
 import { RevenueChart } from '@/components/DashboardWidgets/RevenueChart';
 import { ClientsWidget } from '@/components/DashboardWidgets/ClientsWidget';
@@ -17,19 +18,20 @@ import { VisibilityBoostPromo } from '@/components/Dashboard/VisibilityBoostProm
 import { DashboardLoading } from '@/components/Dashboard/DashboardLoading';
 
 const Dashboard = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
+  const { currentBusiness, isLoading: businessLoading } = useBusiness();
   const [isReady, setIsReady] = useState(false);
   
-  // Vérifier que l'utilisateur est bien chargé
+  // Vérifier que l'utilisateur et l'entreprise sont bien chargés
   useEffect(() => {
-    if (!isLoading && user) {
+    if (!authLoading && user) {
       console.log("Dashboard: User loaded successfully", user.email);
       setIsReady(true);
     }
-  }, [user, isLoading]);
+  }, [user, authLoading]);
   
   // Si toujours en chargement, afficher un indicateur
-  if (isLoading || !isReady) {
+  if (authLoading || businessLoading || !isReady) {
     return <DashboardLoading />;
   }
   

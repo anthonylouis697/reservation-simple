@@ -19,7 +19,20 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create a default context value
+const defaultContextValue: AuthContextType = {
+  session: null,
+  user: null,
+  profile: null,
+  businessId: null,
+  isLoading: true,
+  signUp: async () => false,
+  signIn: async () => {},
+  signOut: async () => {},
+  resetPassword: async () => {}
+};
+
+const AuthContext = createContext<AuthContextType>(defaultContextValue);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
@@ -122,20 +135,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, [navigate, location.pathname]);
 
+  const contextValue: AuthContextType = {
+    session,
+    user,
+    profile,
+    businessId,
+    isLoading: isLoading || authLoading,
+    signUp,
+    signIn,
+    signOut,
+    resetPassword
+  };
+
   return (
-    <AuthContext.Provider
-      value={{
-        session,
-        user,
-        profile,
-        businessId,
-        isLoading: isLoading || authLoading,
-        signUp,
-        signIn,
-        signOut,
-        resetPassword
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

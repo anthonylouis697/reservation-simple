@@ -61,6 +61,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     setIsLoading(true);
     try {
+      console.log("Refreshing businesses for user:", user.id, "businessId:", businessId);
       // Check if we have a businessId from auth context
       if (businessId) {
         // Try to fetch the specific business by ID
@@ -73,6 +74,7 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
         if (data && data.length > 0) {
           // We found the business, set it as current and add to businesses array
+          console.log("Found business by ID:", data[0].name);
           setBusinesses(data);
           setCurrentBusiness(data[0]);
         } else {
@@ -86,15 +88,16 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const { data, error } = await supabase
           .from('businesses')
           .select('*')
-          .eq('owner_id', user.id);
+          .eq('owner_id', user.id)
+          .order('created_at', { ascending: false });
 
         if (error) throw error;
 
         if (data && data.length > 0) {
           // We found businesses, set the first one as current
+          console.log('Loaded businesses:', data.length, 'Current:', data[0].name);
           setBusinesses(data);
           setCurrentBusiness(data[0]);
-          console.log('Loaded businesses:', data.length, 'Current:', data[0].name);
         } else {
           // No businesses found for this user
           console.warn(`No businesses found for user: ${user.id}`);
