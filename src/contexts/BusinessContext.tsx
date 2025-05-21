@@ -29,6 +29,7 @@ interface BusinessContextType {
   createBusiness: (data: Omit<Business, 'id' | 'created_at' | 'updated_at'>) => Promise<Business | null>;
   updateBusiness: (id: string, data: Partial<Omit<Business, 'id' | 'created_at' | 'updated_at'>>) => Promise<Business | null>;
   deleteBusiness: (id: string) => Promise<boolean>;
+  findBusinessBySlug: (slug: string) => Promise<Business | null>;
 }
 
 // Create a default value for the context
@@ -40,7 +41,8 @@ const defaultContextValue: BusinessContextType = {
   refreshBusinesses: async () => {},
   createBusiness: async () => null,
   updateBusiness: async () => null,
-  deleteBusiness: async () => false
+  deleteBusiness: async () => false,
+  findBusinessBySlug: async () => null
 };
 
 const BusinessContext = createContext<BusinessContextType>(defaultContextValue);
@@ -185,6 +187,36 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return false;
   };
 
+  // Nouvelle fonction pour trouver une entreprise par son slug
+  const findBusinessBySlug = async (slug: string): Promise<Business | null> => {
+    try {
+      console.log("Searching for business with slug:", slug);
+      if (!slug) return null;
+
+      const { data, error } = await supabase
+        .from('businesses')
+        .select('*')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error finding business by slug:", error);
+        return null;
+      }
+
+      if (!data) {
+        console.warn("No business found with slug:", slug);
+        return null;
+      }
+
+      console.log("Found business by slug:", data.name);
+      return data as Business;
+    } catch (error) {
+      console.error("Error searching business by slug:", error);
+      return null;
+    }
+  };
+
   const value = {
     businesses,
     isLoading,
@@ -193,7 +225,8 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     refreshBusinesses,
     createBusiness,
     updateBusiness,
-    deleteBusiness
+    deleteBusiness,
+    findBusinessBySlug
   };
 
   return (
