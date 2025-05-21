@@ -1,81 +1,17 @@
 
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect, useState } from 'react';
 import { navigationConfig } from "@/config/navigation";
 import type { NavItem as NavItemType } from "@/types/navigation";
 import { NavItem } from "@/components/Navigation/NavItem";
-import { 
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Button } from '@/components/ui/button';
-import { HelpCircle, Home, ChevronDown, ChevronRight } from 'lucide-react';
+import { HomeMenuItem } from '@/components/Navigation/HomeMenuItem';
+import { HelpMenuItem } from '@/components/Navigation/HelpMenuItem';
+import { SubMenu } from '@/components/Navigation/SubMenu';
+import { SignOutButton } from '@/components/Navigation/SignOutButton';
+import { NavigationCategory } from '@/components/Navigation/NavigationCategory';
 import { useAuth } from '@/contexts/AuthContext';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-
-interface HelpNavItemProps {
-  mobile?: boolean;
-}
-
-export function HelpNavItem({ mobile = false }: HelpNavItemProps) {
-  const navigate = useNavigate();
-  
-  return (
-    <Tooltip delayDuration={300}>
-      <TooltipTrigger asChild>
-        <Button 
-          variant="ghost" 
-          className="w-full justify-start text-left mt-auto"
-          onClick={() => navigate("/help")}
-        >
-          <HelpCircle className="mr-2 h-4 w-4" />
-          <span>Aide</span>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="right">
-        <div className="flex flex-col">
-          <span className="font-medium">Centre d'aide</span>
-          <span className="text-xs text-muted-foreground">Trouvez des réponses à vos questions</span>
-        </div>
-      </TooltipContent>
-    </Tooltip>
-  );
-}
-
-export function HomeNavItem({ mobile = false }: { mobile?: boolean }) {
-  return (
-    <Tooltip delayDuration={300}>
-      <TooltipTrigger asChild>
-        <Button
-          variant="ghost"
-          className={cn(
-            mobile ? "flex flex-col items-center py-2 h-auto" : "w-full justify-start text-left"
-          )}
-          asChild
-        >
-          <Link to="/">
-            <Home className={cn(
-              mobile ? "mb-1" : "mr-2",
-              "h-4 w-4"
-            )} />
-            <span className={cn(
-              mobile && "text-xs font-medium"
-            )}>Accueil</span>
-          </Link>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side={mobile ? "top" : "right"}>
-        <div className="flex flex-col">
-          <span className="font-medium">Site d'accueil</span>
-          <span className="text-xs text-muted-foreground">Retourner à la page d'accueil</span>
-        </div>
-      </TooltipContent>
-    </Tooltip>
-  );
-}
 
 export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
   const navigate = useNavigate();
@@ -141,50 +77,6 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
     }
   };
 
-  // Rendu des sous-menus déroulants pour la version desktop uniquement
-  const renderSubMenu = (title: string, items: NavItemType[], isOpen: boolean, setIsOpen: (open: boolean) => void) => {
-    if (mobile) {
-      return items.map((item) => (
-        <div key={item.title} className="w-full pl-4">
-          <NavItem
-            item={item}
-            mobile={mobile}
-            isFirstTimeUser={false}
-            handleNavigation={handleNavigation}
-          />
-        </div>
-      ));
-    }
-    
-    return (
-      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
-        <CollapsibleTrigger asChild>
-          <Button
-            variant="ghost"
-            className="w-full justify-between text-left"
-          >
-            <div className="flex items-center">
-              {items[0].icon && <div className="mr-2">{items[0].icon}</div>}
-              <span>{title}</span>
-            </div>
-            {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="pl-4 space-y-1">
-          {items.map((item) => (
-            <NavItem
-              key={item.title}
-              item={item}
-              mobile={mobile}
-              isFirstTimeUser={false}
-              handleNavigation={handleNavigation}
-            />
-          ))}
-        </CollapsibleContent>
-      </Collapsible>
-    );
-  };
-
   return (
     <TooltipProvider>
       <div className={cn(
@@ -193,7 +85,7 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
       )}>
         {/* Ajout du lien vers l'accueil */}
         {!mobile && (
-          <HomeNavItem />
+          <HomeMenuItem />
         )}
         
         {/* Navigation principale */}
@@ -209,48 +101,31 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
         ))}
 
         {/* Sous-menu Services */}
-        {renderSubMenu("Services", servicesSubNavItems, servicesOpen, setServicesOpen)}
+        <SubMenu 
+          title="Services" 
+          items={servicesSubNavItems} 
+          isOpen={servicesOpen} 
+          setIsOpen={setServicesOpen}
+          mobile={mobile}
+          handleNavigation={handleNavigation}
+        />
 
         {/* Marketing */}
-        {!mobile && marketingNavItems.length > 0 && (
-          <>
-            <div className="mt-6 mb-2">
-              <h4 className="px-2 text-xs font-semibold text-muted-foreground">
-                MARKETING
-              </h4>
-            </div>
-            {marketingNavItems.map((item) => (
-              <div key={item.title} className="w-full">
-                <NavItem
-                  item={item}
-                  mobile={mobile}
-                  isFirstTimeUser={false}
-                  handleNavigation={handleNavigation}
-                />
-              </div>
-            ))}
-          </>
+        {!mobile && (
+          <NavigationCategory
+            title="MARKETING"
+            items={marketingNavItems}
+            handleNavigation={handleNavigation}
+          />
         )}
         
         {/* Visibilité */}
-        {!mobile && visibilityNavItems.length > 0 && (
-          <>
-            <div className="mt-6 mb-2">
-              <h4 className="px-2 text-xs font-semibold text-muted-foreground">
-                VISIBILITÉ
-              </h4>
-            </div>
-            {visibilityNavItems.map((item) => (
-              <div key={item.title} className="w-full">
-                <NavItem
-                  item={item}
-                  mobile={mobile}
-                  isFirstTimeUser={false}
-                  handleNavigation={handleNavigation}
-                />
-              </div>
-            ))}
-          </>
+        {!mobile && (
+          <NavigationCategory
+            title="VISIBILITÉ"
+            items={visibilityNavItems}
+            handleNavigation={handleNavigation}
+          />
         )}
 
         {/* Navigation inférieure */}
@@ -258,7 +133,14 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
           <div className="mt-auto pt-4">
             <div className="flex flex-col space-y-1">
               {/* Sous-menu Profil */}
-              {renderSubMenu("Profil", profileSubNavItems, profileOpen, setProfileOpen)}
+              <SubMenu 
+                title="Profil" 
+                items={profileSubNavItems} 
+                isOpen={profileOpen} 
+                setIsOpen={setProfileOpen}
+                mobile={mobile}
+                handleNavigation={handleNavigation}
+              />
               
               {bottomNavItems.map((item) => (
                 <NavItem 
@@ -270,13 +152,7 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
                 />
               ))}
               
-              <Button 
-                variant="ghost"
-                className="w-full justify-start text-left text-red-500 hover:text-red-600 hover:bg-red-50"
-                onClick={() => signOut()}
-              >
-                Déconnexion
-              </Button>
+              <SignOutButton signOut={signOut} />
             </div>
           </div>
         )}

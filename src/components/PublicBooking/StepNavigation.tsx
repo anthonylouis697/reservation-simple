@@ -28,13 +28,16 @@ const StepNavigation = ({
   bookingButtonText,
   activeStepsLength
 }: StepNavigationProps) => {
+  // Ensure we have a valid object structure, providing fallbacks to prevent rendering issues
   const buttonStyle = getButtonStyle ? getButtonStyle() : { className: "", style: { backgroundColor: "", borderColor: "" } };
+  const currentStepIcon = getCurrentStepIcon ? getCurrentStepIcon() : null;
+  const stepLabel = getStepLabel ? getStepLabel(currentStep) : `Étape ${currentStep + 1}`;
   
   return (
     <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
       <div className="flex items-center gap-2">
-        {getCurrentStepIcon && getCurrentStepIcon()}
-        <span className="font-medium">{getStepLabel ? getStepLabel(currentStep) : `Étape ${currentStep + 1}`}</span>
+        {currentStepIcon}
+        <span className="font-medium">{stepLabel}</span>
       </div>
       
       <div className="flex gap-2">
