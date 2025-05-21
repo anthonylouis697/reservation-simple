@@ -17,23 +17,23 @@ export function DesktopSidebar() {
   const navigate = useNavigate();
   const showBusinessSelector = false; // On supprime le sélecteur d'entreprise
 
-  // Menu items simplifiés - sans les données fictives
+  // Menu items simplifiés - maintenant avec href au lieu de url
   const mainNavItems = [
     {
       title: "Réservations",
-      url: "/reservations",
+      href: "/reservations",
       icon: <Clock className="h-4 w-4" />,
       description: "Gérer les réservations"
     },
     {
       title: "Calendrier",
-      url: "/calendar",
+      href: "/calendar",
       icon: <Calendar className="h-4 w-4" />,
       description: "Gérer votre planning"
     },
     {
       title: "Clients",
-      url: "/clients",
+      href: "/clients",
       icon: <Users className="h-4 w-4" />,
       description: "Gérer vos clients"
     }
@@ -41,28 +41,28 @@ export function DesktopSidebar() {
   
   const servicesNavItems = [{
     title: "Services",
-    url: "/services",
+    href: "/services",
     icon: <BookOpen className="h-4 w-4" />,
     description: "Gérer vos services"
   }];
   
   const visibilityNavItems = [{
     title: "Page de réservation",
-    url: "/booking-page",
+    href: "/booking-page",
     icon: <Palette className="h-4 w-4" />,
     description: "Personnaliser votre page de réservation"
   }];
   
   const profileNavItems = [{
     title: "Profil",
-    url: "/account/profile",
+    href: "/account/profile",
     icon: <User className="h-4 w-4" />,
     description: "Gérer votre profil"
   }];
   
   const settingsNavItems = [{
     title: "Paramètres",
-    url: "/settings",
+    href: "/settings",
     icon: <Settings className="h-4 w-4" />,
     description: "Paramètres de votre compte"
   }];

@@ -71,7 +71,8 @@ export function NavItem({
           >
             {item.icon && item.icon}
             <span className={cn(
-              mobile && "text-xs font-medium"
+              "ml-2",
+              mobile && "text-xs font-medium mt-1 ml-0"
             )}>{item.title}</span>
           </Button>
         </TooltipTrigger>
