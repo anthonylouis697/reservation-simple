@@ -25,8 +25,7 @@ export const loadUserProfile = async (userId: string) => {
       const { data: businessData, error: businessError } = await supabase
         .from('businesses')
         .select('id')
-        .eq('owner_id', userId)
-        .maybeSingle();
+        .eq('owner_id', userId);
 
       if (businessError) {
         console.error('Erreur lors de la vérification de l\'entreprise:', businessError);
@@ -34,13 +33,14 @@ export const loadUserProfile = async (userId: string) => {
       }
 
       // Create a default business if none exists
-      if (!businessData) {
+      if (!businessData || businessData.length === 0) {
         console.log("Aucune entreprise trouvée, création d'une entreprise par défaut");
         const businessId = await createDefaultBusiness(userId, profileData.first_name, profileData.last_name);
         return { profile: profileData, businessId };
       }
       
-      return { profile: profileData, businessId: businessData.id };
+      // Return the first business ID if multiple exist
+      return { profile: profileData, businessId: businessData[0].id };
     }
     
     return { profile: null, businessId: null };

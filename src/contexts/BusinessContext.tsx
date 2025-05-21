@@ -49,30 +49,49 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     setIsLoading(true);
     try {
-      // In our simplified model, we only fetch the single business for this user
+      // Check if we have a businessId from auth context
       if (businessId) {
+        // Try to fetch the specific business by ID
         const { data, error } = await supabase
           .from('businesses')
           .select('*')
-          .eq('id', businessId)
-          .single();
+          .eq('id', businessId);
 
         if (error) throw error;
 
-        if (data) {
-          setBusinesses([data]);
-          setCurrentBusiness(data);
+        if (data && data.length > 0) {
+          // We found the business, set it as current and add to businesses array
+          setBusinesses(data);
+          setCurrentBusiness(data[0]);
         } else {
+          // No business found with this ID
           setBusinesses([]);
           setCurrentBusiness(null);
         }
       } else {
-        setBusinesses([]);
-        setCurrentBusiness(null);
+        // If no businessId in auth context, fetch all businesses for this user
+        const { data, error } = await supabase
+          .from('businesses')
+          .select('*')
+          .eq('owner_id', user.id);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          // We found businesses, set the first one as current
+          setBusinesses(data);
+          setCurrentBusiness(data[0]);
+        } else {
+          // No businesses found for this user
+          setBusinesses([]);
+          setCurrentBusiness(null);
+        }
       }
     } catch (error: any) {
       console.error('Erreur lors du chargement de l\'entreprise:', error);
       toast.error('Impossible de charger votre entreprise');
+      setBusinesses([]);
+      setCurrentBusiness(null);
     } finally {
       setIsLoading(false);
     }
@@ -113,8 +132,10 @@ export const BusinessProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const updatedBusiness = data as Business;
       
       // Mettre à jour l'entreprise dans le contexte
-      setBusinesses([updatedBusiness]);
-      setCurrentBusiness(updatedBusiness);
+      setBusinesses(businesses.map(b => b.id === id ? updatedBusiness : b));
+      if (currentBusiness?.id === id) {
+        setCurrentBusiness(updatedBusiness);
+      }
 
       toast.success('Entreprise mise à jour avec succès !');
       return updatedBusiness;
