@@ -7,7 +7,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { BusinessSelector } from "./BusinessSelector";
 import { useBusiness } from "@/contexts/BusinessContext";
 import { NavItem } from "./Navigation/NavItem";
-import { HelpNavItem, HomeNavItem } from "./MainNavigation";
+import { HomeMenuItem } from "./Navigation/HomeMenuItem";
+import { HelpMenuItem } from "./Navigation/HelpMenuItem";
 
 export function DesktopSidebar() {
   const { pathname } = useLocation();
@@ -44,7 +45,7 @@ export function DesktopSidebar() {
           
           {/* Navigation principale */}
           <div className="flex flex-col space-y-1">
-            <HomeNavItem />
+            <HomeMenuItem />
             {navigationConfig.mainNav.map((item, index) => (
               <NavItem 
                 key={index} 

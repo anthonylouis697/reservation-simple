@@ -13,6 +13,10 @@ import { SignOutButton } from '@/components/Navigation/SignOutButton';
 import { NavigationCategory } from '@/components/Navigation/NavigationCategory';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Re-export components for backward compatibility
+export { HomeMenuItem as HomeNavItem } from '@/components/Navigation/HomeMenuItem';
+export { HelpMenuItem as HelpNavItem } from '@/components/Navigation/HelpMenuItem';
+
 export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
