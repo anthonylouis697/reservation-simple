@@ -10,6 +10,7 @@ export interface BookingStep {
   customLabel?: string;
   description?: string;
   position?: number;
+  type: string; // Adding missing type property
 }
 
 export interface BookingTemplate {
@@ -66,6 +67,16 @@ export interface BookingPageSettings {
   customUrl: string;
 }
 
+// Adding Steps enum which was missing
+export enum Steps {
+  SERVICE = 'service',
+  DATE = 'date',
+  TIME = 'time',
+  CLIENT_INFO = 'client_info',
+  PAYMENT = 'payment',
+  CONFIRMATION = 'confirmation'
+}
+
 export interface BookingCustomTexts {
   selectServiceLabel?: string;
   selectDateLabel?: string;
@@ -80,6 +91,10 @@ export interface BookingCustomTexts {
   clientInfoDescription?: string;
   confirmationTitle?: string;
   confirmationMessage?: string;
+  // Adding missing text properties
+  timeSelectionTitle?: string;
+  timeSelectionDescription?: string;
+  noAvailableTimesMessage?: string;
 }
 
 export interface BookingPageContextType {

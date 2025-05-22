@@ -30,6 +30,7 @@ const TimeSelection = ({
 }: TimeSelectionProps) => {
   // Ensure customTexts is never undefined
   const safeCustomTexts = customTexts || defaultCustomTexts;
+  // Use the correct property names or fallbacks
   const timeSelectionTitle = safeCustomTexts.timeSelectionTitle || "Sélection de l'horaire";
   const timeSelectionDescription = safeCustomTexts.timeSelectionDescription || "Choisissez un horaire disponible";
   const noTimesMessage = safeCustomTexts.noAvailableTimesMessage || "Aucun horaire disponible pour cette date";

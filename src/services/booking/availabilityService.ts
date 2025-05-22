@@ -17,7 +17,7 @@ export interface DaySchedule {
 export interface BlockedTime {
   date: string;
   fullDay: boolean;
-  timeSlots: TimeSlot[];  // Used only when fullDay is false
+  timeSlots: TimeSlot[];
 }
 
 export interface SpecialDate {
@@ -181,22 +181,27 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
   try {
     console.log("Saving availability settings for business:", settings.businessId);
     
+    // Convert complex objects to JSON strings for the database
+    const specialDatesJson = JSON.stringify(settings.specialDates);
+    const blockedDatesJson = JSON.stringify(settings.blockedDates);
+    const regularScheduleJson = JSON.stringify({
+      monday: settings.scheduleSets[0].regularSchedule.monday,
+      tuesday: settings.scheduleSets[0].regularSchedule.tuesday,
+      wednesday: settings.scheduleSets[0].regularSchedule.wednesday,
+      thursday: settings.scheduleSets[0].regularSchedule.thursday,
+      friday: settings.scheduleSets[0].regularSchedule.friday,
+      saturday: settings.scheduleSets[0].regularSchedule.saturday,
+      sunday: settings.scheduleSets[0].regularSchedule.sunday,
+      _activeScheduleId: settings.activeScheduleId,
+      _scheduleSets: settings.scheduleSets
+    });
+    
     // Create a sanitized copy for saving to the database
     const dbObject = {
       business_id: settings.businessId,
-      regular_schedule: {
-        monday: settings.scheduleSets[0].regularSchedule.monday,
-        tuesday: settings.scheduleSets[0].regularSchedule.tuesday,
-        wednesday: settings.scheduleSets[0].regularSchedule.wednesday,
-        thursday: settings.scheduleSets[0].regularSchedule.thursday,
-        friday: settings.scheduleSets[0].regularSchedule.friday,
-        saturday: settings.scheduleSets[0].regularSchedule.saturday,
-        sunday: settings.scheduleSets[0].regularSchedule.sunday,
-        _activeScheduleId: settings.activeScheduleId,
-        _scheduleSets: settings.scheduleSets
-      },
-      special_dates: settings.specialDates,
-      blocked_dates: settings.blockedDates,
+      regular_schedule: regularScheduleJson,
+      special_dates: specialDatesJson,
+      blocked_dates: blockedDatesJson,
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours
@@ -206,9 +211,7 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
       business_id: dbObject.business_id,
       buffer_time_minutes: dbObject.buffer_time_minutes,
       advance_booking_days: dbObject.advance_booking_days,
-      min_advance_hours: dbObject.min_advance_hours,
-      special_dates_count: dbObject.special_dates.length,
-      blocked_dates_count: dbObject.blocked_dates.length
+      min_advance_hours: dbObject.min_advance_hours
     });
 
     // Save to database

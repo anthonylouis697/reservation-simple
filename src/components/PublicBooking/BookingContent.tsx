@@ -87,7 +87,11 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
   
   // Helper to determine if current step is complete
   const isCurrentStepComplete = () => {
-    const currentStepType = steps[currentStep]?.type;
+    if (!steps[currentStep]) {
+      return false;
+    }
+    
+    const currentStepType = steps[currentStep].type;
     
     switch (currentStepType) {
       case Steps.SERVICE:
@@ -172,7 +176,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
       <div className="py-10">
         <div className="max-w-3xl mx-auto px-4">
           <BusinessHeader 
-            businessName={businessName} 
+            businessName={businessName ?? ""}
             primaryColor={primaryColor} 
           />
           <div className="mt-10 flex justify-center">
@@ -184,7 +188,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
   }
   
   if (!hasServices || services.length === 0) {
-    return <EmptyServicesState businessName={businessName} />;
+    return <EmptyServicesState businessName={businessName ?? ""} />;
   }
   
   // Show confirmation page if booking is complete
@@ -193,7 +197,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
       <div className="py-10">
         <div className="max-w-3xl mx-auto px-4">
           <BusinessHeader 
-            businessName={businessName} 
+            businessName={businessName ?? ""}
             primaryColor={primaryColor} 
           />
           <BookingConfirmation 
@@ -210,35 +214,37 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     <div className="py-10">
       <div className="max-w-3xl mx-auto px-4">
         <BusinessHeader 
-          businessName={businessName} 
+          businessName={businessName ?? ""}
           primaryColor={primaryColor} 
         />
         
         <div className="mt-6">
           <StepNavigation 
-            steps={steps} 
+            steps={steps}
             currentStep={currentStep} 
             primaryColor={primaryColor} 
           />
           
           <div className="mt-6">
-            <StepRenderer 
-              currentStep={steps[currentStep]} 
-              services={services}
-              selectedService={selectedService}
-              setSelectedService={setSelectedService}
-              selectedDate={selectedDate}
-              setSelectedDate={setSelectedDate}
-              selectedTime={selectedTime}
-              setSelectedTime={setSelectedTime}
-              clientInfo={clientInfo}
-              setClientInfo={setClientInfo}
-              availableTimes={availableTimes}
-              isLoadingTimes={isLoadingTimes}
-              customTexts={customTexts}
-              getButtonStyle={getButtonStyle}
-              businessId={businessId}
-            />
+            {steps[currentStep] && (
+              <StepRenderer 
+                currentStep={steps[currentStep]}
+                services={services}
+                selectedService={selectedService}
+                setSelectedService={setSelectedService}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                selectedTime={selectedTime}
+                setSelectedTime={setSelectedTime}
+                clientInfo={clientInfo}
+                setClientInfo={setClientInfo}
+                availableTimes={availableTimes}
+                isLoadingTimes={isLoadingTimes}
+                customTexts={customTexts}
+                getButtonStyle={getButtonStyle}
+                businessId={businessId}
+              />
+            )}
           </div>
           
           <div className="mt-10 flex justify-between">
