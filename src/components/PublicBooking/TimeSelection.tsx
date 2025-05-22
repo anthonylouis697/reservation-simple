@@ -1,147 +1,48 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Service } from '@/types/service';
 import { BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
 import { defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
-import { Clock } from 'lucide-react';
-import { getAvailableTimeSlots } from '@/services/booking/availabilityService';
+import { Clock, Loader } from 'lucide-react';
 
 interface TimeSelectionProps {
   customTexts: BookingCustomTexts;
-  isLoadingTimes: boolean;
-  availableTimes: string[];
-  selectedTime: string | null;
-  setSelectedTime: (time: string) => void;
   selectedService: Service | null;
   selectedDate: Date | undefined;
+  availableTimes: string[];
+  isLoadingTimes: boolean;
+  selectedTime: string | null;
+  setSelectedTime: (time: string | null) => void;
   getButtonStyle: () => { className: string; style: { backgroundColor: string; borderColor: string } };
-  businessId?: string;
 }
 
 const TimeSelection = ({
   customTexts = defaultCustomTexts,
-  isLoadingTimes: propIsLoadingTimes,
-  availableTimes: propAvailableTimes = [],
-  selectedTime,
-  setSelectedTime,
   selectedService,
   selectedDate,
-  getButtonStyle,
-  businessId
+  availableTimes,
+  isLoadingTimes,
+  selectedTime,
+  setSelectedTime,
+  getButtonStyle
 }: TimeSelectionProps) => {
-  const [timeSlots, setTimeSlots] = useState<string[]>(propAvailableTimes);
-  const [loading, setLoading] = useState(propIsLoadingTimes);
-
-  // Ensure customTexts has safe defaults
+  // Ensure customTexts is never undefined
   const safeCustomTexts = customTexts || defaultCustomTexts;
-  const selectTimeLabel = safeCustomTexts.selectTimeLabel || "Sélectionnez un horaire";
-
-  // Load time slots from the backend based on availability settings
-  useEffect(() => {
-    const fetchTimeSlots = async () => {
-      if (!selectedDate || !selectedService || !businessId) {
-        console.log("Missing required data for fetching time slots:", { 
-          selectedDate, 
-          serviceId: selectedService?.id, 
-          businessId 
-        });
-        return;
-      }
-
-      setLoading(true);
-      try {
-        console.log(`Fetching available slots for ${businessId}, ${format(selectedDate, 'yyyy-MM-dd')}, duration: ${selectedService.duration}`);
-        
-        const availableSlots = await getAvailableTimeSlots(
-          businessId,
-          selectedDate,
-          selectedService.duration
-        );
-        
-        console.log(`Received ${availableSlots.length} time slots:`, availableSlots);
-        setTimeSlots(availableSlots);
-      } catch (error) {
-        console.error("Error fetching time slots:", error);
-        setTimeSlots([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Always use the API to get time slots if we have a business ID
-    if (businessId && selectedDate && selectedService) {
-      fetchTimeSlots();
-    } else if (propAvailableTimes && propAvailableTimes.length > 0) {
-      // Use provided availableTimes if present
-      setTimeSlots(propAvailableTimes);
-      setLoading(false);
-    } else {
-      // No business ID or provided times, use demo times
-      console.log("Using demo time slots (no businessId or provided times)");
-      setTimeSlots(generateTimeSlotsForDate(selectedDate));
-      setLoading(false);
-    }
-  }, [selectedDate, selectedService, businessId, propAvailableTimes]);
-
-  // Generate time slots based on the day (for demo purposes)
-  const generateTimeSlotsForDate = (date: Date | undefined) => {
-    if (!date) return [];
-    
-    // Get day of week (0 = Sunday, 1 = Monday, etc.)
-    const dayOfWeek = date.getDay();
-    
-    // Base time slots
-    const baseSlots = [
-      "09:00", "09:30", "10:00", "10:30", 
-      "11:00", "11:30", "14:00", "14:30",
-      "15:00", "15:30", "16:00", "16:30", 
-      "17:00", "17:30"
-    ];
-    
-    // Simulate different availabilities based on day of week
-    if (dayOfWeek === 0) { // Sunday - limited hours
-      return ["10:00", "10:30", "11:00", "11:30"];
-    } else if (dayOfWeek === 6) { // Saturday
-      return baseSlots.filter((_, index) => index % 2 === 0); // Every other slot
-    } else if (dayOfWeek === 5) { // Friday
-      return [...baseSlots, "18:00", "18:30"]; // Extended hours
-    } else if (dayOfWeek === 3) { // Wednesday
-      return baseSlots.filter(slot => !slot.startsWith("09")); // No early morning
-    }
-    
-    return baseSlots;
-  };
-
-  // Organize time slots by time of day
-  const organizeTimeSlots = (slots: string[]) => {
-    const morning: string[] = [];
-    const afternoon: string[] = [];
-    const evening: string[] = [];
-    
-    slots.forEach(time => {
-      const hour = parseInt(time.split(':')[0]);
-      if (hour < 12) {
-        morning.push(time);
-      } else if (hour < 17) {
-        afternoon.push(time);
-      } else {
-        evening.push(time);
-      }
-    });
-    
-    return { morning, afternoon, evening };
-  };
-  
-  const { morning, afternoon, evening } = organizeTimeSlots(timeSlots);
+  const timeSelectionTitle = safeCustomTexts.timeSelectionTitle || "Sélection de l'horaire";
+  const timeSelectionDescription = safeCustomTexts.timeSelectionDescription || "Choisissez un horaire disponible";
+  const noTimesMessage = safeCustomTexts.noAvailableTimesMessage || "Aucun horaire disponible pour cette date";
 
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold">
-          {selectTimeLabel}
+          {timeSelectionTitle}
         </h2>
+        <p className="text-gray-600 mt-2">
+          {timeSelectionDescription}
+        </p>
         
         {selectedService && selectedDate && (
           <div className="mt-4 p-3 bg-gray-50 rounded-md inline-block">
@@ -159,109 +60,46 @@ const TimeSelection = ({
         )}
       </div>
       
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-800"></div>
+      {isLoadingTimes ? (
+        <div className="flex justify-center py-8">
+          <div className="flex flex-col items-center">
+            <Loader className="h-8 w-8 animate-spin text-primary" />
+            <p className="mt-4 text-gray-600">Chargement des horaires disponibles...</p>
+          </div>
+        </div>
+      ) : availableTimes.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {availableTimes.map((time, index) => (
+            <button
+              key={index}
+              onClick={() => setSelectedTime(time)}
+              className={`
+                flex items-center justify-center gap-2 px-4 py-3 border rounded-md
+                ${selectedTime === time 
+                  ? `${getButtonStyle().className} text-white` 
+                  : 'border-gray-300 hover:border-gray-400 bg-white'
+                }
+              `}
+              style={selectedTime === time ? getButtonStyle().style : {}}
+            >
+              <Clock className={`h-4 w-4 ${selectedTime === time ? 'text-white' : 'text-gray-500'}`} />
+              <span>{time}</span>
+            </button>
+          ))}
         </div>
       ) : (
-        <div className="space-y-6">
-          {/* Matin */}
-          {morning.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="text-lg font-medium flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                <span>Matin</span>
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {morning.map((time) => (
-                  <button
-                    key={`morning-${time}`}
-                    className={`py-2 px-1 border rounded-md text-center transition-colors ${
-                      selectedTime === time
-                        ? "border-primary text-white"
-                        : "border-gray-300 hover:border-gray-400"
-                    }`}
-                    style={
-                      selectedTime === time
-                        ? getButtonStyle().style
-                        : {}
-                    }
-                    onClick={() => setSelectedTime(time)}
-                  >
-                    {time}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {/* Après-midi */}
-          {afternoon.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="text-lg font-medium flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                <span>Après-midi</span>
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {afternoon.map((time) => (
-                  <button
-                    key={`afternoon-${time}`}
-                    className={`py-2 px-1 border rounded-md text-center transition-colors ${
-                      selectedTime === time
-                        ? "border-primary text-white"
-                        : "border-gray-300 hover:border-gray-400"
-                    }`}
-                    style={
-                      selectedTime === time
-                        ? getButtonStyle().style
-                        : {}
-                    }
-                    onClick={() => setSelectedTime(time)}
-                  >
-                    {time}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {/* Soir */}
-          {evening.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="text-lg font-medium flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                <span>Soirée</span>
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {evening.map((time) => (
-                  <button
-                    key={`evening-${time}`}
-                    className={`py-2 px-1 border rounded-md text-center transition-colors ${
-                      selectedTime === time
-                        ? "border-primary text-white"
-                        : "border-gray-300 hover:border-gray-400"
-                    }`}
-                    style={
-                      selectedTime === time
-                        ? getButtonStyle().style
-                        : {}
-                    }
-                    onClick={() => setSelectedTime(time)}
-                  >
-                    {time}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+        <div className="text-center py-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100">
+            <Clock className="h-8 w-8 text-gray-400" />
+          </div>
+          <p className="mt-4 text-gray-600">{noTimesMessage}</p>
         </div>
       )}
       
-      {!loading && timeSlots.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-500">Aucun horaire disponible pour cette date</p>
-          <p className="text-sm text-gray-500 mt-2">Veuillez sélectionner une autre date</p>
-        </div>
+      {selectedTime && (
+        <p className="text-center mt-6 text-green-600 font-medium">
+          Horaire sélectionné: {selectedTime}
+        </p>
       )}
     </div>
   );

@@ -12,6 +12,7 @@ import { createBooking, type BookingResult } from '@/services/booking';
 import { toast } from 'sonner';
 import EmptyServicesState from './EmptyServicesState';
 import { BookingData } from '@/services/booking';
+import { getAvailableTimeSlots } from '@/services/booking/availabilityService';
 
 interface BookingContentProps {
   businessId: string;
@@ -42,13 +43,34 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     if (selectedDate && selectedService) {
       setSelectedTime(null);
       setIsLoadingTimes(true);
-      // In a real app, this would fetch from API
-      setTimeout(() => {
-        setAvailableTimes([]);
-        setIsLoadingTimes(false);
-      }, 500);
+      
+      // Fetch available times based on availability settings
+      const fetchAvailableTimes = async () => {
+        try {
+          if (!businessId || !selectedService) {
+            setAvailableTimes([]);
+            return;
+          }
+          
+          const times = await getAvailableTimeSlots(
+            businessId,
+            selectedDate,
+            selectedService.duration
+          );
+          
+          console.log("Available times fetched:", times);
+          setAvailableTimes(times);
+        } catch (error) {
+          console.error("Error fetching available times:", error);
+          setAvailableTimes([]);
+        } finally {
+          setIsLoadingTimes(false);
+        }
+      };
+      
+      fetchAvailableTimes();
     }
-  }, [selectedDate, selectedService]);
+  }, [selectedDate, selectedService, businessId]);
 
   // Handle step change
   const handleNextStep = () => {
@@ -228,7 +250,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
                 Précédent
               </button>
             ) : (
-              <div></div> {/* Spacer */}
+              <div></div> // Spacer
             )}
             
             {currentStep < steps.length - 1 ? (
