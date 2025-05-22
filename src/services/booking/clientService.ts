@@ -1,6 +1,4 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { v4 as uuidv4 } from 'uuid';
 
 // Client information types
 export interface ClientInfo {
@@ -9,7 +7,6 @@ export interface ClientInfo {
   email: string;
   phone?: string;
   notes?: string;
-  name?: string; // Added for compatibility
 }
 
 // Helper for combining first and last names
@@ -32,49 +29,83 @@ export const formatPhoneNumber = (phone: string): string => {
   return phone;
 };
 
-// Function to get or create a client
-export const getOrCreateClient = async (clientInfo: ClientInfo, businessId: string): Promise<string> => {
+// Gets or creates a client
+export const getOrCreateClient = async (
+  businessId: string,
+  clientInfo: ClientInfo
+): Promise<string> => {
   try {
     // Check if client already exists by email
     const { data: existingClients, error: searchError } = await supabase
       .from('clients')
       .select('id, email')
+      .eq('business_id', businessId)
       .eq('email', clientInfo.email)
-      .eq('business_id', businessId);
-      
+      .maybeSingle();
+
     if (searchError) {
-      console.error("Error searching for client:", searchError);
-      throw new Error("Failed to search for existing client");
+      console.error('Error searching for client:', searchError);
+      throw searchError;
     }
-    
-    // If client already exists, return the ID
-    if (existingClients && existingClients.length > 0) {
-      return existingClients[0].id;
+
+    // If client exists, return their ID
+    if (existingClients) {
+      console.log('Found existing client:', existingClients.id);
+      return existingClients.id;
     }
-    
-    // Client doesn't exist, create a new one
-    const newClientId = uuidv4();
-    
-    const { error: createError } = await supabase
+
+    // Otherwise create a new client
+    const { data: newClient, error: createError } = await supabase
       .from('clients')
       .insert({
-        id: newClientId,
+        business_id: businessId,
         first_name: clientInfo.firstName,
         last_name: clientInfo.lastName,
         email: clientInfo.email,
         phone: clientInfo.phone || null,
-        notes: clientInfo.notes || null,
-        business_id: businessId
-      });
-      
+        notes: clientInfo.notes || null
+      })
+      .select('id')
+      .single();
+
     if (createError) {
-      console.error("Error creating client:", createError);
-      throw new Error("Failed to create client");
+      console.error('Error creating client:', createError);
+      throw createError;
+    }
+
+    console.log('Created new client:', newClient.id);
+    return newClient.id;
+  } catch (error) {
+    console.error('Error in getOrCreateClient:', error);
+    throw new Error('Failed to process client information');
+  }
+};
+
+// Get a client by id
+export const getClientById = async (clientId: string): Promise<ClientInfo | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('first_name, last_name, email, phone, notes')
+      .eq('id', clientId)
+      .single();
+      
+    if (error) {
+      console.error('Error getting client:', error);
+      return null;
     }
     
-    return newClientId;
+    if (!data) return null;
+    
+    return {
+      firstName: data.first_name,
+      lastName: data.last_name,
+      email: data.email,
+      phone: data.phone || undefined,
+      notes: data.notes || undefined
+    };
   } catch (error) {
-    console.error("Error in getOrCreateClient:", error);
-    throw error;
+    console.error('Error in getClientById:', error);
+    return null;
   }
 };

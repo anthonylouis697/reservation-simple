@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 import { Json } from '@/integrations/supabase/types';
@@ -197,8 +196,8 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
     
     // Convert JSON objects to proper format for database
     // First, stringify the complex objects to ensure they're stored as JSON strings
-    const specialDatesJson = JSON.stringify(settings.specialDates);
-    const blockedDatesJson = JSON.stringify(settings.blockedDates);
+    const specialDatesJson = JSON.stringify(settings.specialDates) as unknown as Json;
+    const blockedDatesJson = JSON.stringify(settings.blockedDates) as unknown as Json;
     const scheduleSetsJson = JSON.stringify(settings.scheduleSets);
     
     // Create a regular schedule JSON object without circular references
@@ -214,14 +213,14 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
       _scheduleSets: scheduleSetsJson
     };
     
-    const regularScheduleStr = JSON.stringify(regularScheduleObj);
+    const regularScheduleStr = JSON.stringify(regularScheduleObj) as unknown as Json;
     
     // Create a sanitized object for saving to the database
     const dbObject = {
       business_id: settings.businessId,
-      regular_schedule: regularScheduleStr as unknown as Json,
-      special_dates: specialDatesJson as unknown as Json,
-      blocked_dates: blockedDatesJson as unknown as Json, 
+      regular_schedule: regularScheduleStr,
+      special_dates: specialDatesJson,
+      blocked_dates: blockedDatesJson, 
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours

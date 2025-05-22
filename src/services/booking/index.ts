@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 import { BookingData, BookingResult, Booking } from './types';
-import { ClientInfo, getOrCreateClient } from './clientService';
+import { ClientInfo } from './clientService';
 
 // Re-export types
 export type { BookingData, BookingResult, Booking, ClientInfo };
@@ -64,8 +64,21 @@ export const getAllBookings = async (businessId: string): Promise<Booking[]> => 
     const { data, error } = await supabase
       .from('reservations')
       .select(`
-        *,
-        clients (*)
+        id,
+        business_id,
+        service_id,
+        service_name,
+        client_first_name,
+        client_last_name, 
+        client_email,
+        client_phone,
+        start_time,
+        end_time,
+        notes,
+        status,
+        created_at,
+        updated_at,
+        clients(*)
       `)
       .eq('business_id', businessId)
       .order('start_time', { ascending: true });
@@ -83,10 +96,10 @@ export const getAllBookings = async (businessId: string): Promise<Booking[]> => 
         service_id: booking.service_id,
         service_name: booking.service_name || "Service", 
         client_id: booking.client_id,
-        client_first_name: clientData.first_name || "",
-        client_last_name: clientData.last_name || "",
-        client_email: clientData.email || "",
-        client_phone: clientData.phone || "",
+        client_first_name: booking.client_first_name || clientData.first_name || "",
+        client_last_name: booking.client_last_name || clientData.last_name || "",
+        client_email: booking.client_email || clientData.email || "",
+        client_phone: booking.client_phone || clientData.phone || "",
         start_time: booking.start_time,
         end_time: booking.end_time,
         notes: booking.notes || null,
@@ -94,10 +107,10 @@ export const getAllBookings = async (businessId: string): Promise<Booking[]> => 
         created_at: booking.created_at,
         // Adding client property for compatibility
         client: {
-          name: `${clientData.first_name || ''} ${clientData.last_name || ''}`.trim(),
-          email: clientData.email || '',
-          phone: clientData.phone || undefined,
-          notes: clientData.notes || undefined
+          name: `${booking.client_first_name || clientData.first_name || ''} ${booking.client_last_name || clientData.last_name || ''}`.trim(),
+          email: booking.client_email || clientData.email || '',
+          phone: booking.client_phone || clientData.phone || '',
+          notes: clientData.notes || ''
         }
       };
       
