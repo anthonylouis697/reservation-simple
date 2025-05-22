@@ -13,8 +13,8 @@ export { combineDateTime } from './dateUtils';
 export const createBooking = async (bookingData: BookingData): Promise<BookingResult> => {
   const startTime = combineDateTime(bookingData.date, bookingData.time);
   
-  // Calculate end time based on service duration (mock duration for now)
-  const duration = 60; // Mock service duration in minutes
+  // Calculate end time based on service duration
+  const duration = bookingData.serviceDuration || 60;
   const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
   
   try {
@@ -40,6 +40,10 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
     }).select().single();
     
     if (error) throw error;
+    
+    if (!data) {
+      throw new Error('Failed to create booking: No data returned');
+    }
     
     // Return booking result
     return {
@@ -70,13 +74,16 @@ export const getAllBookings = async (businessId: string): Promise<Booking[]> => 
         service_id,
         service_name,
         client_id,
+        client_first_name,
+        client_last_name,
+        client_email,
+        client_phone,
         start_time,
         end_time,
         notes,
         status,
         created_at,
-        updated_at,
-        clients(id, first_name, last_name, email, phone, notes)
+        updated_at
       `)
       .eq('business_id', businessId)
       .order('start_time', { ascending: true });
@@ -86,11 +93,13 @@ export const getAllBookings = async (businessId: string): Promise<Booking[]> => 
       return [];
     }
     
-    // Process the raw bookings to add derived fields
-    const processedBookings: Booking[] = (data || []).map(booking => {
-      // Make sure we're handling the case where clients might be null
-      const clientData = booking.clients || {};
-      
+    if (!data || !Array.isArray(data)) {
+      console.log("No bookings found or invalid data format");
+      return [];
+    }
+    
+    // Process the raw bookings
+    const processedBookings: Booking[] = data.map(booking => {
       // Create a booking object with proper fields
       const result: Booking = {
         id: booking.id,
@@ -98,21 +107,22 @@ export const getAllBookings = async (businessId: string): Promise<Booking[]> => 
         service_id: booking.service_id,
         service_name: booking.service_name || "Service",
         client_id: booking.client_id,
-        client_first_name: clientData.first_name || "",
-        client_last_name: clientData.last_name || "",
-        client_email: clientData.email || "",
-        client_phone: clientData.phone || "",
+        client_first_name: booking.client_first_name || "",
+        client_last_name: booking.client_last_name || "",
+        client_email: booking.client_email || "",
+        client_phone: booking.client_phone || "",
         start_time: booking.start_time,
         end_time: booking.end_time,
         notes: booking.notes || null,
         status: booking.status,
         created_at: booking.created_at,
+        updated_at: booking.updated_at,
         // Adding client property for compatibility
         client: {
-          name: `${clientData.first_name || ''} ${clientData.last_name || ''}`.trim(),
-          email: clientData.email || '',
-          phone: clientData.phone || '',
-          notes: clientData.notes || ''
+          name: `${booking.client_first_name || ''} ${booking.client_last_name || ''}`.trim(),
+          email: booking.client_email || '',
+          phone: booking.client_phone || '',
+          notes: booking.notes || ''
         }
       };
       

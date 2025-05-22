@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 import { Json } from '@/integrations/supabase/types';
@@ -195,11 +194,10 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
   try {
     console.log("Saving availability settings for business:", settings.businessId);
     
-    // Convert JSON objects to proper format for database
-    // First, stringify the complex objects to ensure they're stored as JSON strings
-    const specialDatesJson = JSON.stringify(settings.specialDates) as unknown as Json;
-    const blockedDatesJson = JSON.stringify(settings.blockedDates) as unknown as Json;
+    // Convert complex objects to properly formatted JSON for database storage
     const scheduleSetsJson = JSON.stringify(settings.scheduleSets);
+    const specialDatesJson = JSON.stringify(settings.specialDates);
+    const blockedDatesJson = JSON.stringify(settings.blockedDates);
     
     // Create a regular schedule JSON object without circular references
     const regularScheduleObj = {
@@ -214,15 +212,14 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
       _scheduleSets: scheduleSetsJson
     };
     
-    const regularScheduleStr = JSON.stringify(regularScheduleObj) as unknown as Json;
+    const regularScheduleJson = JSON.stringify(regularScheduleObj) as unknown as Json;
     
     // Create a sanitized object for saving to the database
     const dbObject = {
       business_id: settings.businessId,
-      regular_schedule: regularScheduleStr,
-      // Fix: Ensure these are Json type not Json[] type
-      special_dates: specialDatesJson,
-      blocked_dates: blockedDatesJson, 
+      regular_schedule: regularScheduleJson,
+      special_dates: specialDatesJson as unknown as Json,
+      blocked_dates: blockedDatesJson as unknown as Json,
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours
@@ -255,7 +252,7 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
   }
 };
 
-// Helper function to get day name from date - EXPORT THIS FUNCTION
+// Helper function to get day name from date
 export const getDayName = (date: Date): 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday' => {
   const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
   return days[date.getDay()] as 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';

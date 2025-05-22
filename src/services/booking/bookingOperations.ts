@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { BookingData, BookingResult, Booking } from './types';
+import { BookingData, BookingResult, Booking, DbClient, DbReservation } from './types';
 import { getOrCreateClient, ClientInfo } from './clientService';
 import { combineDateTime } from './dateUtils';
 
@@ -86,7 +86,14 @@ export const getBusinessBookings = async (
       .from('reservations')
       .select(`
         *,
-        clients (*)
+        clients (
+          id,
+          first_name,
+          last_name,
+          email,
+          phone,
+          notes
+        )
       `)
       .eq('business_id', businessId)
       .order('start_time', { ascending: true });
@@ -104,7 +111,8 @@ export const getBusinessBookings = async (
     }
 
     const bookings: Booking[] = (data || []).map(booking => {
-      const clientData = booking.clients || {};
+      // Safely access client data with default empty object
+      const clientData: DbClient = (booking.clients || {}) as DbClient;
       
       // Format the booking data
       const result: Booking = {
@@ -122,7 +130,7 @@ export const getBusinessBookings = async (
         notes: booking.notes || null,
         status: booking.status,
         created_at: booking.created_at,
-        updated_at: booking.updated_at,
+        
         // Add the client field for compatibility
         client: {
           name: `${clientData.first_name || ''} ${clientData.last_name || ''}`.trim(),
@@ -166,7 +174,14 @@ export const getUpcomingBookings = async (businessId: string): Promise<Booking[]
       .from('reservations')
       .select(`
         *,
-        clients (*)
+        clients (
+          id,
+          first_name,
+          last_name,
+          email,
+          phone,
+          notes
+        )
       `)
       .eq('business_id', businessId)
       .gte('start_time', now)
@@ -182,35 +197,36 @@ export const getUpcomingBookings = async (businessId: string): Promise<Booking[]
     const bookings = data || [];
     
     return bookings.map(booking => {
+      // Safe access for clients
+      const clientData = booking.clients || {};
+      
       return {
         id: booking.id,
+        business_id: booking.business_id,
+        service_id: booking.service_id,
+        service_name: booking.service_name || 'Service',
+        client_id: booking.client_id,
+        client_first_name: clientData.first_name || '',
+        client_last_name: clientData.last_name || '',
+        client_email: clientData.email || '',
+        client_phone: clientData.phone || '',
+        start_time: booking.start_time,
+        end_time: booking.end_time,
+        notes: booking.notes || '',
+        status: booking.status,
+        created_at: booking.created_at,
         date: new Date(booking.start_time),
         time: new Date(booking.start_time).toLocaleTimeString('fr-FR', {
           hour: '2-digit',
           minute: '2-digit'
         }),
-        status: booking.status as 'confirmed' | 'cancelled' | 'pending',
         serviceId: booking.service_id,
-        service_id: booking.service_id,
-        service_name: booking.service_name || 'Service',
         client: {
-          name: booking.clients ? `${booking.clients.first_name} ${booking.clients.last_name}` : '',
-          email: booking.clients?.email || '',
-          phone: booking.clients?.phone || '',
-          notes: booking.clients?.notes || ''
-        },
-        // Add all the other needed fields for Booking type
-        business_id: booking.business_id,
-        client_id: booking.client_id,
-        client_first_name: booking.clients?.first_name || '',
-        client_last_name: booking.clients?.last_name || '',
-        client_email: booking.clients?.email || '',
-        client_phone: booking.clients?.phone || '',
-        start_time: booking.start_time,
-        end_time: booking.end_time,
-        notes: booking.notes,
-        created_at: booking.created_at,
-        updated_at: booking.updated_at
+          name: `${clientData.first_name || ''} ${clientData.last_name || ''}`.trim(),
+          email: clientData.email || '',
+          phone: clientData.phone || '',
+          notes: clientData.notes || ''
+        }
       };
     });
   } catch (error) {

@@ -16,6 +16,7 @@ interface DateSelectionProps {
   getButtonStyle: () => { className: string; style: { backgroundColor: string; borderColor: string } };
 }
 
+// Export the component
 const DateSelection = ({
   selectedDate,
   onSelectDate,
@@ -119,8 +120,7 @@ const DateSelection = ({
               day_today: "bg-accent text-accent-foreground"
             }}
             styles={{
-              // Fix: Remove day_selected as it doesn't exist in the expected type
-              selected: getButtonStyle().style
+              day_selected: getButtonStyle().style
             }}
             fromDate={new Date()}
             toDate={addMonths(new Date(), 3)}
