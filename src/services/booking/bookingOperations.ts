@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { BookingData, BookingResult, Booking, DbClient, DbReservation } from './types';
 import { getOrCreateClient, ClientInfo } from './clientService';
@@ -112,14 +111,14 @@ export const getBusinessBookings = async (
 
     const bookings: Booking[] = (data || []).map(booking => {
       // Safely access client data with default empty object
-      const clientData: DbClient = ((booking.clients as any) || {}) as DbClient;
+      const clientData = ((booking.clients as any) || {}) as DbClient;
       
       // Format the booking data
       const result: Booking = {
         id: booking.id,
         business_id: booking.business_id,
         service_id: booking.service_id,
-        service_name: booking.service_name || 'Service',
+        service_name: booking.service_name || 'Service', // Use fallback if service_name doesn't exist
         client_id: booking.client_id,
         client_first_name: clientData.first_name || '',
         client_last_name: clientData.last_name || '',
@@ -133,8 +132,7 @@ export const getBusinessBookings = async (
         
         // Add the client field for compatibility
         client: {
-          name: clientData.first_name && clientData.last_name ? 
-            `${clientData.first_name} ${clientData.last_name}`.trim() : 'Client',
+          name: ((clientData.first_name || '') + ' ' + (clientData.last_name || '')).trim() || 'Client',
           email: clientData.email || '',
           phone: clientData.phone || '',
           notes: clientData.notes || ''
@@ -199,13 +197,13 @@ export const getUpcomingBookings = async (businessId: string): Promise<Booking[]
     
     return bookings.map(booking => {
       // Safe access for clients with default values 
-      const clientData = (booking.clients as any) || {};
+      const clientData = ((booking.clients as any) || {}) as DbClient;
       
       return {
         id: booking.id,
         business_id: booking.business_id,
         service_id: booking.service_id,
-        service_name: booking.service_name || 'Service',
+        service_name: booking.service_name || 'Service', // Use fallback if service_name doesn't exist
         client_id: booking.client_id,
         client_first_name: clientData.first_name || '',
         client_last_name: clientData.last_name || '',
@@ -223,8 +221,8 @@ export const getUpcomingBookings = async (businessId: string): Promise<Booking[]
         }),
         serviceId: booking.service_id,
         client: {
-          name: clientData.first_name && clientData.last_name ? 
-            `${clientData.first_name} ${clientData.last_name}`.trim() : 'Client',
+          // Handle possible null/undefined values gracefully
+          name: ((clientData.first_name || '') + ' ' + (clientData.last_name || '')).trim() || 'Client',
           email: clientData.email || '',
           phone: clientData.phone || '',
           notes: clientData.notes || ''

@@ -5,7 +5,7 @@ export interface BookingData {
   businessId: string;
   serviceId: string;
   serviceName: string;
-  serviceDuration?: number;
+  serviceDuration?: number;  // Added missing property
   date: Date;
   time: string;
   clientInfo: {
@@ -77,6 +77,10 @@ export interface DbReservation {
   service_id?: string;
   service_name?: string;
   client_id?: string;
+  client_first_name?: string; // Added
+  client_last_name?: string;  // Added
+  client_email?: string;      // Added
+  client_phone?: string;      // Added
   start_time: string;
   end_time: string;
   status: string;

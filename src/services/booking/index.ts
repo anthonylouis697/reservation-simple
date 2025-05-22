@@ -100,25 +100,25 @@ export const getAllBookings = async (businessId: string): Promise<Booking[]> => 
     
     // Process the raw bookings
     const processedBookings: Booking[] = data.map(booking => {
-      // Create a booking object with proper fields
+      // Create a booking object with proper fields and fallback values
       const result: Booking = {
-        id: booking.id,
-        business_id: booking.business_id,
-        service_id: booking.service_id,
+        id: booking.id || "",
+        business_id: booking.business_id || "",
+        service_id: booking.service_id || "",
         service_name: booking.service_name || "Service",
         client_id: booking.client_id,
         client_first_name: booking.client_first_name || "",
         client_last_name: booking.client_last_name || "",
         client_email: booking.client_email || "",
         client_phone: booking.client_phone || "",
-        start_time: booking.start_time,
-        end_time: booking.end_time,
+        start_time: booking.start_time || new Date().toISOString(),
+        end_time: booking.end_time || new Date().toISOString(),
         notes: booking.notes || null,
-        status: booking.status,
-        created_at: booking.created_at,
+        status: booking.status || "pending",
+        created_at: booking.created_at || new Date().toISOString(),
         // Adding client property for compatibility
         client: {
-          name: `${booking.client_first_name || ''} ${booking.client_last_name || ''}`.trim(),
+          name: `${booking.client_first_name || ''} ${booking.client_last_name || ''}`.trim() || "Client",
           email: booking.client_email || '',
           phone: booking.client_phone || '',
           notes: booking.notes || ''

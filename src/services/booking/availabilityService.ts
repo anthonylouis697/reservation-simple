@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 import { Json } from '@/integrations/supabase/types';
@@ -201,33 +200,23 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
   try {
     console.log("Saving availability settings for business:", settings.businessId);
     
-    // Convert complex objects to properly formatted JSON strings
-    const scheduleSetsJson = JSON.stringify(settings.scheduleSets);
-    const specialDatesJson = JSON.stringify(settings.specialDates);
-    const blockedDatesJson = JSON.stringify(settings.blockedDates);
-    
-    // Create a regular schedule JSON object without circular references
-    const regularScheduleObj = {
-      monday: settings.scheduleSets[0].regularSchedule.monday,
-      tuesday: settings.scheduleSets[0].regularSchedule.tuesday,
-      wednesday: settings.scheduleSets[0].regularSchedule.wednesday,
-      thursday: settings.scheduleSets[0].regularSchedule.thursday,
-      friday: settings.scheduleSets[0].regularSchedule.friday,
-      saturday: settings.scheduleSets[0].regularSchedule.saturday,
-      sunday: settings.scheduleSets[0].regularSchedule.sunday,
-      _activeScheduleId: settings.activeScheduleId,
-      _scheduleSets: scheduleSetsJson
-    };
-    
-    const regularScheduleJson = JSON.stringify(regularScheduleObj) as unknown as Json;
-    
     // Create a sanitized object for saving to the database with proper typing
     const dbObject = {
       business_id: settings.businessId,
-      regular_schedule: regularScheduleJson,
-      // Use empty arrays as the default fallback value for these JSON arrays
-      special_dates: specialDatesJson as unknown as Json[],
-      blocked_dates: blockedDatesJson as unknown as Json[],
+      regular_schedule: JSON.stringify({
+        monday: settings.scheduleSets[0].regularSchedule.monday,
+        tuesday: settings.scheduleSets[0].regularSchedule.tuesday,
+        wednesday: settings.scheduleSets[0].regularSchedule.wednesday,
+        thursday: settings.scheduleSets[0].regularSchedule.thursday,
+        friday: settings.scheduleSets[0].regularSchedule.friday,
+        saturday: settings.scheduleSets[0].regularSchedule.saturday,
+        sunday: settings.scheduleSets[0].regularSchedule.sunday,
+        _activeScheduleId: settings.activeScheduleId,
+        _scheduleSets: JSON.stringify(settings.scheduleSets)
+      }) as any,
+      // Convert arrays to proper Json[] types
+      special_dates: settings.specialDates as any[],
+      blocked_dates: settings.blockedDates as any[],
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours
