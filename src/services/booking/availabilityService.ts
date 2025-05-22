@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 
@@ -125,18 +124,21 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
   try {
     const { error } = await supabase
       .from('availability_settings')
-      .upsert({
-        business_id: settings.businessId,
-        active_schedule_id: settings.activeScheduleId,
-        schedule_sets: settings.scheduleSets,
-        special_dates: settings.specialDates,
-        blocked_dates: settings.blockedDates,
-        buffer_time_minutes: settings.bufferTimeMinutes,
-        advance_booking_days: settings.advanceBookingDays,
-        min_advance_hours: settings.minAdvanceHours
-      }, {
-        onConflict: 'business_id'
-      });
+      .upsert(
+        {
+          business_id: settings.businessId,
+          active_schedule_id: settings.activeScheduleId,
+          schedule_sets: settings.scheduleSets,
+          special_dates: settings.specialDates,
+          blocked_dates: settings.blockedDates,
+          buffer_time_minutes: settings.bufferTimeMinutes,
+          advance_booking_days: settings.advanceBookingDays,
+          min_advance_hours: settings.minAdvanceHours
+        },
+        {
+          onConflict: 'business_id'
+        }
+      );
     
     if (error) throw error;
     
