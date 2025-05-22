@@ -77,10 +77,10 @@ export interface DbReservation {
   service_id?: string;
   service_name?: string;
   client_id?: string;
-  client_first_name?: string; // Added
-  client_last_name?: string;  // Added
-  client_email?: string;      // Added
-  client_phone?: string;      // Added
+  client_first_name?: string;
+  client_last_name?: string;
+  client_email?: string;
+  client_phone?: string;
   start_time: string;
   end_time: string;
   status: string;
@@ -88,4 +88,20 @@ export interface DbReservation {
   created_at?: string;
   updated_at?: string;
   clients?: DbClient;
+}
+
+// Define a type for database row with clients join
+export interface DbReservationWithClient {
+  id: string;
+  business_id: string;
+  service_id: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  notes?: string;
+  client_id?: string;
+  created_at: string;
+  updated_at?: string;
+  clients?: DbClient;
+  service_name?: string; // Add this to match what we're trying to access
 }

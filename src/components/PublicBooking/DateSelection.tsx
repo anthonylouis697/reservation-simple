@@ -113,10 +113,6 @@ const DateSelection = ({
             locale={fr}
             className="border rounded-md p-3"
             classNames={{
-              day_today: "bg-accent text-accent-foreground"
-            }}
-            // Fix: Remove the styles prop with day_selected and use classNames instead
-            classNames={{
               day_today: "bg-accent text-accent-foreground",
               day_selected: cn("bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground")
             }}

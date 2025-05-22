@@ -1,5 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { BookingData, BookingResult, Booking, DbClient, DbReservation } from './types';
+import { BookingData, BookingResult, Booking, DbClient, DbReservation, DbReservationWithClient } from './types';
 import { getOrCreateClient, ClientInfo } from './clientService';
 import { combineDateTime } from './dateUtils';
 
@@ -110,25 +111,28 @@ export const getBusinessBookings = async (
     }
 
     const bookings: Booking[] = (data || []).map(booking => {
+      // Cast booking to our type with correct structure
+      const bookingData = booking as unknown as DbReservationWithClient;
+      
       // Safely access client data with default empty object
-      const clientData = ((booking.clients as any) || {}) as DbClient;
+      const clientData = ((bookingData.clients || {}) as DbClient);
       
       // Format the booking data
       const result: Booking = {
-        id: booking.id,
-        business_id: booking.business_id,
-        service_id: booking.service_id,
-        service_name: booking.service_name || 'Service', // Use fallback if service_name doesn't exist
-        client_id: booking.client_id,
+        id: bookingData.id,
+        business_id: bookingData.business_id,
+        service_id: bookingData.service_id,
+        service_name: bookingData.service_name || 'Service', // Use fallback if service_name doesn't exist
+        client_id: bookingData.client_id,
         client_first_name: clientData.first_name || '',
         client_last_name: clientData.last_name || '',
         client_email: clientData.email || '',
         client_phone: clientData.phone || '',
-        start_time: booking.start_time,
-        end_time: booking.end_time,
-        notes: booking.notes || null,
-        status: booking.status,
-        created_at: booking.created_at,
+        start_time: bookingData.start_time,
+        end_time: bookingData.end_time,
+        notes: bookingData.notes || null,
+        status: bookingData.status,
+        created_at: bookingData.created_at,
         
         // Add the client field for compatibility
         client: {
@@ -140,8 +144,8 @@ export const getBusinessBookings = async (
       };
       
       // Add date and time fields for convenience
-      if (booking.start_time) {
-        const startDateTime = new Date(booking.start_time);
+      if (bookingData.start_time) {
+        const startDateTime = new Date(bookingData.start_time);
         result.date = startDateTime;
         result.time = startDateTime.toLocaleTimeString('fr-FR', {
           hour: '2-digit',
@@ -150,7 +154,7 @@ export const getBusinessBookings = async (
       }
       
       // Add serviceId field for compatibility
-      result.serviceId = booking.service_id;
+      result.serviceId = bookingData.service_id;
       
       return result;
     });
@@ -196,30 +200,33 @@ export const getUpcomingBookings = async (businessId: string): Promise<Booking[]
     const bookings = data || [];
     
     return bookings.map(booking => {
+      // Cast booking to our type with correct structure
+      const bookingData = booking as unknown as DbReservationWithClient;
+      
       // Safe access for clients with default values 
-      const clientData = ((booking.clients as any) || {}) as DbClient;
+      const clientData = ((bookingData.clients || {}) as DbClient);
       
       return {
-        id: booking.id,
-        business_id: booking.business_id,
-        service_id: booking.service_id,
-        service_name: booking.service_name || 'Service', // Use fallback if service_name doesn't exist
-        client_id: booking.client_id,
+        id: bookingData.id,
+        business_id: bookingData.business_id,
+        service_id: bookingData.service_id,
+        service_name: bookingData.service_name || 'Service', // Use fallback if service_name doesn't exist
+        client_id: bookingData.client_id,
         client_first_name: clientData.first_name || '',
         client_last_name: clientData.last_name || '',
         client_email: clientData.email || '',
         client_phone: clientData.phone || '',
-        start_time: booking.start_time,
-        end_time: booking.end_time,
-        notes: booking.notes || '',
-        status: booking.status,
-        created_at: booking.created_at,
-        date: new Date(booking.start_time),
-        time: new Date(booking.start_time).toLocaleTimeString('fr-FR', {
+        start_time: bookingData.start_time,
+        end_time: bookingData.end_time,
+        notes: bookingData.notes || '',
+        status: bookingData.status,
+        created_at: bookingData.created_at,
+        date: new Date(bookingData.start_time),
+        time: new Date(bookingData.start_time).toLocaleTimeString('fr-FR', {
           hour: '2-digit',
           minute: '2-digit'
         }),
-        serviceId: booking.service_id,
+        serviceId: bookingData.service_id,
         client: {
           // Handle possible null/undefined values gracefully
           name: ((clientData.first_name || '') + ' ' + (clientData.last_name || '')).trim() || 'Client',

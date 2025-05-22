@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
-import { BookingData, BookingResult, Booking } from './types';
+import { BookingData, BookingResult, Booking, DbReservationWithClient } from './types';
 import { ClientInfo } from './clientService';
 
 // Re-export types
@@ -100,40 +100,43 @@ export const getAllBookings = async (businessId: string): Promise<Booking[]> => 
     
     // Process the raw bookings
     const processedBookings: Booking[] = data.map(booking => {
+      // Cast booking to our updated type
+      const bookingData = booking as unknown as DbReservationWithClient;
+      
       // Create a booking object with proper fields and fallback values
       const result: Booking = {
-        id: booking.id || "",
-        business_id: booking.business_id || "",
-        service_id: booking.service_id || "",
-        service_name: booking.service_name || "Service",
-        client_id: booking.client_id,
-        client_first_name: booking.client_first_name || "",
-        client_last_name: booking.client_last_name || "",
-        client_email: booking.client_email || "",
-        client_phone: booking.client_phone || "",
-        start_time: booking.start_time || new Date().toISOString(),
-        end_time: booking.end_time || new Date().toISOString(),
-        notes: booking.notes || null,
-        status: booking.status || "pending",
-        created_at: booking.created_at || new Date().toISOString(),
+        id: bookingData.id || "",
+        business_id: bookingData.business_id || "",
+        service_id: bookingData.service_id || "",
+        service_name: bookingData.service_name || "Service",
+        client_id: bookingData.client_id,
+        client_first_name: bookingData.client_first_name || "",
+        client_last_name: bookingData.client_last_name || "",
+        client_email: bookingData.client_email || "",
+        client_phone: bookingData.client_phone || "",
+        start_time: bookingData.start_time || new Date().toISOString(),
+        end_time: bookingData.end_time || new Date().toISOString(),
+        notes: bookingData.notes || null,
+        status: bookingData.status || "pending",
+        created_at: bookingData.created_at || new Date().toISOString(),
         // Adding client property for compatibility
         client: {
-          name: `${booking.client_first_name || ''} ${booking.client_last_name || ''}`.trim() || "Client",
-          email: booking.client_email || '',
-          phone: booking.client_phone || '',
-          notes: booking.notes || ''
+          name: `${bookingData.client_first_name || ''} ${bookingData.client_last_name || ''}`.trim() || "Client",
+          email: bookingData.client_email || '',
+          phone: bookingData.client_phone || '',
+          notes: bookingData.notes || ''
         }
       };
       
       // Add date and time fields from start_time
-      if (booking.start_time) {
-        const startTime = new Date(booking.start_time);
+      if (bookingData.start_time) {
+        const startTime = new Date(bookingData.start_time);
         result.date = startTime;
         result.time = startTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
       }
       
       // Add serviceId field for compatibility
-      result.serviceId = booking.service_id;
+      result.serviceId = bookingData.service_id;
       
       return result;
     });
