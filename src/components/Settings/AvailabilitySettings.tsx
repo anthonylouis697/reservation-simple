@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useCallback } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
 import {
@@ -7,7 +8,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import {
   Select,
@@ -27,7 +27,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Clock, Plus, X, Calendar as CalendarIcon, CalendarX } from "lucide-react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Dialog,
   DialogContent,
@@ -100,12 +99,44 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
     }
   }, [initialSettings]);
 
+  // Debounced change notification
+  const debouncedNotifyChange = useCallback(
+    // Use a simple debounce to avoid too many saves
+    (() => {
+      let timeout: NodeJS.Timeout | null = null;
+      return (settings: AvailabilitySettingsType) => {
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          if (onChange) onChange(settings);
+        }, 1000); // Save after 1 second of inactivity
+      };
+    })(),
+    [onChange]
+  );
+
   // When settings change, notify parent component
   useEffect(() => {
-    if (!onChange) return;
+    if (!onChange || !initialSettings) return;
     
     const currentSettings: AvailabilitySettingsType = {
-      businessId: initialSettings?.businessId || '',
+      businessId: initialSettings.businessId,
+      activeScheduleId: activeScheduleId,
+      scheduleSets: scheduleSets,
+      specialDates: specialDates,
+      blockedDates: blockedDates,
+      bufferTimeMinutes: availabilityBuffer,
+      advanceBookingDays: advanceBookingLimit,
+      minAdvanceHours: initialSettings?.minAdvanceHours || 24
+    };
+    
+    debouncedNotifyChange(currentSettings);
+  }, [scheduleSets, activeScheduleId, specialDates, blockedDates, availabilityBuffer, advanceBookingLimit, initialSettings, debouncedNotifyChange]);
+
+  const notifyChange = () => {
+    if (!onChange || !initialSettings) return;
+    
+    const currentSettings: AvailabilitySettingsType = {
+      businessId: initialSettings.businessId,
       activeScheduleId: activeScheduleId,
       scheduleSets: scheduleSets,
       specialDates: specialDates,
@@ -116,7 +147,7 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
     };
     
     onChange(currentSettings);
-  }, [scheduleSets, activeScheduleId, specialDates, blockedDates, availabilityBuffer, advanceBookingLimit, initialSettings, onChange]);
+  };
 
   const getActiveSchedule = (): ScheduleSet | undefined => {
     return scheduleSets.find(s => s.id === activeScheduleId);
@@ -142,6 +173,9 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
         return schedule;
       })
     );
+    
+    // Notify of changes for immediate save
+    setTimeout(notifyChange, 300);
   };
 
   const handleAddTimeSlot = (day: WeekDay, scheduleId?: number) => {
@@ -167,6 +201,8 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
         return schedule;
       })
     );
+    
+    setTimeout(notifyChange, 300);
   };
 
   const handleRemoveTimeSlot = (day: WeekDay, index: number, scheduleId?: number) => {
@@ -189,6 +225,8 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
         return schedule;
       })
     );
+    
+    setTimeout(notifyChange, 300);
   };
 
   const handleTimeChange = (day: WeekDay, index: number, field: "start" | "end", value: string, scheduleId?: number) => {
@@ -215,6 +253,8 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
         return schedule;
       })
     );
+    
+    setTimeout(notifyChange, 300);
   };
 
   const handleAddBlockedTime = () => {
@@ -232,6 +272,8 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
     setBlockedDates([...filteredDates, newBlockedDate]);
     setBlockDateDialog(false);
     toast.success("Date bloquée avec succès");
+    
+    setTimeout(notifyChange, 300);
   };
   
   const handleAddSpecialDate = () => {
@@ -250,16 +292,22 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
     setSpecialDates([...filteredDates, newSpecialDate]);
     setSpecialDateDialog(false);
     toast.success("Exception de date ajoutée avec succès");
+    
+    setTimeout(notifyChange, 300);
   };
   
   const handleRemoveBlockedDate = (date: string) => {
     setBlockedDates(prev => prev.filter(bd => bd.date !== date));
     toast.success("Date débloquée");
+    
+    setTimeout(notifyChange, 300);
   };
   
   const handleRemoveSpecialDate = (date: string) => {
     setSpecialDates(prev => prev.filter(sd => sd.date !== date));
     toast.success("Exception de date supprimée");
+    
+    setTimeout(notifyChange, 300);
   };
   
   const handleAddScheduleSet = () => {
@@ -288,6 +336,8 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
     setOpenNewScheduleDialog(false);
     setNewScheduleName("");
     toast.success("Nouveau jeu d'horaires créé");
+    
+    setTimeout(notifyChange, 300);
   };
   
   const handleRemoveScheduleSet = (id: number) => {
@@ -311,11 +361,25 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
     setSpecialDates(prev => prev.filter(sd => sd.scheduleId !== id));
     
     toast.success("Jeu d'horaires supprimé");
+    
+    setTimeout(notifyChange, 300);
   };
   
   const handleChangeActiveSchedule = (id: number) => {
     setActiveScheduleId(id);
     toast.success("Jeu d'horaires actif modifié");
+    
+    setTimeout(notifyChange, 300);
+  };
+
+  const handleBufferChange = (value: string) => {
+    setAvailabilityBuffer(Number(value));
+    setTimeout(notifyChange, 300);
+  };
+  
+  const handleAdvanceBookingChange = (value: string) => {
+    setAdvanceBookingLimit(Number(value));
+    setTimeout(notifyChange, 300);
   };
   
   const handleBlockTimeSlotAdd = () => {
@@ -344,20 +408,6 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
     setSpecialDateTimeSlots(prev => 
       prev.map((slot, i) => i === index ? { ...slot, [field]: value } : slot)
     );
-  };
-  
-  const getDayHighlightClass = (date: Date) => {
-    const dateString = date.toISOString().split('T')[0];
-    
-    // Check if date is blocked
-    const isBlocked = blockedDates.some(bd => bd.date === dateString);
-    if (isBlocked) return "bg-red-100";
-    
-    // Check if date has special schedule
-    const hasSpecial = specialDates.some(sd => sd.date === dateString);
-    if (hasSpecial) return "bg-blue-100";
-    
-    return "";
   };
   
   // Check if there are any dates with exceptions or blocks
@@ -988,7 +1038,7 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
                     <Label htmlFor="buffer">Tampon entre rendez-vous</Label>
                     <Select 
                       value={availabilityBuffer.toString()} 
-                      onValueChange={(val) => setAvailabilityBuffer(Number(val))}
+                      onValueChange={handleBufferChange}
                     >
                       <SelectTrigger className="mt-2">
                         <SelectValue placeholder="Sélectionnez un temps" />
@@ -1010,7 +1060,7 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
                     <Label htmlFor="advanceLimit">Réservation à l'avance</Label>
                     <Select 
                       value={advanceBookingLimit.toString()} 
-                      onValueChange={(val) => setAdvanceBookingLimit(Number(val))}
+                      onValueChange={handleAdvanceBookingChange}
                     >
                       <SelectTrigger className="mt-2">
                         <SelectValue placeholder="Sélectionnez une limite" />

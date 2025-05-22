@@ -3,8 +3,7 @@ import React, { useState, useEffect } from 'react';
 import AccountLayout from '@/components/Account/AccountLayout';
 import { Helmet } from 'react-helmet';
 import AvailabilitySettings from '@/components/Settings/AvailabilitySettings';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { getAvailabilitySettings, saveAvailabilitySettings } from '@/services/booking/availabilityService';
 import { useBusiness } from '@/contexts/BusinessContext';
@@ -13,7 +12,6 @@ import type { AvailabilitySettings as AvailabilitySettingsType } from '@/service
 const AvailabilityPage = () => {
   const { currentBusiness } = useBusiness();
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<AvailabilitySettingsType | null>(null);
   
   useEffect(() => {
@@ -35,31 +33,25 @@ const AvailabilityPage = () => {
     loadSettings();
   }, [currentBusiness]);
   
-  const handleSaveSettings = async (updatedSettings: AvailabilitySettingsType) => {
+  const handleSettingsChange = async (newSettings: AvailabilitySettingsType) => {
     if (!currentBusiness?.id) return;
     
-    setSaving(true);
+    setSettings(newSettings);
+    
+    // Auto-save changes with debounce
     try {
       const success = await saveAvailabilitySettings({
-        ...updatedSettings,
+        ...newSettings,
         businessId: currentBusiness.id
       });
       
-      if (success) {
-        toast.success("Paramètres de disponibilité enregistrés avec succès.");
-      } else {
+      if (!success) {
         toast.error("Erreur lors de l'enregistrement des paramètres.");
       }
     } catch (error) {
       console.error("Error saving availability settings:", error);
       toast.error("Erreur lors de l'enregistrement des paramètres.");
-    } finally {
-      setSaving(false);
     }
-  };
-  
-  const handleSettingsChange = (newSettings: AvailabilitySettingsType) => {
-    setSettings(newSettings);
   };
   
   return (
@@ -74,6 +66,9 @@ const AvailabilityPage = () => {
           <p className="text-muted-foreground">
             Définissez vos heures de disponibilité et paramètres pour les réservations.
           </p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Vos modifications sont automatiquement enregistrées.
+          </p>
         </div>
         
         {loading ? (
@@ -85,33 +80,25 @@ const AvailabilityPage = () => {
             </CardContent>
           </Card>
         ) : settings ? (
-          <>
-            <AvailabilitySettings
-              initialSettings={settings}
-              onChange={handleSettingsChange}
-            />
-            
-            <div className="flex justify-end mt-6">
-              <Button 
-                onClick={() => handleSaveSettings(settings)}
-                disabled={saving}
-              >
-                {saving ? 'Enregistrement...' : 'Enregistrer les modifications'}
-              </Button>
-            </div>
-          </>
+          <AvailabilitySettings
+            initialSettings={settings}
+            onChange={handleSettingsChange}
+          />
         ) : (
           <Card>
-            <CardHeader>
-              <CardTitle>Aucun paramètre trouvé</CardTitle>
-              <CardDescription>
-                Impossible de charger vos paramètres de disponibilité.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={() => window.location.reload()}>
-                Réessayer
-              </Button>
+            <CardContent className="py-6 flex justify-center">
+              <div className="text-center">
+                <div className="text-lg font-medium">Aucun paramètre trouvé</div>
+                <p className="text-muted-foreground mt-1">
+                  Impossible de charger vos paramètres de disponibilité.
+                </p>
+                <button 
+                  className="mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+                  onClick={() => window.location.reload()}
+                >
+                  Réessayer
+                </button>
+              </div>
             </CardContent>
           </Card>
         )}

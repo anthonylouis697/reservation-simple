@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
+import { Json } from '@/integrations/supabase/types';
 
 // Type definitions for availability
 export interface TimeSlot {
@@ -99,12 +100,27 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
     const rawData = data as any;
     
     // Parse the data from the database
+    const scheduleSets = rawData.schedule_sets ? 
+      (typeof rawData.schedule_sets === 'string' ? 
+        JSON.parse(rawData.schedule_sets) : rawData.schedule_sets)
+      : defaultAvailabilitySettings.scheduleSets;
+    
+    const specialDates = rawData.special_dates ? 
+      (typeof rawData.special_dates === 'string' ? 
+        JSON.parse(rawData.special_dates) : rawData.special_dates)
+      : [];
+    
+    const blockedDates = rawData.blocked_dates ? 
+      (typeof rawData.blocked_dates === 'string' ? 
+        JSON.parse(rawData.blocked_dates) : rawData.blocked_dates)
+      : [];
+    
     const settings: AvailabilitySettings = {
       businessId,
       activeScheduleId: rawData.active_schedule_id || 1,
-      scheduleSets: rawData.schedule_sets || defaultAvailabilitySettings.scheduleSets,
-      specialDates: rawData.special_dates || [],
-      blockedDates: rawData.blocked_dates || [],
+      scheduleSets: scheduleSets,
+      specialDates: specialDates,
+      blockedDates: blockedDates,
       bufferTimeMinutes: rawData.buffer_time_minutes || 15,
       advanceBookingDays: rawData.advance_booking_days || 30,
       minAdvanceHours: rawData.min_advance_hours || 24
@@ -123,23 +139,26 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
 // Function to save availability settings
 export const saveAvailabilitySettings = async (settings: AvailabilitySettings): Promise<boolean> => {
   try {
-    // Convert all custom types to plain objects that can be serialized as JSON
+    // Get the active schedule for regular_schedule field
+    const activeSchedule = settings.scheduleSets.find(s => s.id === settings.activeScheduleId) || settings.scheduleSets[0];
+    
+    // Convert all custom types to JSON strings that can be stored in the database
     const dbObject = {
       business_id: settings.businessId,
       active_schedule_id: settings.activeScheduleId,
-      regular_schedule: JSON.parse(JSON.stringify(settings.scheduleSets[0]?.regularSchedule || defaultAvailabilitySettings.scheduleSets[0].regularSchedule)),
-      schedule_sets: JSON.parse(JSON.stringify(settings.scheduleSets)),
-      special_dates: JSON.parse(JSON.stringify(settings.specialDates)),
-      blocked_dates: JSON.parse(JSON.stringify(settings.blockedDates)),
+      regular_schedule: JSON.stringify(activeSchedule.regularSchedule),
+      schedule_sets: JSON.stringify(settings.scheduleSets),
+      special_dates: JSON.stringify(settings.specialDates),
+      blocked_dates: JSON.stringify(settings.blockedDates),
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours
     };
 
-    // Pass a single object in an array to upsert
+    // Pass a single object to upsert
     const { error } = await supabase
       .from('availability_settings')
-      .upsert([dbObject], {
+      .upsert(dbObject, {
         onConflict: 'business_id'
       });
     
