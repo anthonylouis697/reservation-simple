@@ -143,24 +143,14 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
     const activeSchedule = settings.scheduleSets.find(s => s.id === settings.activeScheduleId) || settings.scheduleSets[0];
     
     // Convert custom types to proper Json format for database storage
-    // We need to create a properly typed object for Supabase
-    const dbObject: {
-      business_id: string;
-      active_schedule_id: number;
-      regular_schedule: Json;
-      schedule_sets: Json;
-      special_dates: Json;
-      blocked_dates: Json;
-      buffer_time_minutes: number;
-      advance_booking_days: number;
-      min_advance_hours: number;
-    } = {
+    // Create a properly typed object for Supabase according to the database schema
+    const dbObject = {
       business_id: settings.businessId,
       active_schedule_id: settings.activeScheduleId,
       regular_schedule: activeSchedule.regularSchedule as unknown as Json,
       schedule_sets: settings.scheduleSets as unknown as Json,
-      special_dates: settings.specialDates as unknown as Json,
-      blocked_dates: settings.blockedDates as unknown as Json,
+      special_dates: settings.specialDates as unknown as Json[],
+      blocked_dates: settings.blockedDates as unknown as Json[],
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours
