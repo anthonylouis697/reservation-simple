@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
@@ -646,9 +645,11 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
                           color: "white",
                           fontWeight: "bold"
                         },
-                        day: (date) => ({
-                          backgroundColor: getDayHighlightClass(date) || undefined
-                        })
+                        day: (date) => {
+                          return {
+                            backgroundColor: getDayHighlightClass(date) || undefined
+                          };
+                        }
                       }}
                       className="rounded-md border"
                     />
@@ -773,9 +774,8 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
                               <span className="font-medium">
                                 {selectedDate.toLocaleDateString('fr-FR', {
                                   weekday: 'long',
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric'
+                                  day: 'numeric',
+                                  month: 'long'
                                 })}
                               </span>
                             )}
