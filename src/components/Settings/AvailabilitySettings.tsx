@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { toast } from "sonner";
@@ -88,33 +87,25 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
   // Initialize from props if provided
   useEffect(() => {
     if (initialSettings) {
-      setBlockedDates(initialSettings.blockedDates || []);
-      setSpecialDates(initialSettings.specialDates || []);
-      setScheduleSets(initialSettings.scheduleSets || []);
+      // Important: Make deep copies of arrays to avoid reference issues
+      setBlockedDates(initialSettings.blockedDates ? [...initialSettings.blockedDates] : []);
+      setSpecialDates(initialSettings.specialDates ? [...initialSettings.specialDates] : []);
+      setScheduleSets(initialSettings.scheduleSets ? JSON.parse(JSON.stringify(initialSettings.scheduleSets)) : []);
       setActiveScheduleId(initialSettings.activeScheduleId || 1);
       setAvailabilityBuffer(initialSettings.bufferTimeMinutes || 15);
       setAdvanceBookingLimit(initialSettings.advanceBookingDays || 30);
     }
   }, [initialSettings]);
 
-  // Force an immediate save when component loads to ensure DB consistency
-  useEffect(() => {
-    if (initialSettings && onChange) {
-      // Force a save of the initial data structure to ensure DB is properly formatted
-      setTimeout(notifyChange, 500);
-    }
-  }, []);
-
   // Debounced change notification
   const debouncedNotifyChange = useCallback(
-    // Use a simple debounce to avoid too many saves
     (() => {
       let timeout: NodeJS.Timeout | null = null;
       return (settings: AvailabilitySettingsType) => {
         if (timeout) clearTimeout(timeout);
         timeout = setTimeout(() => {
           if (onChange) onChange(settings);
-        }, 1000); // Save after 1 second of inactivity
+        }, 1000);
       };
     })(),
     [onChange]
@@ -144,9 +135,9 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
     const currentSettings: AvailabilitySettingsType = {
       businessId: initialSettings.businessId,
       activeScheduleId: activeScheduleId,
-      scheduleSets: scheduleSets,
-      specialDates: specialDates,
-      blockedDates: blockedDates,
+      scheduleSets: JSON.parse(JSON.stringify(scheduleSets)),
+      specialDates: [...specialDates],
+      blockedDates: [...blockedDates],
       bufferTimeMinutes: availabilityBuffer,
       advanceBookingDays: advanceBookingLimit,
       minAdvanceHours: initialSettings?.minAdvanceHours || 24
@@ -165,22 +156,18 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
     setScheduleSets(prev => 
       prev.map(schedule => {
         if (schedule.id === targetScheduleId) {
-          return {
-            ...schedule,
-            regularSchedule: {
-              ...schedule.regularSchedule,
-              [day]: {
-                ...schedule.regularSchedule[day],
-                isActive: !schedule.regularSchedule[day].isActive
-              }
-            }
+          const updatedSchedule = { ...schedule };
+          updatedSchedule.regularSchedule = { ...schedule.regularSchedule };
+          updatedSchedule.regularSchedule[day] = {
+            ...schedule.regularSchedule[day],
+            isActive: !schedule.regularSchedule[day].isActive
           };
+          return updatedSchedule;
         }
         return schedule;
       })
     );
     
-    // Notify of changes for immediate save
     setTimeout(notifyChange, 300);
   };
 
@@ -190,19 +177,16 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
     setScheduleSets(prev => 
       prev.map(schedule => {
         if (schedule.id === targetScheduleId) {
-          return {
-            ...schedule,
-            regularSchedule: {
-              ...schedule.regularSchedule,
-              [day]: {
-                ...schedule.regularSchedule[day],
-                timeSlots: [
-                  ...schedule.regularSchedule[day].timeSlots,
-                  { start: "09:00", end: "17:00" }
-                ]
-              }
-            }
+          const updatedSchedule = { ...schedule };
+          updatedSchedule.regularSchedule = { ...schedule.regularSchedule };
+          updatedSchedule.regularSchedule[day] = {
+            ...schedule.regularSchedule[day],
+            timeSlots: [
+              ...schedule.regularSchedule[day].timeSlots,
+              { start: "09:00", end: "17:00" }
+            ]
           };
+          return updatedSchedule;
         }
         return schedule;
       })
@@ -217,16 +201,13 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
     setScheduleSets(prev => 
       prev.map(schedule => {
         if (schedule.id === targetScheduleId) {
-          return {
-            ...schedule,
-            regularSchedule: {
-              ...schedule.regularSchedule,
-              [day]: {
-                ...schedule.regularSchedule[day],
-                timeSlots: schedule.regularSchedule[day].timeSlots.filter((_, i) => i !== index)
-              }
-            }
+          const updatedSchedule = { ...schedule };
+          updatedSchedule.regularSchedule = { ...schedule.regularSchedule };
+          updatedSchedule.regularSchedule[day] = {
+            ...schedule.regularSchedule[day],
+            timeSlots: schedule.regularSchedule[day].timeSlots.filter((_, i) => i !== index)
           };
+          return updatedSchedule;
         }
         return schedule;
       })
@@ -241,20 +222,16 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
     setScheduleSets(prev => 
       prev.map(schedule => {
         if (schedule.id === targetScheduleId) {
-          return {
-            ...schedule,
-            regularSchedule: {
-              ...schedule.regularSchedule,
-              [day]: {
-                ...schedule.regularSchedule[day],
-                timeSlots: schedule.regularSchedule[day].timeSlots.map((slot, i) => 
-                  i === index 
-                    ? { ...slot, [field]: value }
-                    : slot
-                )
-              }
-            }
+          const updatedSchedule = { ...schedule };
+          updatedSchedule.regularSchedule = { ...schedule.regularSchedule };
+          const updatedTimeSlots = [...schedule.regularSchedule[day].timeSlots];
+          updatedTimeSlots[index] = { ...updatedTimeSlots[index], [field]: value };
+          
+          updatedSchedule.regularSchedule[day] = {
+            ...schedule.regularSchedule[day],
+            timeSlots: updatedTimeSlots
           };
+          return updatedSchedule;
         }
         return schedule;
       })
@@ -269,7 +246,7 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
     const newBlockedDate: BlockedTime = {
       date: selectedDate.toISOString().split('T')[0],
       fullDay: blockingFullDay,
-      timeSlots: blockingFullDay ? [] : [...blockTimeSlots]
+      timeSlots: blockingFullDay ? [] : JSON.parse(JSON.stringify(blockTimeSlots))
     };
     
     // Remove any existing blocked date for the same date
@@ -289,7 +266,7 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
       date: selectedDate.toISOString().split('T')[0],
       scheduleId: specialDateScheduleId,
       isActive: specialDateIsActive,
-      timeSlots: specialDateIsActive ? [...specialDateTimeSlots] : []
+      timeSlots: specialDateIsActive ? JSON.parse(JSON.stringify(specialDateTimeSlots)) : []
     };
     
     // Remove any existing special date for the same date

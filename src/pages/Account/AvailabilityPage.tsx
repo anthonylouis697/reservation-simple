@@ -8,12 +8,14 @@ import { toast } from 'sonner';
 import { getAvailabilitySettings, saveAvailabilitySettings } from '@/services/booking/availabilityService';
 import { useBusiness } from '@/contexts/BusinessContext';
 import type { AvailabilitySettings as AvailabilitySettingsType } from '@/services/booking/availabilityService';
+import { ReloadIcon } from 'lucide-react';
 
 const AvailabilityPage = () => {
   const { currentBusiness } = useBusiness();
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState<AvailabilitySettingsType | null>(null);
   const [saveError, setSaveError] = useState(false);
+  const [saving, setSaving] = useState(false);
   
   const loadSettings = async () => {
     if (currentBusiness?.id) {
@@ -40,8 +42,13 @@ const AvailabilityPage = () => {
     
     setSettings(newSettings);
     
-    // Auto-save changes with debounce
+    // Prevent multiple concurrent save operations
+    if (saving) return;
+    
     try {
+      setSaving(true);
+      setSaveError(false);
+      
       const success = await saveAvailabilitySettings({
         ...newSettings,
         businessId: currentBusiness.id
@@ -57,6 +64,8 @@ const AvailabilityPage = () => {
       setSaveError(true);
       console.error("Error saving availability settings:", error);
       toast.error("Erreur lors de l'enregistrement des paramètres.");
+    } finally {
+      setSaving(false);
     }
   };
   
@@ -67,23 +76,30 @@ const AvailabilityPage = () => {
       </Helmet>
       
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold">Gestion des disponibilités</h1>
-          <p className="text-muted-foreground">
-            Définissez vos heures de disponibilité et paramètres pour les réservations.
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Vos modifications sont automatiquement enregistrées.
-          </p>
+        <div className="flex items-end justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Gestion des disponibilités</h1>
+            <p className="text-muted-foreground">
+              Définissez vos heures de disponibilité et paramètres pour les réservations.
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {saving ? "Enregistrement en cours..." : "Vos modifications sont automatiquement enregistrées."}
+            </p>
+          </div>
+          
           {saveError && (
-            <div className="flex justify-end mt-2">
-              <button 
-                onClick={loadSettings} 
-                className="text-sm text-primary hover:underline"
-              >
-                Rafraîchir les données
-              </button>
-            </div>
+            <button 
+              onClick={loadSettings} 
+              className="text-sm gap-2 flex items-center text-primary hover:underline ml-4"
+              disabled={loading}
+            >
+              {loading ? (
+                <ReloadIcon className="h-4 w-4 animate-spin" />
+              ) : (
+                <ReloadIcon className="h-4 w-4" />
+              )}
+              Rafraîchir les données
+            </button>
           )}
         </div>
         

@@ -135,26 +135,47 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
     // Get the active schedule for regular_schedule field
     const activeSchedule = settings.scheduleSets.find(s => s.id === settings.activeScheduleId) || settings.scheduleSets[0];
     
-    // Create a properly typed object for Supabase according to the database schema
-    // Store the activeScheduleId and scheduleSets within the regular_schedule JSON object
-    // since there's no dedicated column for them in the database
-    const regularScheduleWithMeta = {
-      ...activeSchedule.regularSchedule,
+    // Create a deep copy of the schedule without circular references
+    const safeRegularSchedule = {
+      monday: { ...activeSchedule.regularSchedule.monday },
+      tuesday: { ...activeSchedule.regularSchedule.tuesday },
+      wednesday: { ...activeSchedule.regularSchedule.wednesday },
+      thursday: { ...activeSchedule.regularSchedule.thursday },
+      friday: { ...activeSchedule.regularSchedule.friday },
+      saturday: { ...activeSchedule.regularSchedule.saturday },
+      sunday: { ...activeSchedule.regularSchedule.sunday },
       _activeScheduleId: settings.activeScheduleId,
-      _scheduleSets: settings.scheduleSets
+      _scheduleSets: JSON.parse(JSON.stringify(settings.scheduleSets))
     };
+    
+    // Create properly structured arrays for Supabase
+    const safeSpecialDates = Array.isArray(settings.specialDates) ? 
+      settings.specialDates.map(date => JSON.parse(JSON.stringify(date))) : 
+      [];
+    
+    const safeBlockedDates = Array.isArray(settings.blockedDates) ? 
+      settings.blockedDates.map(date => JSON.parse(JSON.stringify(date))) : 
+      [];
     
     const dbObject = {
       business_id: settings.businessId,
-      regular_schedule: regularScheduleWithMeta as unknown as Json,
-      special_dates: settings.specialDates as unknown as Json[],
-      blocked_dates: settings.blockedDates as unknown as Json[],
+      regular_schedule: safeRegularSchedule as Json,
+      special_dates: safeSpecialDates as Json[],
+      blocked_dates: safeBlockedDates as Json[],
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours
     };
 
-    console.log("Saving availability settings:", dbObject);
+    // For debug purposes
+    console.log("Saving availability settings:", {
+      business_id: dbObject.business_id,
+      buffer_time_minutes: dbObject.buffer_time_minutes,
+      advance_booking_days: dbObject.advance_booking_days,
+      min_advance_hours: dbObject.min_advance_hours,
+      special_dates_count: safeSpecialDates.length,
+      blocked_dates_count: safeBlockedDates.length
+    });
 
     // Pass the properly typed object to upsert
     const { error } = await supabase
