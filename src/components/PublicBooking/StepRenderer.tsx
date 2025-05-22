@@ -85,8 +85,9 @@ const StepRenderer = ({
         <DateSelection
           customTexts={safeCustomTexts}
           selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-          selectedService={selectedService}
+          onSelectDate={setSelectedDate}
+          businessId={businessId}
+          getButtonStyle={getButtonStyle}
         />
       );
 

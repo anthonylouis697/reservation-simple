@@ -1,371 +1,220 @@
 
-import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
-import { BookingData, BookingResult, Booking, DbReservation } from './types';
+import { BookingData, BookingResult, Booking } from './types';
 import { getOrCreateClient, ClientInfo } from './clientService';
 import { combineDateTime } from './dateUtils';
-import { 
-  saveBookingToLocalStorage, 
-  getBookingsFromLocalStorage, 
-  updateBookingStatusInLocalStorage, 
-  deleteBookingFromLocalStorage 
-} from './localStorageService';
 
-// Get service duration from database
-const getServiceDuration = async (serviceId: string): Promise<number> => {
+/**
+ * Creates a booking in the database
+ */
+export const createBookingOperation = async (
+  bookingData: BookingData
+): Promise<BookingResult> => {
   try {
-    const { data: serviceData, error } = await supabase
-      .from('services')
-      .select('duration')
-      .eq('id', serviceId)
-      .maybeSingle();
-    
-    if (error) {
-      console.error("Error retrieving service duration:", error);
-      return 60; // Default duration
+    console.log('[createBookingOperation] Creating booking:', bookingData);
+
+    // Step 1: Get or create client
+    const clientId = await getOrCreateClient(
+      bookingData.businessId,
+      bookingData.clientInfo
+    );
+
+    console.log('[createBookingOperation] Client ID:', clientId);
+
+    // Step 2: Calculate timing
+    const startTime = combineDateTime(bookingData.date, bookingData.time);
+    let duration = 60; // Default duration in minutes
+
+    // Get duration from service if available
+    if (bookingData.serviceDuration) {
+      duration = bookingData.serviceDuration;
     }
-    
-    return serviceData?.duration || 60;
-  } catch (error) {
-    console.error("Error retrieving service duration:", error);
-    return 60; // Default duration
-  }
-};
 
-// Create a reservation in Supabase database
-const createDatabaseReservation = async (
-  bookingId: string,
-  businessId: string,
-  clientId: string,
-  serviceId: string,
-  serviceName: string, // Added service name parameter
-  startTime: Date,
-  endTime: Date,
-  status: 'confirmed' | 'cancelled' | 'pending'
-): Promise<BookingResult | null> => {
-  try {
-    const { data: reservation, error } = await supabase
-      .from('reservations')
-      .insert({
-        id: bookingId,
-        business_id: businessId,
-        client_id: clientId,
-        service_id: serviceId,
-        start_time: startTime.toISOString(),
-        end_time: endTime.toISOString(),
-        status: status
-      })
-      .select()
-      .single();
-    
-    if (error) {
-      console.error("Error saving reservation to database:", error);
-      return null;
-    }
-    
-    return {
-      id: bookingId,
-      startTime: startTime,
-      endTime: endTime,
-      serviceId: serviceId,
-      serviceName: serviceName, // Include service name
-      clientName: '', // Client name will be populated elsewhere
-      clientEmail: '', // Client email will be populated elsewhere
-      status: status
-    };
-  } catch (error) {
-    console.error("Error saving reservation to database:", error);
-    return null;
-  }
-};
-
-// Create booking in local storage (fallback mechanism)
-const createLocalBooking = (
-  bookingId: string,
-  businessId: string,
-  clientId: string,
-  serviceId: string,
-  serviceName: string, // Added service name parameter
-  startTime: Date,
-  endTime: Date,
-  status: 'confirmed' | 'cancelled' | 'pending',
-  clientInfo: ClientInfo
-): BookingResult => {
-  const bookingToSave = {
-    id: bookingId,
-    businessId,
-    clientId,
-    serviceId,
-    serviceName, // Include service name
-    startTime: startTime.toISOString(),
-    endTime: endTime.toISOString(),
-    status,
-    clientName: `${clientInfo.firstName} ${clientInfo.lastName}`,
-    clientEmail: clientInfo.email,
-    clientPhone: clientInfo.phone,
-    clientNotes: clientInfo.notes
-  };
-  
-  saveBookingToLocalStorage(bookingToSave);
-  
-  return {
-    id: bookingId,
-    startTime,
-    endTime,
-    serviceId,
-    serviceName, // Include service name
-    clientName: `${clientInfo.firstName} ${clientInfo.lastName}`,
-    clientEmail: clientInfo.email,
-    status
-  };
-};
-
-// Function to create a booking
-export const createBooking = async (bookingData: BookingData): Promise<BookingResult> => {
-  try {
-    const { businessId, serviceId, serviceName, date, time, clientInfo } = bookingData;
-    
-    const startTime = combineDateTime(date, time);
-    
-    // Get the service duration (in minutes)
-    const duration = await getServiceDuration(serviceId);
-    
     const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
-    
-    // Create client if it doesn't exist
-    let clientId;
-    
-    try {
-      clientId = await getOrCreateClient(clientInfo, businessId);
-    } catch (error) {
-      console.error("Error working with client:", error);
-      throw new Error("Failed to create or retrieve client information");
-    }
-    
-    // Create the reservation
-    const bookingId = uuidv4();
-    const status = 'confirmed' as const;
-    
-    // Attempt to save the reservation to the database
-    const dbResult = await createDatabaseReservation(
-      bookingId,
-      businessId,
-      clientId,
-      serviceId,
-      serviceName, // Pass service name
-      startTime,
-      endTime,
-      status
-    );
-    
-    if (dbResult) {
-      // Update with client information
-      return {
-        ...dbResult,
-        clientName: `${clientInfo.firstName} ${clientInfo.lastName}`,
-        clientEmail: clientInfo.email,
-        serviceName: serviceName // Ensure service name is included
-      };
-    }
-    
-    // Database save failed, use localStorage as fallback
-    console.log("Using localStorage fallback for booking storage");
-    return createLocalBooking(
-      bookingId,
-      businessId,
-      clientId,
-      serviceId,
-      serviceName, // Pass service name
-      startTime,
-      endTime,
-      status,
-      clientInfo
-    );
-  } catch (error) {
-    console.error("Error creating booking:", error);
-    throw new Error("Unable to create booking");
-  }
-};
 
-// Map database reservation to Booking object
-const mapDbReservationToBooking = (res: DbReservation): Booking => {
-  const client = res.clients || {};
-  const startTime = new Date(res.start_time);
-  const status = (res.status === 'confirmed' || res.status === 'cancelled' || res.status === 'pending') 
-    ? res.status as 'confirmed' | 'cancelled' | 'pending'
-    : 'pending';
-  
-  return {
-    id: res.id,
-    business_id: '', // This will be filled in later
-    service_id: res.service_id,
-    service_name: res.service_name || '',
-    client_first_name: client.first_name || '',
-    client_last_name: client.last_name || '',
-    client_email: client.email || '',
-    client_phone: client.phone || '',
-    start_time: res.start_time,
-    end_time: res.end_time,
-    status: status,
-    created_at: new Date().toISOString(),
-    // Adding client property for compatibility
-    client: {
-      name: `${client.first_name || ''} ${client.last_name || ''}`.trim(),
-      email: client.email || '',
-      phone: client.phone || undefined,
-      notes: client.notes || undefined
-    },
-    // Adding calculated properties
-    serviceId: res.service_id,
-    date: startTime,
-    time: `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}`
-  };
-};
-
-// Fetch bookings from the database
-const fetchBookingsFromDatabase = async (businessId?: string): Promise<Booking[]> => {
-  try {
-    let query = supabase
-      .from('reservations')
-      .select(`
-        id,
-        business_id,
-        service_id,
-        start_time,
-        end_time,
-        status,
-        clients (
-          first_name,
-          last_name,
-          email,
-          phone,
-          notes
-        )
-      `);
-      
-    if (businessId) {
-      query = query.eq('business_id', businessId);
-    }
-    
-    const { data: reservations, error } = await query.order('start_time', { ascending: false });
+    // Step 3: Insert booking
+    const { data, error } = await supabase.from('reservations').insert({
+      business_id: bookingData.businessId,
+      service_id: bookingData.serviceId,
+      service_name: bookingData.serviceName || 'Service',
+      client_id: clientId,
+      start_time: startTime.toISOString(),
+      end_time: endTime.toISOString(),
+      notes: bookingData.notes || null,
+      status: 'confirmed'
+    }).select('*').single();
 
     if (error) {
-      console.error("Error retrieving reservations:", error);
+      console.error('[createBookingOperation] Error creating booking:', error);
       throw error;
     }
 
-    if (reservations && reservations.length > 0) {
-      return reservations.map((res: any) => {
-        const booking = mapDbReservationToBooking(res);
-        // Ensure business_id is set
-        booking.business_id = res.business_id;
-        // Add service_name if not present
-        if (!booking.service_name) {
-          booking.service_name = "Service";
-        }
-        return booking;
-      });
+    if (!data) {
+      throw new Error('No data returned from booking creation');
     }
-    
-    return [];
+
+    // Step 4: Return booking result
+    const result: BookingResult = {
+      id: data.id,
+      startTime: new Date(data.start_time),
+      endTime: new Date(data.end_time),
+      serviceId: data.service_id,
+      serviceName: bookingData.serviceName || 'Service',
+      clientName: `${bookingData.clientInfo.firstName} ${bookingData.clientInfo.lastName}`,
+      clientEmail: bookingData.clientInfo.email,
+      status: data.status as 'confirmed' | 'cancelled' | 'pending'
+    };
+
+    console.log('[createBookingOperation] Booking created:', result);
+    return result;
+
   } catch (error) {
-    console.error("Error retrieving reservations:", error);
+    console.error('[createBookingOperation] Error:', error);
     throw error;
   }
 };
 
-// Function to get all bookings
-export const getAllBookings = async (businessId?: string): Promise<Booking[]> => {
+/**
+ * Gets all bookings for a business and optionally filters by status
+ */
+export const getBusinessBookings = async (
+  businessId: string,
+  status?: 'confirmed' | 'cancelled' | 'pending'
+): Promise<Booking[]> => {
   try {
-    // Try to retrieve reservations from the database
-    const dbBookings = await fetchBookingsFromDatabase(businessId);
-    if (dbBookings.length > 0) {
-      return dbBookings;
+    let query = supabase
+      .from('reservations')
+      .select(`
+        *,
+        clients (*)
+      `)
+      .eq('business_id', businessId)
+      .order('start_time', { ascending: true });
+
+    // Add status filter if provided
+    if (status) {
+      query = query.eq('status', status);
     }
 
-    // If no reservations are found in the database, try localStorage
-    return getBookingsFromLocalStorage();
-  } catch (error) {
-    console.error("Error retrieving reservations:", error);
-    // On error, try to retrieve from localStorage
-    return getBookingsFromLocalStorage();
-  }
-};
-
-// Update booking status in the database
-const updateBookingStatusInDatabase = async (bookingId: string, newStatus: 'confirmed' | 'cancelled' | 'pending'): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('reservations')
-      .update({ status: newStatus })
-      .eq('id', bookingId);
+    const { data, error } = await query;
 
     if (error) {
-      console.error("Error updating status in database:", error);
-      return false;
+      console.error('Error fetching bookings:', error);
+      return [];
     }
 
-    return true;
+    const bookings: Booking[] = (data || []).map(booking => {
+      const clientData = booking.clients || {};
+      
+      // Format the booking data
+      const result: Booking = {
+        id: booking.id,
+        business_id: booking.business_id,
+        service_id: booking.service_id,
+        service_name: booking.service_name || 'Service',
+        client_id: booking.client_id,
+        client_first_name: clientData.first_name || '',
+        client_last_name: clientData.last_name || '',
+        client_email: clientData.email || '',
+        client_phone: clientData.phone || '',
+        start_time: booking.start_time,
+        end_time: booking.end_time,
+        notes: booking.notes || null,
+        status: booking.status,
+        created_at: booking.created_at,
+        updated_at: booking.updated_at,
+        // Add the client field for compatibility
+        client: {
+          name: `${clientData.first_name || ''} ${clientData.last_name || ''}`.trim(),
+          email: clientData.email || '',
+          phone: clientData.phone || '',
+          notes: clientData.notes || ''
+        }
+      };
+      
+      // Add date and time fields for convenience
+      if (booking.start_time) {
+        const startDateTime = new Date(booking.start_time);
+        result.date = startDateTime;
+        result.time = startDateTime.toLocaleTimeString('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+      
+      // Add serviceId field for compatibility
+      result.serviceId = booking.service_id;
+      
+      return result;
+    });
+
+    return bookings;
   } catch (error) {
-    console.error("Error updating status in database:", error);
-    return false;
+    console.error('Error in getBusinessBookings:', error);
+    return [];
   }
 };
 
-// Function to update booking status
-export const updateBookingStatus = async (bookingId: string, newStatus: 'confirmed' | 'cancelled' | 'pending'): Promise<boolean> => {
+/**
+ * Gets future bookings only
+ */
+export const getUpcomingBookings = async (businessId: string): Promise<Booking[]> => {
   try {
-    // Try to update the status in the database
-    const dbUpdateSuccess = await updateBookingStatusInDatabase(bookingId, newStatus);
+    const now = new Date().toISOString();
     
-    if (dbUpdateSuccess) {
-      return true;
-    }
-
-    // If database update fails, try with localStorage
-    return updateBookingStatusInLocalStorage(bookingId, newStatus);
-  } catch (error) {
-    console.error("Error updating status:", error);
-    // On error, try localStorage
-    return updateBookingStatusInLocalStorage(bookingId, newStatus);
-  }
-};
-
-// Delete booking from database
-const deleteBookingFromDatabase = async (bookingId: string): Promise<boolean> => {
-  try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('reservations')
-      .delete()
-      .eq('id', bookingId);
+      .select(`
+        *,
+        clients (*)
+      `)
+      .eq('business_id', businessId)
+      .gte('start_time', now)
+      .eq('status', 'confirmed')
+      .order('start_time', { ascending: true });
 
     if (error) {
-      console.error("Error deleting reservation from database:", error);
-      return false;
+      console.error('Error fetching upcoming bookings:', error);
+      return [];
     }
 
-    return true;
-  } catch (error) {
-    console.error("Error deleting reservation from database:", error);
-    return false;
-  }
-};
-
-// Function to delete a booking
-export const deleteBooking = async (bookingId: string): Promise<boolean> => {
-  try {
-    // Try to delete the reservation from the database
-    const dbDeleteSuccess = await deleteBookingFromDatabase(bookingId);
+    // Format the bookings - using the same structure as getBusinessBookings
+    const bookings = data || [];
     
-    if (dbDeleteSuccess) {
-      return true;
-    }
-
-    // If deletion in database fails, try with localStorage
-    return deleteBookingFromLocalStorage(bookingId);
+    return bookings.map(booking => {
+      return {
+        id: booking.id,
+        date: new Date(booking.start_time),
+        time: new Date(booking.start_time).toLocaleTimeString('fr-FR', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        status: booking.status as 'confirmed' | 'cancelled' | 'pending',
+        serviceId: booking.service_id,
+        service_id: booking.service_id,
+        service_name: booking.service_name || 'Service',
+        client: {
+          name: booking.clients ? `${booking.clients.first_name} ${booking.clients.last_name}` : '',
+          email: booking.clients?.email || '',
+          phone: booking.clients?.phone || '',
+          notes: booking.clients?.notes || ''
+        },
+        // Add all the other needed fields for Booking type
+        business_id: booking.business_id,
+        client_id: booking.client_id,
+        client_first_name: booking.clients?.first_name || '',
+        client_last_name: booking.clients?.last_name || '',
+        client_email: booking.clients?.email || '',
+        client_phone: booking.clients?.phone || '',
+        start_time: booking.start_time,
+        end_time: booking.end_time,
+        notes: booking.notes,
+        created_at: booking.created_at,
+        updated_at: booking.updated_at
+      };
+    });
   } catch (error) {
-    console.error("Error deleting reservation:", error);
-    // On error, try localStorage
-    return deleteBookingFromLocalStorage(bookingId);
+    console.error('Error in getUpcomingBookings:', error);
+    return [];
   }
 };

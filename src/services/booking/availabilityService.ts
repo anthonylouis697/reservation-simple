@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 import { Json } from '@/integrations/supabase/types';
@@ -219,6 +220,7 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
     const dbObject = {
       business_id: settings.businessId,
       regular_schedule: regularScheduleStr,
+      // Fix: Ensure these are Json type not Json[] type
       special_dates: specialDatesJson,
       blocked_dates: blockedDatesJson, 
       buffer_time_minutes: settings.bufferTimeMinutes,
@@ -253,8 +255,8 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
   }
 };
 
-// Helper function to get day name from date
-const getDayName = (date: Date): 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday' => {
+// Helper function to get day name from date - EXPORT THIS FUNCTION
+export const getDayName = (date: Date): 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday' => {
   const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
   return days[date.getDay()] as 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 };

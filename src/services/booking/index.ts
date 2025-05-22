@@ -47,7 +47,7 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
       startTime: new Date(data.start_time),
       endTime: new Date(data.end_time),
       serviceId: data.service_id,
-      serviceName: bookingData.serviceName,
+      serviceName: bookingData.serviceName, // Use the serviceName from bookingData
       clientName: `${clientFirstName} ${clientLastName}`,
       clientEmail: clientEmail,
       status: data.status as 'confirmed' | 'cancelled' | 'pending'
@@ -61,6 +61,7 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
 // Gets all bookings for a business
 export const getAllBookings = async (businessId: string): Promise<Booking[]> => {
   try {
+    // Make sure to select the exact fields that exist in the reservations table
     const { data, error } = await supabase
       .from('reservations')
       .select(`
@@ -68,38 +69,39 @@ export const getAllBookings = async (businessId: string): Promise<Booking[]> => 
         business_id,
         service_id,
         service_name,
-        client_first_name,
-        client_last_name, 
-        client_email,
-        client_phone,
+        client_id,
         start_time,
         end_time,
         notes,
         status,
         created_at,
         updated_at,
-        clients(*)
+        clients(id, first_name, last_name, email, phone, notes)
       `)
       .eq('business_id', businessId)
       .order('start_time', { ascending: true });
       
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching bookings:', error);
+      return [];
+    }
     
     // Process the raw bookings to add derived fields
     const processedBookings: Booking[] = (data || []).map(booking => {
+      // Make sure we're handling the case where clients might be null
       const clientData = booking.clients || {};
       
-      // Add client field for compatibility
+      // Create a booking object with proper fields
       const result: Booking = {
         id: booking.id,
         business_id: booking.business_id,
         service_id: booking.service_id,
-        service_name: booking.service_name || "Service", 
+        service_name: booking.service_name || "Service",
         client_id: booking.client_id,
-        client_first_name: booking.client_first_name || clientData.first_name || "",
-        client_last_name: booking.client_last_name || clientData.last_name || "",
-        client_email: booking.client_email || clientData.email || "",
-        client_phone: booking.client_phone || clientData.phone || "",
+        client_first_name: clientData.first_name || "",
+        client_last_name: clientData.last_name || "",
+        client_email: clientData.email || "",
+        client_phone: clientData.phone || "",
         start_time: booking.start_time,
         end_time: booking.end_time,
         notes: booking.notes || null,
@@ -107,9 +109,9 @@ export const getAllBookings = async (businessId: string): Promise<Booking[]> => 
         created_at: booking.created_at,
         // Adding client property for compatibility
         client: {
-          name: `${booking.client_first_name || clientData.first_name || ''} ${booking.client_last_name || clientData.last_name || ''}`.trim(),
-          email: booking.client_email || clientData.email || '',
-          phone: booking.client_phone || clientData.phone || '',
+          name: `${clientData.first_name || ''} ${clientData.last_name || ''}`.trim(),
+          email: clientData.email || '',
+          phone: clientData.phone || '',
           notes: clientData.notes || ''
         }
       };
