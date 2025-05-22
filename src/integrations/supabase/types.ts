@@ -9,6 +9,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      availability_settings: {
+        Row: {
+          advance_booking_days: number
+          blocked_dates: Json[] | null
+          buffer_time_minutes: number
+          business_id: string
+          created_at: string
+          id: string
+          min_advance_hours: number
+          regular_schedule: Json
+          special_dates: Json[] | null
+          updated_at: string
+        }
+        Insert: {
+          advance_booking_days?: number
+          blocked_dates?: Json[] | null
+          buffer_time_minutes?: number
+          business_id: string
+          created_at?: string
+          id?: string
+          min_advance_hours?: number
+          regular_schedule: Json
+          special_dates?: Json[] | null
+          updated_at?: string
+        }
+        Update: {
+          advance_booking_days?: number
+          blocked_dates?: Json[] | null
+          buffer_time_minutes?: number
+          business_id?: string
+          created_at?: string
+          id?: string
+          min_advance_hours?: number
+          regular_schedule?: Json
+          special_dates?: Json[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "availability_settings_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_page_settings: {
         Row: {
           booking_button_text: string

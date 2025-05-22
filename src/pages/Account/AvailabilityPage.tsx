@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 import { getAvailabilitySettings, saveAvailabilitySettings } from '@/services/booking/availabilityService';
 import { useBusiness } from '@/contexts/BusinessContext';
-import type { AvailabilitySettings as AvailabilitySettingsType, DaySchedule, TimeSlot } from '@/services/booking/availabilityService';
+import type { AvailabilitySettings as AvailabilitySettingsType } from '@/services/booking/availabilityService';
 
 const AvailabilityPage = () => {
   const { currentBusiness } = useBusiness();

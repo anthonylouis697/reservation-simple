@@ -13,14 +13,22 @@ export interface DaySchedule {
   timeSlots: TimeSlot[];
 }
 
+export interface BlockedTime {
+  date: string;
+  fullDay: boolean;
+  timeSlots: TimeSlot[];  // Used only when fullDay is false
+}
+
 export interface SpecialDate {
   date: string;
+  scheduleId: number;
   isActive: boolean;
   timeSlots: TimeSlot[];
 }
 
-export interface AvailabilitySettings {
-  businessId: string;
+export interface ScheduleSet {
+  id: number;
+  name: string;
   regularSchedule: {
     monday: DaySchedule;
     tuesday: DaySchedule;
@@ -30,8 +38,14 @@ export interface AvailabilitySettings {
     saturday: DaySchedule;
     sunday: DaySchedule;
   };
+}
+
+export interface AvailabilitySettings {
+  businessId: string;
+  scheduleSets: ScheduleSet[];
+  activeScheduleId: number;
   specialDates: SpecialDate[];
-  blockedDates: string[];
+  blockedDates: BlockedTime[];
   bufferTimeMinutes: number;
   advanceBookingDays: number;
   minAdvanceHours: number;
@@ -40,15 +54,22 @@ export interface AvailabilitySettings {
 // Default availability settings
 export const defaultAvailabilitySettings: AvailabilitySettings = {
   businessId: '',
-  regularSchedule: {
-    monday: { isActive: true, timeSlots: [{ start: '09:00', end: '17:00' }] },
-    tuesday: { isActive: true, timeSlots: [{ start: '09:00', end: '17:00' }] },
-    wednesday: { isActive: true, timeSlots: [{ start: '09:00', end: '17:00' }] },
-    thursday: { isActive: true, timeSlots: [{ start: '09:00', end: '17:00' }] },
-    friday: { isActive: true, timeSlots: [{ start: '09:00', end: '17:00' }] },
-    saturday: { isActive: false, timeSlots: [] },
-    sunday: { isActive: false, timeSlots: [] },
-  },
+  activeScheduleId: 1,
+  scheduleSets: [
+    {
+      id: 1,
+      name: "Horaires standard",
+      regularSchedule: {
+        monday: { isActive: true, timeSlots: [{ start: '09:00', end: '17:00' }] },
+        tuesday: { isActive: true, timeSlots: [{ start: '09:00', end: '17:00' }] },
+        wednesday: { isActive: true, timeSlots: [{ start: '09:00', end: '17:00' }] },
+        thursday: { isActive: true, timeSlots: [{ start: '09:00', end: '17:00' }] },
+        friday: { isActive: true, timeSlots: [{ start: '09:00', end: '17:00' }] },
+        saturday: { isActive: false, timeSlots: [] },
+        sunday: { isActive: false, timeSlots: [] },
+      }
+    }
+  ],
   specialDates: [],
   blockedDates: [],
   bufferTimeMinutes: 15,
@@ -59,9 +80,8 @@ export const defaultAvailabilitySettings: AvailabilitySettings = {
 // Function to get availability settings for a business
 export const getAvailabilitySettings = async (businessId: string): Promise<AvailabilitySettings> => {
   try {
-    // Using any to bypass TypeScript errors since the availability_settings table isn't in the types yet
     const { data, error } = await supabase
-      .from('availability_settings' as any)
+      .from('availability_settings')
       .select('*')
       .eq('business_id', businessId)
       .maybeSingle();
@@ -78,10 +98,11 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
     // Type assertion to avoid TypeScript errors
     const rawData = data as any;
     
-    // Create our return value from the raw data
+    // Parse the data from the database
     const settings: AvailabilitySettings = {
       businessId,
-      regularSchedule: rawData.regular_schedule || defaultAvailabilitySettings.regularSchedule,
+      activeScheduleId: rawData.active_schedule_id || 1,
+      scheduleSets: rawData.schedule_sets || defaultAvailabilitySettings.scheduleSets,
       specialDates: rawData.special_dates || [],
       blockedDates: rawData.blocked_dates || [],
       bufferTimeMinutes: rawData.buffer_time_minutes || 15,
@@ -102,12 +123,12 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
 // Function to save availability settings
 export const saveAvailabilitySettings = async (settings: AvailabilitySettings): Promise<boolean> => {
   try {
-    // Using any to bypass TypeScript errors since the availability_settings table isn't in the types yet
     const { error } = await supabase
-      .from('availability_settings' as any)
+      .from('availability_settings')
       .upsert({
         business_id: settings.businessId,
-        regular_schedule: settings.regularSchedule,
+        active_schedule_id: settings.activeScheduleId,
+        schedule_sets: settings.scheduleSets,
         special_dates: settings.specialDates,
         blocked_dates: settings.blockedDates,
         buffer_time_minutes: settings.bufferTimeMinutes,
@@ -137,25 +158,47 @@ const formatDate = (date: Date): string => {
   return date.toISOString().split('T')[0];
 };
 
-// Check if a date is in the blocked dates list
-const isDateBlocked = (date: Date, blockedDates: string[]): boolean => {
+// Check if a date is blocked (fully or partially)
+const isDateBlocked = (date: Date, blockedDates: BlockedTime[]): { isBlocked: boolean; fullDay: boolean; timeSlots: TimeSlot[] } => {
   const dateString = formatDate(date);
-  return blockedDates.includes(dateString);
+  const blockedDate = blockedDates.find(bd => bd.date === dateString);
+  
+  if (!blockedDate) {
+    return { isBlocked: false, fullDay: false, timeSlots: [] };
+  }
+  
+  return { 
+    isBlocked: true, 
+    fullDay: blockedDate.fullDay, 
+    timeSlots: blockedDate.fullDay ? [] : blockedDate.timeSlots 
+  };
 };
 
 // Find special schedule for a specific date
-const findSpecialSchedule = (date: Date, specialDates: SpecialDate[]): DaySchedule | null => {
+const findSpecialSchedule = (
+  date: Date, 
+  specialDates: SpecialDate[], 
+  scheduleSets: ScheduleSet[]
+): { found: boolean; schedule: DaySchedule | null; scheduleSetId: number } => {
   const dateString = formatDate(date);
   const specialDate = specialDates.find(sd => sd.date === dateString);
   
   if (specialDate) {
-    return {
-      isActive: specialDate.isActive,
-      timeSlots: specialDate.timeSlots
-    };
+    if (specialDate.isActive) {
+      return { 
+        found: true, 
+        schedule: { 
+          isActive: specialDate.isActive, 
+          timeSlots: specialDate.timeSlots 
+        },
+        scheduleSetId: specialDate.scheduleId
+      };
+    } else {
+      return { found: true, schedule: { isActive: false, timeSlots: [] }, scheduleSetId: specialDate.scheduleId };
+    }
   }
   
-  return null;
+  return { found: false, schedule: null, scheduleSetId: 0 };
 };
 
 // Check if a time slot is available based on the schedule
@@ -169,18 +212,48 @@ export const checkAvailability = async (
     // Get business availability settings
     const settings = await getAvailabilitySettings(businessId);
     
-    // Check if date is blocked
-    if (isDateBlocked(date, settings.blockedDates)) {
-      return false;
+    // Check for blocked dates
+    const blockedInfo = isDateBlocked(date, settings.blockedDates);
+    if (blockedInfo.isBlocked) {
+      // If the date is fully blocked, not available
+      if (blockedInfo.fullDay) return false;
+      
+      // Check if the requested time falls within blocked timeSlots
+      const requestedStart = combineDateTime(date, time);
+      const requestedEnd = new Date(requestedStart.getTime() + durationMinutes * 60 * 1000);
+      
+      for (const slot of blockedInfo.timeSlots) {
+        const slotStart = combineDateTime(date, slot.start);
+        const slotEnd = combineDateTime(date, slot.end);
+        
+        // If the requested time overlaps with a blocked time slot
+        if (!(requestedEnd <= slotStart || requestedStart >= slotEnd)) {
+          return false;
+        }
+      }
     }
     
-    // Get the day schedule (regular or special)
-    const specialSchedule = findSpecialSchedule(date, settings.specialDates);
-    const dayOfWeek = getDayName(date);
-    const daySchedule = specialSchedule || settings.regularSchedule[dayOfWeek];
+    // Check for special dates or use regular schedule
+    const { found, schedule, scheduleSetId } = findSpecialSchedule(date, settings.specialDates, settings.scheduleSets);
+    
+    // If this date has a special schedule
+    let daySchedule: DaySchedule | null = null;
+    if (found && schedule) {
+      daySchedule = schedule;
+    } else {
+      // Use the active schedule set
+      const activeScheduleId = settings.activeScheduleId;
+      const activeScheduleSet = settings.scheduleSets.find(s => s.id === activeScheduleId);
+      
+      if (!activeScheduleSet) return false;
+      
+      // Get the day of week schedule
+      const dayOfWeek = getDayName(date);
+      daySchedule = activeScheduleSet.regularSchedule[dayOfWeek];
+    }
     
     // If day is not active, it's not available
-    if (!daySchedule.isActive) {
+    if (!daySchedule || !daySchedule.isActive || daySchedule.timeSlots.length === 0) {
       return false;
     }
     
@@ -225,18 +298,33 @@ export const getAvailableTimeSlots = async (
     // Get business availability settings
     const settings = await getAvailabilitySettings(businessId);
     
-    // Check if date is blocked
-    if (isDateBlocked(date, settings.blockedDates)) {
-      return [];
+    // Check for blocked dates
+    const blockedInfo = isDateBlocked(date, settings.blockedDates);
+    if (blockedInfo.isBlocked && blockedInfo.fullDay) {
+      return []; // Day entirely blocked
     }
     
     // Get the day schedule (regular or special)
-    const specialSchedule = findSpecialSchedule(date, settings.specialDates);
-    const dayOfWeek = getDayName(date);
-    const daySchedule = specialSchedule || settings.regularSchedule[dayOfWeek];
+    const { found, schedule, scheduleSetId } = findSpecialSchedule(date, settings.specialDates, settings.scheduleSets);
+    
+    // Set daySchedule based on whether a special schedule was found
+    let daySchedule: DaySchedule | null = null;
+    if (found && schedule) {
+      daySchedule = schedule;
+    } else {
+      // Use the active schedule set
+      const activeScheduleId = settings.activeScheduleId;
+      const activeScheduleSet = settings.scheduleSets.find(s => s.id === activeScheduleId);
+      
+      if (!activeScheduleSet) return [];
+      
+      // Get the day of week schedule
+      const dayOfWeek = getDayName(date);
+      daySchedule = activeScheduleSet.regularSchedule[dayOfWeek];
+    }
     
     // If day is not active, return empty array
-    if (!daySchedule.isActive || !daySchedule.timeSlots.length) {
+    if (!daySchedule || !daySchedule.isActive || !daySchedule.timeSlots.length) {
       return [];
     }
     
@@ -259,9 +347,25 @@ export const getAvailableTimeSlots = async (
       while (currentTime + serviceDurationMs <= slotEnd.getTime()) {
         const timeString = new Date(currentTime).toTimeString().substring(0, 5);
         
-        // In a real system, we'd check if this time conflicts with existing reservations
-        // For now, we'll just add all slots (with 10% random unavailability for demo)
-        if (Math.random() > 0.1) {
+        // Check if the time slot is not blocked
+        let isBlocked = false;
+        if (blockedInfo.isBlocked && !blockedInfo.fullDay) {
+          const slotEndTime = new Date(currentTime + serviceDurationMs);
+          
+          for (const blockedSlot of blockedInfo.timeSlots) {
+            const blockedStart = combineDateTime(date, blockedSlot.start);
+            const blockedEnd = combineDateTime(date, blockedSlot.end);
+            
+            // Check if current slot overlaps with any blocked period
+            if (!(slotEndTime <= blockedStart || new Date(currentTime) >= blockedEnd)) {
+              isBlocked = true;
+              break;
+            }
+          }
+        }
+        
+        // If not blocked, add to available slots
+        if (!isBlocked && Math.random() > 0.1) { // 10% random unavailability for demo
           availableSlots.push(timeString);
         }
         
