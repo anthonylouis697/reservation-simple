@@ -99,28 +99,21 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
     // Type assertion to avoid TypeScript errors
     const rawData = data as any;
     
-    // Parse the data from the database
-    const scheduleSets = rawData.schedule_sets ? 
-      (typeof rawData.schedule_sets === 'string' ? 
-        JSON.parse(rawData.schedule_sets) : rawData.schedule_sets)
-      : defaultAvailabilitySettings.scheduleSets;
+    // Extract the scheduleSets and activeScheduleId from the regular_schedule object
+    const regularScheduleData = rawData.regular_schedule || {};
+    const activeScheduleId = regularScheduleData._activeScheduleId || 1;
+    const scheduleSets = regularScheduleData._scheduleSets || defaultAvailabilitySettings.scheduleSets;
     
-    const specialDates = rawData.special_dates ? 
-      (typeof rawData.special_dates === 'string' ? 
-        JSON.parse(rawData.special_dates) : rawData.special_dates)
-      : [];
-    
-    const blockedDates = rawData.blocked_dates ? 
-      (typeof rawData.blocked_dates === 'string' ? 
-        JSON.parse(rawData.blocked_dates) : rawData.blocked_dates)
-      : [];
+    // Extract special dates and blocked dates
+    const specialDates = rawData.special_dates || [];
+    const blockedDates = rawData.blocked_dates || [];
     
     const settings: AvailabilitySettings = {
       businessId,
-      activeScheduleId: rawData.active_schedule_id || 1,
-      scheduleSets: scheduleSets,
-      specialDates: specialDates,
-      blockedDates: blockedDates,
+      activeScheduleId,
+      scheduleSets,
+      specialDates,
+      blockedDates,
       bufferTimeMinutes: rawData.buffer_time_minutes || 15,
       advanceBookingDays: rawData.advance_booking_days || 30,
       minAdvanceHours: rawData.min_advance_hours || 24
@@ -170,7 +163,10 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
         onConflict: 'business_id'
       });
     
-    if (error) throw error;
+    if (error) {
+      console.error("Error in saveAvailabilitySettings:", error);
+      throw error;
+    }
     
     return true;
   } catch (error) {
@@ -412,4 +408,3 @@ export const getAvailableTimeSlots = async (
     return [];
   }
 };
-

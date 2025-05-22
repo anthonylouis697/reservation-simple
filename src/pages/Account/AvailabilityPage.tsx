@@ -13,23 +13,25 @@ const AvailabilityPage = () => {
   const { currentBusiness } = useBusiness();
   const [loading, setLoading] = useState(false);
   const [settings, setSettings] = useState<AvailabilitySettingsType | null>(null);
+  const [saveError, setSaveError] = useState(false);
   
-  useEffect(() => {
-    const loadSettings = async () => {
-      if (currentBusiness?.id) {
-        setLoading(true);
-        try {
-          const availabilitySettings = await getAvailabilitySettings(currentBusiness.id);
-          setSettings(availabilitySettings);
-        } catch (error) {
-          console.error("Error loading availability settings:", error);
-          toast.error("Impossible de charger les paramètres de disponibilité.");
-        } finally {
-          setLoading(false);
-        }
+  const loadSettings = async () => {
+    if (currentBusiness?.id) {
+      setLoading(true);
+      setSaveError(false);
+      try {
+        const availabilitySettings = await getAvailabilitySettings(currentBusiness.id);
+        setSettings(availabilitySettings);
+      } catch (error) {
+        console.error("Error loading availability settings:", error);
+        toast.error("Impossible de charger les paramètres de disponibilité.");
+      } finally {
+        setLoading(false);
       }
-    };
-    
+    }
+  };
+
+  useEffect(() => {
     loadSettings();
   }, [currentBusiness]);
   
@@ -46,9 +48,13 @@ const AvailabilityPage = () => {
       });
       
       if (!success) {
+        setSaveError(true);
         toast.error("Erreur lors de l'enregistrement des paramètres.");
+      } else {
+        setSaveError(false);
       }
     } catch (error) {
+      setSaveError(true);
       console.error("Error saving availability settings:", error);
       toast.error("Erreur lors de l'enregistrement des paramètres.");
     }
@@ -69,6 +75,16 @@ const AvailabilityPage = () => {
           <p className="text-sm text-muted-foreground mt-1">
             Vos modifications sont automatiquement enregistrées.
           </p>
+          {saveError && (
+            <div className="flex justify-end mt-2">
+              <button 
+                onClick={loadSettings} 
+                className="text-sm text-primary hover:underline"
+              >
+                Rafraîchir les données
+              </button>
+            </div>
+          )}
         </div>
         
         {loading ? (

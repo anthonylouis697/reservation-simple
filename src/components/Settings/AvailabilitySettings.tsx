@@ -75,10 +75,8 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
   const [specialDates, setSpecialDates] = useState<SpecialDate[]>([]);
   const [scheduleSets, setScheduleSets] = useState<ScheduleSet[]>([]);
   const [activeScheduleId, setActiveScheduleId] = useState<number>(1);
-  const [newScheduleName, setNewScheduleName] = useState<string>("");
   const [availabilityBuffer, setAvailabilityBuffer] = useState(15);
   const [advanceBookingLimit, setAdvanceBookingLimit] = useState(30);
-  const [openNewScheduleDialog, setOpenNewScheduleDialog] = useState(false);
   const [blockDateDialog, setBlockDateDialog] = useState(false);
   const [blockingFullDay, setBlockingFullDay] = useState(true);
   const [blockTimeSlots, setBlockTimeSlots] = useState<TimeSlot[]>([{ start: "09:00", end: "17:00" }]);
@@ -90,14 +88,22 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
   // Initialize from props if provided
   useEffect(() => {
     if (initialSettings) {
-      setBlockedDates(initialSettings.blockedDates);
-      setSpecialDates(initialSettings.specialDates);
-      setScheduleSets(initialSettings.scheduleSets);
-      setActiveScheduleId(initialSettings.activeScheduleId);
-      setAvailabilityBuffer(initialSettings.bufferTimeMinutes);
-      setAdvanceBookingLimit(initialSettings.advanceBookingDays);
+      setBlockedDates(initialSettings.blockedDates || []);
+      setSpecialDates(initialSettings.specialDates || []);
+      setScheduleSets(initialSettings.scheduleSets || []);
+      setActiveScheduleId(initialSettings.activeScheduleId || 1);
+      setAvailabilityBuffer(initialSettings.bufferTimeMinutes || 15);
+      setAdvanceBookingLimit(initialSettings.advanceBookingDays || 30);
     }
   }, [initialSettings]);
+
+  // Force an immediate save when component loads to ensure DB consistency
+  useEffect(() => {
+    if (initialSettings && onChange) {
+      // Force a save of the initial data structure to ensure DB is properly formatted
+      setTimeout(notifyChange, 500);
+    }
+  }, []);
 
   // Debounced change notification
   const debouncedNotifyChange = useCallback(
@@ -310,61 +316,6 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
     setTimeout(notifyChange, 300);
   };
   
-  const handleAddScheduleSet = () => {
-    if (!newScheduleName.trim()) {
-      toast.error("Veuillez saisir un nom pour le nouveau jeu d'horaires");
-      return;
-    }
-    
-    const newId = Math.max(0, ...scheduleSets.map(s => s.id)) + 1;
-    
-    const newSchedule: ScheduleSet = {
-      id: newId,
-      name: newScheduleName.trim(),
-      regularSchedule: {
-        monday: { isActive: true, timeSlots: [{ start: '09:00', end: '17:00' }] },
-        tuesday: { isActive: true, timeSlots: [{ start: '09:00', end: '17:00' }] },
-        wednesday: { isActive: true, timeSlots: [{ start: '09:00', end: '17:00' }] },
-        thursday: { isActive: true, timeSlots: [{ start: '09:00', end: '17:00' }] },
-        friday: { isActive: true, timeSlots: [{ start: '09:00', end: '17:00' }] },
-        saturday: { isActive: false, timeSlots: [] },
-        sunday: { isActive: false, timeSlots: [] },
-      }
-    };
-    
-    setScheduleSets(prev => [...prev, newSchedule]);
-    setOpenNewScheduleDialog(false);
-    setNewScheduleName("");
-    toast.success("Nouveau jeu d'horaires créé");
-    
-    setTimeout(notifyChange, 300);
-  };
-  
-  const handleRemoveScheduleSet = (id: number) => {
-    // Don't allow removing the last schedule set
-    if (scheduleSets.length <= 1) {
-      toast.error("Vous ne pouvez pas supprimer le dernier jeu d'horaires");
-      return;
-    }
-    
-    // If removing active schedule, switch to another one
-    if (id === activeScheduleId) {
-      const otherSchedule = scheduleSets.find(s => s.id !== id);
-      if (otherSchedule) {
-        setActiveScheduleId(otherSchedule.id);
-      }
-    }
-    
-    setScheduleSets(prev => prev.filter(s => s.id !== id));
-    
-    // Also remove any special dates that reference this schedule
-    setSpecialDates(prev => prev.filter(sd => sd.scheduleId !== id));
-    
-    toast.success("Jeu d'horaires supprimé");
-    
-    setTimeout(notifyChange, 300);
-  };
-  
   const handleChangeActiveSchedule = (id: number) => {
     setActiveScheduleId(id);
     toast.success("Jeu d'horaires actif modifié");
@@ -484,41 +435,9 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
         <TabsContent value="weekly" className="space-y-6">
           <Card>
             <CardHeader className="space-y-1">
-              <div className="flex justify-between items-center">
-                <CardTitle>Jeux d'horaires</CardTitle>
-                <Dialog open={openNewScheduleDialog} onOpenChange={setOpenNewScheduleDialog}>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <Plus className="h-4 w-4 mr-1" /> Nouveau jeu
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Créer un nouveau jeu d'horaires</DialogTitle>
-                      <DialogDescription>
-                        Ajoutez un nouveau jeu d'horaires pour des besoins différents (ex: horaires d'été/hiver).
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="grid gap-2">
-                        <Label htmlFor="name">Nom du jeu d'horaires</Label>
-                        <Input 
-                          id="name" 
-                          placeholder="Ex: Horaires d'été" 
-                          value={newScheduleName}
-                          onChange={(e) => setNewScheduleName(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setOpenNewScheduleDialog(false)}>Annuler</Button>
-                      <Button onClick={handleAddScheduleSet}>Créer</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
+              <CardTitle>Jeux d'horaires</CardTitle>
               <CardDescription>
-                Définissez différents jeux d'horaires et sélectionnez celui que vous souhaitez utiliser par défaut.
+                Définissez vos horaires hebdomadaires par défaut.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -528,34 +447,18 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
                     <CardHeader className="py-3">
                       <div className="flex justify-between items-center">
                         <CardTitle className="text-lg">{schedule.name}</CardTitle>
-                        <div className="flex space-x-2">
-                          {schedule.id !== activeScheduleId && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleChangeActiveSchedule(schedule.id)}
-                            >
-                              Activer
-                            </Button>
-                          )}
-                          {scheduleSets.length > 1 && (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => handleRemoveScheduleSet(schedule.id)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
+                        {schedule.id === activeScheduleId && (
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                            Actif
+                          </span>
+                        )}
                       </div>
                       {schedule.id === activeScheduleId && (
                         <CardDescription>Jeu d'horaires actif</CardDescription>
                       )}
                     </CardHeader>
                     <CardContent>
-                      <Accordion type="single" collapsible className="w-full">
+                      <Accordion type="single" collapsible defaultValue={`schedule-${schedule.id}`} className="w-full">
                         <AccordionItem value={`schedule-${schedule.id}`}>
                           <AccordionTrigger>Voir les horaires</AccordionTrigger>
                           <AccordionContent>
