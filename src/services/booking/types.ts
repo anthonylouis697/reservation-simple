@@ -95,6 +95,11 @@ export interface DbReservationWithClient {
   id: string;
   business_id: string;
   service_id: string;
+  service_name?: string;
+  client_first_name?: string;
+  client_last_name?: string;
+  client_email?: string;
+  client_phone?: string;
   start_time: string;
   end_time: string;
   status: string;
@@ -103,5 +108,4 @@ export interface DbReservationWithClient {
   created_at: string;
   updated_at?: string;
   clients?: DbClient;
-  service_name?: string; // Add this to match what we're trying to access
 }

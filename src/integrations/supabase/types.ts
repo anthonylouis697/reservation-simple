@@ -275,36 +275,51 @@ export type Database = {
       reservations: {
         Row: {
           business_id: string
+          client_email: string | null
+          client_first_name: string | null
           client_id: string | null
+          client_last_name: string | null
+          client_phone: string | null
           created_at: string
           end_time: string
           id: string
           notes: string | null
           service_id: string | null
+          service_name: string | null
           start_time: string
           status: string
           updated_at: string
         }
         Insert: {
           business_id: string
+          client_email?: string | null
+          client_first_name?: string | null
           client_id?: string | null
+          client_last_name?: string | null
+          client_phone?: string | null
           created_at?: string
           end_time: string
           id?: string
           notes?: string | null
           service_id?: string | null
+          service_name?: string | null
           start_time: string
           status?: string
           updated_at?: string
         }
         Update: {
           business_id?: string
+          client_email?: string | null
+          client_first_name?: string | null
           client_id?: string | null
+          client_last_name?: string | null
+          client_phone?: string | null
           created_at?: string
           end_time?: string
           id?: string
           notes?: string | null
           service_id?: string | null
+          service_name?: string | null
           start_time?: string
           status?: string
           updated_at?: string

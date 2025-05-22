@@ -51,7 +51,7 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
       startTime: new Date(data.start_time),
       endTime: new Date(data.end_time),
       serviceId: data.service_id,
-      serviceName: bookingData.serviceName, // Use the serviceName from bookingData
+      serviceName: data.service_name || bookingData.serviceName,
       clientName: `${clientFirstName} ${clientLastName}`,
       clientEmail: clientEmail,
       status: data.status as 'confirmed' | 'cancelled' | 'pending'

@@ -38,6 +38,10 @@ export const createBookingOperation = async (
       service_id: bookingData.serviceId,
       service_name: bookingData.serviceName || 'Service',
       client_id: clientId,
+      client_first_name: bookingData.clientInfo.firstName,
+      client_last_name: bookingData.clientInfo.lastName,
+      client_email: bookingData.clientInfo.email,
+      client_phone: bookingData.clientInfo.phone || null,
       start_time: startTime.toISOString(),
       end_time: endTime.toISOString(),
       notes: bookingData.notes || null,
@@ -59,7 +63,7 @@ export const createBookingOperation = async (
       startTime: new Date(data.start_time),
       endTime: new Date(data.end_time),
       serviceId: data.service_id,
-      serviceName: bookingData.serviceName || 'Service',
+      serviceName: data.service_name || bookingData.serviceName || 'Service',
       clientName: `${bookingData.clientInfo.firstName} ${bookingData.clientInfo.lastName}`,
       clientEmail: bookingData.clientInfo.email,
       status: data.status as 'confirmed' | 'cancelled' | 'pending'
@@ -122,12 +126,12 @@ export const getBusinessBookings = async (
         id: bookingData.id,
         business_id: bookingData.business_id,
         service_id: bookingData.service_id,
-        service_name: bookingData.service_name || 'Service', // Use fallback if service_name doesn't exist
+        service_name: bookingData.service_name || 'Service',
         client_id: bookingData.client_id,
-        client_first_name: clientData.first_name || '',
-        client_last_name: clientData.last_name || '',
-        client_email: clientData.email || '',
-        client_phone: clientData.phone || '',
+        client_first_name: bookingData.client_first_name || clientData.first_name || '',
+        client_last_name: bookingData.client_last_name || clientData.last_name || '',
+        client_email: bookingData.client_email || clientData.email || '',
+        client_phone: bookingData.client_phone || clientData.phone || '',
         start_time: bookingData.start_time,
         end_time: bookingData.end_time,
         notes: bookingData.notes || null,
@@ -136,10 +140,10 @@ export const getBusinessBookings = async (
         
         // Add the client field for compatibility
         client: {
-          name: ((clientData.first_name || '') + ' ' + (clientData.last_name || '')).trim() || 'Client',
-          email: clientData.email || '',
-          phone: clientData.phone || '',
-          notes: clientData.notes || ''
+          name: ((clientData.first_name || bookingData.client_first_name || '') + ' ' + (clientData.last_name || bookingData.client_last_name || '')).trim() || 'Client',
+          email: clientData.email || bookingData.client_email || '',
+          phone: clientData.phone || bookingData.client_phone || '',
+          notes: clientData.notes || bookingData.notes || ''
         }
       };
       
@@ -210,12 +214,12 @@ export const getUpcomingBookings = async (businessId: string): Promise<Booking[]
         id: bookingData.id,
         business_id: bookingData.business_id,
         service_id: bookingData.service_id,
-        service_name: bookingData.service_name || 'Service', // Use fallback if service_name doesn't exist
+        service_name: bookingData.service_name || 'Service',
         client_id: bookingData.client_id,
-        client_first_name: clientData.first_name || '',
-        client_last_name: clientData.last_name || '',
-        client_email: clientData.email || '',
-        client_phone: clientData.phone || '',
+        client_first_name: bookingData.client_first_name || clientData.first_name || '',
+        client_last_name: bookingData.client_last_name || clientData.last_name || '',
+        client_email: bookingData.client_email || clientData.email || '',
+        client_phone: bookingData.client_phone || clientData.phone || '',
         start_time: bookingData.start_time,
         end_time: bookingData.end_time,
         notes: bookingData.notes || '',
@@ -229,10 +233,10 @@ export const getUpcomingBookings = async (businessId: string): Promise<Booking[]
         serviceId: bookingData.service_id,
         client: {
           // Handle possible null/undefined values gracefully
-          name: ((clientData.first_name || '') + ' ' + (clientData.last_name || '')).trim() || 'Client',
-          email: clientData.email || '',
-          phone: clientData.phone || '',
-          notes: clientData.notes || ''
+          name: ((bookingData.client_first_name || clientData.first_name || '') + ' ' + (bookingData.client_last_name || clientData.last_name || '')).trim() || 'Client',
+          email: bookingData.client_email || clientData.email || '',
+          phone: bookingData.client_phone || clientData.phone || '',
+          notes: bookingData.notes || clientData.notes || ''
         }
       };
     });
