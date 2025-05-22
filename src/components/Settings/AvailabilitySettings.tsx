@@ -634,20 +634,6 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
                       modifiersClassNames={{
                         special: "!font-bold !border !border-primary",
                       }}
-                      styles={{
-                        day_today: { 
-                          backgroundColor: "hsl(var(--accent))", 
-                          color: "hsl(var(--accent-foreground))" 
-                        },
-                        day_selected: { 
-                          backgroundColor: "hsl(var(--primary))", 
-                          color: "white", 
-                          fontWeight: "bold" 
-                        },
-                        day: { 
-                          backgroundColor: "transparent" 
-                        }
-                      }}
                       className="rounded-md border"
                     />
                   </div>
