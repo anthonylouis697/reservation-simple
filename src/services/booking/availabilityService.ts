@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 import { Json } from '@/integrations/supabase/types';
@@ -108,15 +109,27 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
     
     // Extract the scheduleSets and activeScheduleId from the regular_schedule object
     const regularScheduleData = rawData.regular_schedule || {};
-    const activeScheduleId = regularScheduleData._activeScheduleId || 1;
+    let regularScheduleObj: any = {};
+    
+    // Parse regular_schedule if it's a string
+    try {
+      regularScheduleObj = typeof regularScheduleData === 'string' 
+        ? JSON.parse(regularScheduleData) 
+        : regularScheduleData;
+    } catch (e) {
+      console.error("Error parsing regular schedule:", e);
+      regularScheduleObj = {};
+    }
+    
+    const activeScheduleId = regularScheduleObj._activeScheduleId || 1;
     
     // Make sure scheduleSets is properly parsed
     let scheduleSets = defaultAvailabilitySettings.scheduleSets;
     try {
-      if (regularScheduleData._scheduleSets) {
-        scheduleSets = Array.isArray(regularScheduleData._scheduleSets) 
-          ? regularScheduleData._scheduleSets 
-          : JSON.parse(regularScheduleData._scheduleSets);
+      if (regularScheduleObj._scheduleSets) {
+        scheduleSets = Array.isArray(regularScheduleObj._scheduleSets) 
+          ? regularScheduleObj._scheduleSets 
+          : JSON.parse(regularScheduleObj._scheduleSets);
       }
     } catch (e) {
       console.error("Error parsing schedule sets:", e);
@@ -125,10 +138,11 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
     // Make sure specialDates is properly parsed
     let specialDates: SpecialDate[] = [];
     try {
-      specialDates = Array.isArray(rawData.special_dates) 
-        ? rawData.special_dates 
-        : (typeof rawData.special_dates === 'string' 
-          ? JSON.parse(rawData.special_dates) 
+      const rawSpecialDates = rawData.special_dates;
+      specialDates = Array.isArray(rawSpecialDates) 
+        ? rawSpecialDates 
+        : (typeof rawSpecialDates === 'string' 
+          ? JSON.parse(rawSpecialDates) 
           : []);
     } catch (e) {
       console.error("Error parsing special dates:", e);
@@ -137,10 +151,11 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
     // Make sure blockedDates is properly parsed
     let blockedDates: BlockedTime[] = [];
     try {
-      blockedDates = Array.isArray(rawData.blocked_dates) 
-        ? rawData.blocked_dates 
-        : (typeof rawData.blocked_dates === 'string' 
-          ? JSON.parse(rawData.blocked_dates) 
+      const rawBlockedDates = rawData.blocked_dates;
+      blockedDates = Array.isArray(rawBlockedDates) 
+        ? rawBlockedDates 
+        : (typeof rawBlockedDates === 'string' 
+          ? JSON.parse(rawBlockedDates) 
           : []);
     } catch (e) {
       console.error("Error parsing blocked dates:", e);
@@ -180,12 +195,11 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
   try {
     console.log("Saving availability settings for business:", settings.businessId);
     
-    // Convert to JSON strings to avoid type issues
-    const specialDatesStr = JSON.stringify(settings.specialDates);
-    const blockedDatesStr = JSON.stringify(settings.blockedDates);
-    
-    // Create a properly typeable regular schedule JSON string
-    const scheduleSetsStr = JSON.stringify(settings.scheduleSets);
+    // Convert JSON objects to proper format for database
+    // First, stringify the complex objects to ensure they're stored as JSON strings
+    const specialDatesJson = JSON.stringify(settings.specialDates);
+    const blockedDatesJson = JSON.stringify(settings.blockedDates);
+    const scheduleSetsJson = JSON.stringify(settings.scheduleSets);
     
     // Create a regular schedule JSON object without circular references
     const regularScheduleObj = {
@@ -197,7 +211,7 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
       saturday: settings.scheduleSets[0].regularSchedule.saturday,
       sunday: settings.scheduleSets[0].regularSchedule.sunday,
       _activeScheduleId: settings.activeScheduleId,
-      _scheduleSets: scheduleSetsStr
+      _scheduleSets: scheduleSetsJson
     };
     
     const regularScheduleStr = JSON.stringify(regularScheduleObj);
@@ -205,9 +219,9 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
     // Create a sanitized object for saving to the database
     const dbObject = {
       business_id: settings.businessId,
-      regular_schedule: regularScheduleStr,
-      special_dates: specialDatesStr,
-      blocked_dates: blockedDatesStr,
+      regular_schedule: regularScheduleStr as unknown as Json,
+      special_dates: specialDatesJson as unknown as Json,
+      blocked_dates: blockedDatesJson as unknown as Json, 
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours
