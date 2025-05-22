@@ -142,19 +142,26 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
     // Get the active schedule for regular_schedule field
     const activeSchedule = settings.scheduleSets.find(s => s.id === settings.activeScheduleId) || settings.scheduleSets[0];
     
-    // Convert custom types to proper Json format for database storage
     // Create a properly typed object for Supabase according to the database schema
+    // Store the activeScheduleId and scheduleSets within the regular_schedule JSON object
+    // since there's no dedicated column for them in the database
+    const regularScheduleWithMeta = {
+      ...activeSchedule.regularSchedule,
+      _activeScheduleId: settings.activeScheduleId,
+      _scheduleSets: settings.scheduleSets
+    };
+    
     const dbObject = {
       business_id: settings.businessId,
-      active_schedule_id: settings.activeScheduleId,
-      regular_schedule: activeSchedule.regularSchedule as unknown as Json,
-      schedule_sets: settings.scheduleSets as unknown as Json,
+      regular_schedule: regularScheduleWithMeta as unknown as Json,
       special_dates: settings.specialDates as unknown as Json[],
       blocked_dates: settings.blockedDates as unknown as Json[],
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours
     };
+
+    console.log("Saving availability settings:", dbObject);
 
     // Pass the properly typed object to upsert
     const { error } = await supabase
@@ -405,3 +412,4 @@ export const getAvailableTimeSlots = async (
     return [];
   }
 };
+
