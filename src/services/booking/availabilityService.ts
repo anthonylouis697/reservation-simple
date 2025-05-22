@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 import { Json } from '@/integrations/supabase/types';
@@ -181,9 +180,12 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
   try {
     console.log("Saving availability settings for business:", settings.businessId);
     
-    // Convert complex objects to JSON strings for the database
-    const specialDatesJson = JSON.stringify(settings.specialDates);
-    const blockedDatesJson = JSON.stringify(settings.blockedDates);
+    // Convert to JSON strings to avoid type issues
+    const specialDatesStr = JSON.stringify(settings.specialDates);
+    const blockedDatesStr = JSON.stringify(settings.blockedDates);
+    
+    // Create a properly typeable regular schedule JSON string
+    const scheduleSetsStr = JSON.stringify(settings.scheduleSets);
     
     // Create a regular schedule JSON object without circular references
     const regularScheduleObj = {
@@ -195,17 +197,17 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
       saturday: settings.scheduleSets[0].regularSchedule.saturday,
       sunday: settings.scheduleSets[0].regularSchedule.sunday,
       _activeScheduleId: settings.activeScheduleId,
-      _scheduleSets: JSON.stringify(settings.scheduleSets)
+      _scheduleSets: scheduleSetsStr
     };
     
-    const regularScheduleJson = JSON.stringify(regularScheduleObj);
+    const regularScheduleStr = JSON.stringify(regularScheduleObj);
     
-    // Create a sanitized copy for saving to the database
+    // Create a sanitized object for saving to the database
     const dbObject = {
       business_id: settings.businessId,
-      regular_schedule: regularScheduleJson as unknown as Json,
-      special_dates: specialDatesJson as unknown as Json[],
-      blocked_dates: blockedDatesJson as unknown as Json[],
+      regular_schedule: regularScheduleStr,
+      special_dates: specialDatesStr,
+      blocked_dates: blockedDatesStr,
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours

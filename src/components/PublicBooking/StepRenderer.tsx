@@ -8,6 +8,7 @@ import DateSelection from './DateSelection';
 import TimeSelection from './TimeSelection';
 import ClientInfoForm from './ClientInfoForm';
 import BookingConfirmation from './BookingConfirmation';
+import { Steps } from '@/components/Visibility/BookingPage/types';
 
 interface StepRendererProps {
   currentStep: BookingStep;
@@ -66,6 +67,7 @@ const StepRenderer = ({
   // Determine which component to render based on step type
   switch (currentStep.type) {
     case 'service':
+    case Steps.SERVICE:
       return (
         <ServiceSelection
           customTexts={safeCustomTexts}
@@ -78,6 +80,7 @@ const StepRenderer = ({
       );
 
     case 'date':
+    case Steps.DATE:
       return (
         <DateSelection
           customTexts={safeCustomTexts}
@@ -88,6 +91,7 @@ const StepRenderer = ({
       );
 
     case 'time':
+    case Steps.TIME:
       return (
         <TimeSelection
           customTexts={safeCustomTexts}
@@ -102,6 +106,7 @@ const StepRenderer = ({
       );
 
     case 'client_info':
+    case Steps.CLIENT_INFO:
       return (
         <ClientInfoForm
           customTexts={safeCustomTexts}
@@ -110,6 +115,18 @@ const StepRenderer = ({
           selectedService={selectedService}
           selectedDate={selectedDate}
           selectedTime={selectedTime}
+        />
+      );
+      
+    case 'confirmation':
+    case Steps.CONFIRMATION:
+      return (
+        <BookingConfirmation
+          customTexts={safeCustomTexts}
+          primaryColor={primaryColor}
+          getButtonStyle={getButtonStyle}
+          confirmationMessage="Réservation confirmée."
+          handleStartOver={() => {}}
         />
       );
       

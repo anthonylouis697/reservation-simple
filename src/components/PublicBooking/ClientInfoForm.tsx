@@ -8,35 +8,77 @@ import { defaultCustomTexts } from '@/components/Visibility/BookingPage/constant
 
 interface ClientInfoFormProps {
   customTexts: BookingCustomTexts;
-  clientName: string;
-  setClientName: (name: string) => void;
-  clientEmail: string;
-  setClientEmail: (email: string) => void;
-  clientPhone: string;
-  setClientPhone: (phone: string) => void;
-  clientNotes: string;
-  setClientNotes: (notes: string) => void;
+  clientName?: string;
+  setClientName?: (name: string) => void;
+  clientEmail?: string;
+  setClientEmail?: (email: string) => void;
+  clientPhone?: string;
+  setClientPhone?: (phone: string) => void;
+  clientNotes?: string;
+  setClientNotes?: (notes: string) => void;
   selectedService: Service | null;
   selectedDate: Date | undefined;
   selectedTime: string | null;
+  // Add these properties to fix the type errors
+  clientInfo?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    notes: string;
+  };
+  setClientInfo?: (clientInfo: any) => void;
 }
 
 const ClientInfoForm = ({
   customTexts,
-  clientName,
-  setClientName,
-  clientEmail,
-  setClientEmail,
-  clientPhone,
-  setClientPhone,
-  clientNotes,
-  setClientNotes,
+  clientName = '',
+  setClientName = () => {},
+  clientEmail = '',
+  setClientEmail = () => {},
+  clientPhone = '',
+  setClientPhone = () => {},
+  clientNotes = '',
+  setClientNotes = () => {},
   selectedService,
   selectedDate,
-  selectedTime
+  selectedTime,
+  // Add support for the new props
+  clientInfo,
+  setClientInfo = () => {}
 }: ClientInfoFormProps) => {
   // Ensure customTexts is never undefined
   const safeCustomTexts = customTexts || defaultCustomTexts;
+  
+  // Handle the new clientInfo prop approach
+  const handleInputChange = (field: string, value: string) => {
+    if (clientInfo && setClientInfo) {
+      setClientInfo({ ...clientInfo, [field]: value });
+    } else {
+      // Fall back to individual setters
+      switch (field) {
+        case 'firstName':
+          setClientName(value);
+          break;
+        case 'email':
+          setClientEmail(value);
+          break;
+        case 'phone':
+          setClientPhone(value);
+          break;
+        case 'notes':
+          setClientNotes(value);
+          break;
+      }
+    }
+  };
+  
+  // Get values from either approach
+  const firstName = clientInfo?.firstName || clientName;
+  const lastName = clientInfo?.lastName || '';
+  const email = clientInfo?.email || clientEmail;
+  const phone = clientInfo?.phone || clientPhone;
+  const notes = clientInfo?.notes || clientNotes;
   
   return (
     <div className="space-y-6">
@@ -66,16 +108,31 @@ const ClientInfoForm = ({
       
       <form className="space-y-4 max-w-md mx-auto">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-            Nom complet *
+          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+            Prénom *
           </label>
           <input
-            id="name"
+            id="firstName"
             type="text"
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            value={clientName}
-            onChange={(e) => setClientName(e.target.value)}
+            value={firstName}
+            onChange={(e) => handleInputChange('firstName', e.target.value)}
+            placeholder="Votre prénom"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+            Nom *
+          </label>
+          <input
+            id="lastName"
+            type="text"
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            value={lastName}
+            onChange={(e) => handleInputChange('lastName', e.target.value)}
             placeholder="Votre nom"
           />
         </div>
@@ -89,8 +146,8 @@ const ClientInfoForm = ({
             type="email"
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            value={clientEmail}
-            onChange={(e) => setClientEmail(e.target.value)}
+            value={email}
+            onChange={(e) => handleInputChange('email', e.target.value)}
             placeholder="votre.email@exemple.com"
           />
         </div>
@@ -103,8 +160,8 @@ const ClientInfoForm = ({
             id="phone"
             type="tel"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            value={clientPhone}
-            onChange={(e) => setClientPhone(e.target.value)}
+            value={phone}
+            onChange={(e) => handleInputChange('phone', e.target.value)}
             placeholder="06 XX XX XX XX"
           />
         </div>
@@ -117,8 +174,8 @@ const ClientInfoForm = ({
             id="notes"
             rows={3}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            value={clientNotes}
-            onChange={(e) => setClientNotes(e.target.value)}
+            value={notes}
+            onChange={(e) => handleInputChange('notes', e.target.value)}
             placeholder="Informations supplémentaires à nous communiquer..."
           />
         </div>

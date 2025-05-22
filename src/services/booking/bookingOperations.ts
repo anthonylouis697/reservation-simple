@@ -38,6 +38,7 @@ const createDatabaseReservation = async (
   businessId: string,
   clientId: string,
   serviceId: string,
+  serviceName: string, // Added service name parameter
   startTime: Date,
   endTime: Date,
   status: 'confirmed' | 'cancelled' | 'pending'
@@ -67,6 +68,7 @@ const createDatabaseReservation = async (
       startTime: startTime,
       endTime: endTime,
       serviceId: serviceId,
+      serviceName: serviceName, // Include service name
       clientName: '', // Client name will be populated elsewhere
       clientEmail: '', // Client email will be populated elsewhere
       status: status
@@ -83,23 +85,25 @@ const createLocalBooking = (
   businessId: string,
   clientId: string,
   serviceId: string,
+  serviceName: string, // Added service name parameter
   startTime: Date,
   endTime: Date,
   status: 'confirmed' | 'cancelled' | 'pending',
-  client: ClientInfo
+  clientInfo: ClientInfo
 ): BookingResult => {
   const bookingToSave = {
     id: bookingId,
     businessId,
     clientId,
     serviceId,
+    serviceName, // Include service name
     startTime: startTime.toISOString(),
     endTime: endTime.toISOString(),
     status,
-    clientName: client.name,
-    clientEmail: client.email,
-    clientPhone: client.phone,
-    clientNotes: client.notes
+    clientName: `${clientInfo.firstName} ${clientInfo.lastName}`,
+    clientEmail: clientInfo.email,
+    clientPhone: clientInfo.phone,
+    clientNotes: clientInfo.notes
   };
   
   saveBookingToLocalStorage(bookingToSave);
@@ -109,8 +113,9 @@ const createLocalBooking = (
     startTime,
     endTime,
     serviceId,
-    clientName: client.name,
-    clientEmail: client.email,
+    serviceName, // Include service name
+    clientName: `${clientInfo.firstName} ${clientInfo.lastName}`,
+    clientEmail: clientInfo.email,
     status
   };
 };
@@ -118,7 +123,7 @@ const createLocalBooking = (
 // Function to create a booking
 export const createBooking = async (bookingData: BookingData): Promise<BookingResult> => {
   try {
-    const { businessId, serviceId, date, time, client } = bookingData;
+    const { businessId, serviceId, serviceName, date, time, clientInfo } = bookingData;
     
     const startTime = combineDateTime(date, time);
     
@@ -131,7 +136,7 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
     let clientId;
     
     try {
-      clientId = await getOrCreateClient(client, businessId);
+      clientId = await getOrCreateClient(clientInfo, businessId);
     } catch (error) {
       console.error("Error working with client:", error);
       throw new Error("Failed to create or retrieve client information");
@@ -147,6 +152,7 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
       businessId,
       clientId,
       serviceId,
+      serviceName, // Pass service name
       startTime,
       endTime,
       status
@@ -156,8 +162,9 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
       // Update with client information
       return {
         ...dbResult,
-        clientName: client.name,
-        clientEmail: client.email
+        clientName: `${clientInfo.firstName} ${clientInfo.lastName}`,
+        clientEmail: clientInfo.email,
+        serviceName: serviceName // Ensure service name is included
       };
     }
     
@@ -168,10 +175,11 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
       businessId,
       clientId,
       serviceId,
+      serviceName, // Pass service name
       startTime,
       endTime,
       status,
-      client
+      clientInfo
     );
   } catch (error) {
     console.error("Error creating booking:", error);
@@ -189,30 +197,43 @@ const mapDbReservationToBooking = (res: DbReservation): Booking => {
   
   return {
     id: res.id,
-    date: startTime,
-    time: `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}`,
+    business_id: '', // This will be filled in later
+    service_id: res.service_id,
+    service_name: res.service_name || '',
+    client_first_name: client.first_name || '',
+    client_last_name: client.last_name || '',
+    client_email: client.email || '',
+    client_phone: client.phone || '',
+    start_time: res.start_time,
+    end_time: res.end_time,
     status: status,
-    serviceId: res.service_id,
+    created_at: new Date().toISOString(),
+    // Adding client property for compatibility
     client: {
       name: `${client.first_name || ''} ${client.last_name || ''}`.trim(),
       email: client.email || '',
       phone: client.phone || undefined,
       notes: client.notes || undefined
-    }
+    },
+    // Adding calculated properties
+    serviceId: res.service_id,
+    date: startTime,
+    time: `${startTime.getHours().toString().padStart(2, '0')}:${startTime.getMinutes().toString().padStart(2, '0')}`
   };
 };
 
 // Fetch bookings from the database
-const fetchBookingsFromDatabase = async (): Promise<Booking[]> => {
+const fetchBookingsFromDatabase = async (businessId?: string): Promise<Booking[]> => {
   try {
-    const { data: reservations, error } = await supabase
+    let query = supabase
       .from('reservations')
       .select(`
         id,
+        business_id,
+        service_id,
         start_time,
         end_time,
         status,
-        service_id,
         clients (
           first_name,
           last_name,
@@ -220,8 +241,13 @@ const fetchBookingsFromDatabase = async (): Promise<Booking[]> => {
           phone,
           notes
         )
-      `)
-      .order('start_time', { ascending: false });
+      `);
+      
+    if (businessId) {
+      query = query.eq('business_id', businessId);
+    }
+    
+    const { data: reservations, error } = await query.order('start_time', { ascending: false });
 
     if (error) {
       console.error("Error retrieving reservations:", error);
@@ -229,7 +255,16 @@ const fetchBookingsFromDatabase = async (): Promise<Booking[]> => {
     }
 
     if (reservations && reservations.length > 0) {
-      return reservations.map(mapDbReservationToBooking);
+      return reservations.map((res: any) => {
+        const booking = mapDbReservationToBooking(res);
+        // Ensure business_id is set
+        booking.business_id = res.business_id;
+        // Add service_name if not present
+        if (!booking.service_name) {
+          booking.service_name = "Service";
+        }
+        return booking;
+      });
     }
     
     return [];
@@ -240,10 +275,10 @@ const fetchBookingsFromDatabase = async (): Promise<Booking[]> => {
 };
 
 // Function to get all bookings
-export const getAllBookings = async (): Promise<Booking[]> => {
+export const getAllBookings = async (businessId?: string): Promise<Booking[]> => {
   try {
     // Try to retrieve reservations from the database
-    const dbBookings = await fetchBookingsFromDatabase();
+    const dbBookings = await fetchBookingsFromDatabase(businessId);
     if (dbBookings.length > 0) {
       return dbBookings;
     }

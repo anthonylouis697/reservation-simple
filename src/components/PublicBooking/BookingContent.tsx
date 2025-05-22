@@ -187,7 +187,17 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
   }
   
   if (!hasServices || services.length === 0) {
-    return <EmptyServicesState businessName={businessName ?? ""} />;
+    return (
+      <div className="py-10">
+        <div className="max-w-3xl mx-auto px-4">
+          <BusinessHeader 
+            businessName={businessName ?? ""}
+            primaryColor={primaryColor} 
+          />
+          <EmptyServicesState businessName={businessName ?? ""} />
+        </div>
+      </div>
+    );
   }
   
   // Show confirmation page if booking is complete

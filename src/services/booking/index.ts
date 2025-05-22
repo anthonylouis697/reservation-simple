@@ -2,9 +2,10 @@
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 import { BookingData, BookingResult, Booking } from './types';
+import { ClientInfo, getOrCreateClient } from './clientService';
 
 // Re-export types
-export type { BookingData, BookingResult, Booking, ClientInfo } from './types';
+export type { BookingData, BookingResult, Booking, ClientInfo };
 export * from './clientService';
 export { combineDateTime } from './dateUtils';
 
@@ -18,10 +19,9 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
   
   try {
     // In a real app, this would save to a database
-    const { data, error } = await supabase.from('bookings').insert({
+    const { data, error } = await supabase.from('reservations').insert({
       business_id: bookingData.businessId,
       service_id: bookingData.serviceId,
-      service_name: bookingData.serviceName,
       client_first_name: bookingData.clientInfo.firstName,
       client_last_name: bookingData.clientInfo.lastName,
       client_email: bookingData.clientInfo.email,
@@ -29,7 +29,8 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
       start_time: startTime.toISOString(),
       end_time: endTime.toISOString(),
       notes: bookingData.notes,
-      status: 'pending'
+      status: 'pending',
+      service_name: bookingData.serviceName
     }).select().single();
     
     if (error) throw error;
@@ -40,7 +41,7 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
       startTime: new Date(data.start_time),
       endTime: new Date(data.end_time),
       serviceId: data.service_id,
-      serviceName: data.service_name,
+      serviceName: bookingData.serviceName,
       clientName: `${data.client_first_name} ${data.client_last_name}`,
       clientEmail: data.client_email,
       status: data.status
@@ -55,8 +56,8 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
 export const getAllBookings = async (businessId: string): Promise<Booking[]> => {
   try {
     const { data, error } = await supabase
-      .from('bookings')
-      .select('*')
+      .from('reservations')
+      .select('*, clients(*)')
       .eq('business_id', businessId)
       .order('start_time', { ascending: true });
       
@@ -67,11 +68,16 @@ export const getAllBookings = async (businessId: string): Promise<Booking[]> => 
       // Add client field for compatibility
       const result: Booking = {
         ...booking,
+        service_name: booking.service_name || "Service", // Ensure service_name is present
+        client_first_name: booking.client_first_name || "",
+        client_last_name: booking.client_last_name || "",
+        client_email: booking.client_email || "",
+        client_phone: booking.client_phone || "",
         serviceId: booking.service_id,
         client: {
-          name: `${booking.client_first_name} ${booking.client_last_name}`.trim(),
-          email: booking.client_email,
-          phone: booking.client_phone,
+          name: `${booking.client_first_name || ''} ${booking.client_last_name || ''}`.trim(),
+          email: booking.client_email || '',
+          phone: booking.client_phone || undefined
         }
       };
       
@@ -96,7 +102,7 @@ export const getAllBookings = async (businessId: string): Promise<Booking[]> => 
 export const updateBookingStatus = async (id: string, status: string): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .from('bookings')
+      .from('reservations')
       .update({ status })
       .eq('id', id);
       
@@ -112,7 +118,7 @@ export const updateBookingStatus = async (id: string, status: string): Promise<b
 export const deleteBooking = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .from('bookings')
+      .from('reservations')
       .delete()
       .eq('id', id);
       

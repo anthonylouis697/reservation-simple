@@ -71,5 +71,6 @@ export interface DbReservation {
   end_time: string;
   status: string;
   service_id: string;
+  service_name?: string;
   clients?: DbClient;
 }
