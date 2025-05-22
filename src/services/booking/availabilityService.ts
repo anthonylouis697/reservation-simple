@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 import { Json } from '@/integrations/supabase/types';
@@ -218,8 +219,8 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
     const dbObject = {
       business_id: settings.businessId,
       regular_schedule: regularScheduleJson,
-      special_dates: specialDatesJson as unknown as Json,
-      blocked_dates: blockedDatesJson as unknown as Json,
+      special_dates: specialDatesJson,
+      blocked_dates: blockedDatesJson,
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours
@@ -232,7 +233,7 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
       min_advance_hours: dbObject.min_advance_hours
     });
 
-    // Save to database
+    // Save to database - making sure we convert JSON fields correctly
     const { error } = await supabase
       .from('availability_settings')
       .upsert(dbObject, {

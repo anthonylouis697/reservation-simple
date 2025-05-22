@@ -5,7 +5,7 @@ export interface BookingData {
   businessId: string;
   serviceId: string;
   serviceName: string;
-  serviceDuration?: number;  // Added this field
+  serviceDuration?: number;
   date: Date;
   time: string;
   clientInfo: {
@@ -43,7 +43,7 @@ export interface Booking {
   notes?: string | null;
   status: string;
   created_at: string;
-  updated_at?: string;  // Added this field
+  updated_at?: string;
   // Adding client property for compatibility
   client?: {
     name: string;

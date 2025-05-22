@@ -133,7 +133,8 @@ export const getBusinessBookings = async (
         
         // Add the client field for compatibility
         client: {
-          name: `${clientData.first_name || ''} ${clientData.last_name || ''}`.trim(),
+          name: clientData.first_name && clientData.last_name ? 
+            `${clientData.first_name} ${clientData.last_name}`.trim() : 'Client',
           email: clientData.email || '',
           phone: clientData.phone || '',
           notes: clientData.notes || ''
@@ -197,7 +198,7 @@ export const getUpcomingBookings = async (businessId: string): Promise<Booking[]
     const bookings = data || [];
     
     return bookings.map(booking => {
-      // Safe access for clients
+      // Safe access for clients with default values
       const clientData = booking.clients || {};
       
       return {
@@ -222,7 +223,8 @@ export const getUpcomingBookings = async (businessId: string): Promise<Booking[]
         }),
         serviceId: booking.service_id,
         client: {
-          name: `${clientData.first_name || ''} ${clientData.last_name || ''}`.trim(),
+          name: clientData.first_name && clientData.last_name ? 
+            `${clientData.first_name} ${clientData.last_name}`.trim() : 'Client',
           email: clientData.email || '',
           phone: clientData.phone || '',
           notes: clientData.notes || ''

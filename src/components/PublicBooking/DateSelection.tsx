@@ -113,10 +113,6 @@ const DateSelection = ({
             locale={fr}
             className="border rounded-md p-3"
             classNames={{
-              day_selected: cn(
-                "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
-                getButtonStyle().className
-              ),
               day_today: "bg-accent text-accent-foreground"
             }}
             styles={{
