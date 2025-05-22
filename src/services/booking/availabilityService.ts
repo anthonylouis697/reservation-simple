@@ -81,35 +81,71 @@ export const defaultAvailabilitySettings: AvailabilitySettings = {
 // Function to get availability settings for a business
 export const getAvailabilitySettings = async (businessId: string): Promise<AvailabilitySettings> => {
   try {
+    console.log(`Fetching availability settings for business: ${businessId}`);
+    
     const { data, error } = await supabase
       .from('availability_settings')
       .select('*')
       .eq('business_id', businessId)
       .maybeSingle();
     
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase error fetching availability settings:", error);
+      throw error;
+    }
     
     if (!data) {
+      console.log("No availability settings found, using defaults");
       return {
         ...defaultAvailabilitySettings,
         businessId
       };
     }
     
-    // Type assertion to avoid TypeScript errors
+    console.log("Raw availability settings from db:", data);
+    
+    // Parse the database data
     const rawData = data as any;
     
     // Extract the scheduleSets and activeScheduleId from the regular_schedule object
     const regularScheduleData = rawData.regular_schedule || {};
     const activeScheduleId = regularScheduleData._activeScheduleId || 1;
-    const scheduleSets = regularScheduleData._scheduleSets || defaultAvailabilitySettings.scheduleSets;
     
-    // Extract special dates and blocked dates - ensure proper types
-    const specialDates = Array.isArray(rawData.special_dates) ? 
-      rawData.special_dates : [];
+    // Make sure scheduleSets is properly parsed
+    let scheduleSets = defaultAvailabilitySettings.scheduleSets;
+    try {
+      if (regularScheduleData._scheduleSets) {
+        scheduleSets = Array.isArray(regularScheduleData._scheduleSets) 
+          ? regularScheduleData._scheduleSets 
+          : JSON.parse(regularScheduleData._scheduleSets);
+      }
+    } catch (e) {
+      console.error("Error parsing schedule sets:", e);
+    }
     
-    const blockedDates = Array.isArray(rawData.blocked_dates) ? 
-      rawData.blocked_dates : [];
+    // Make sure specialDates is properly parsed
+    let specialDates: SpecialDate[] = [];
+    try {
+      specialDates = Array.isArray(rawData.special_dates) 
+        ? rawData.special_dates 
+        : (typeof rawData.special_dates === 'string' 
+          ? JSON.parse(rawData.special_dates) 
+          : []);
+    } catch (e) {
+      console.error("Error parsing special dates:", e);
+    }
+    
+    // Make sure blockedDates is properly parsed
+    let blockedDates: BlockedTime[] = [];
+    try {
+      blockedDates = Array.isArray(rawData.blocked_dates) 
+        ? rawData.blocked_dates 
+        : (typeof rawData.blocked_dates === 'string' 
+          ? JSON.parse(rawData.blocked_dates) 
+          : []);
+    } catch (e) {
+      console.error("Error parsing blocked dates:", e);
+    }
     
     const settings: AvailabilitySettings = {
       businessId,
@@ -121,6 +157,14 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
       advanceBookingDays: rawData.advance_booking_days || 30,
       minAdvanceHours: rawData.min_advance_hours || 24
     };
+    
+    console.log("Parsed availability settings:", {
+      businessId: settings.businessId,
+      activeScheduleId: settings.activeScheduleId,
+      scheduleSetsCount: settings.scheduleSets.length,
+      specialDatesCount: settings.specialDates.length,
+      blockedDatesCount: settings.blockedDates.length
+    });
     
     return settings;
   } catch (error) {
@@ -135,48 +179,39 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
 // Function to save availability settings with proper type handling
 export const saveAvailabilitySettings = async (settings: AvailabilitySettings): Promise<boolean> => {
   try {
-    // Get the active schedule for regular_schedule field
-    const activeSchedule = settings.scheduleSets.find(s => s.id === settings.activeScheduleId) || settings.scheduleSets[0];
+    console.log("Saving availability settings for business:", settings.businessId);
     
-    // Create regular schedule object with proper structure
-    const regularSchedule = {
-      monday: activeSchedule.regularSchedule.monday,
-      tuesday: activeSchedule.regularSchedule.tuesday,
-      wednesday: activeSchedule.regularSchedule.wednesday,
-      thursday: activeSchedule.regularSchedule.thursday,
-      friday: activeSchedule.regularSchedule.friday,
-      saturday: activeSchedule.regularSchedule.saturday,
-      sunday: activeSchedule.regularSchedule.sunday,
-      _activeScheduleId: settings.activeScheduleId,
-      _scheduleSets: settings.scheduleSets
-    };
-    
-    // First serialize then deserialize to avoid TypeScript errors
-    const jsonRegularSchedule = JSON.stringify(regularSchedule);
-    const jsonSpecialDates = JSON.stringify(settings.specialDates);
-    const jsonBlockedDates = JSON.stringify(settings.blockedDates);
-    
+    // Create a sanitized copy for saving to the database
     const dbObject = {
       business_id: settings.businessId,
-      regular_schedule: JSON.parse(jsonRegularSchedule) as Json,
-      special_dates: JSON.parse(jsonSpecialDates) as Json[],
-      blocked_dates: JSON.parse(jsonBlockedDates) as Json[],
+      regular_schedule: {
+        monday: settings.scheduleSets[0].regularSchedule.monday,
+        tuesday: settings.scheduleSets[0].regularSchedule.tuesday,
+        wednesday: settings.scheduleSets[0].regularSchedule.wednesday,
+        thursday: settings.scheduleSets[0].regularSchedule.thursday,
+        friday: settings.scheduleSets[0].regularSchedule.friday,
+        saturday: settings.scheduleSets[0].regularSchedule.saturday,
+        sunday: settings.scheduleSets[0].regularSchedule.sunday,
+        _activeScheduleId: settings.activeScheduleId,
+        _scheduleSets: settings.scheduleSets
+      },
+      special_dates: settings.specialDates,
+      blocked_dates: settings.blockedDates,
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours
     };
     
-    // For debug purposes
-    console.log("Saving availability settings:", {
-      business_id: settings.businessId,
-      buffer_time_minutes: settings.bufferTimeMinutes,
-      advance_booking_days: settings.advanceBookingDays,
-      min_advance_hours: settings.minAdvanceHours,
-      special_dates_count: settings.specialDates.length,
-      blocked_dates_count: settings.blockedDates.length
+    console.log("Saving with values:", {
+      business_id: dbObject.business_id,
+      buffer_time_minutes: dbObject.buffer_time_minutes,
+      advance_booking_days: dbObject.advance_booking_days,
+      min_advance_hours: dbObject.min_advance_hours,
+      special_dates_count: dbObject.special_dates.length,
+      blocked_dates_count: dbObject.blocked_dates.length
     });
 
-    // Save the data
+    // Save to database
     const { error } = await supabase
       .from('availability_settings')
       .upsert(dbObject, {
@@ -188,6 +223,7 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
       throw error;
     }
     
+    console.log("Availability settings saved successfully");
     return true;
   } catch (error) {
     console.error("Error saving availability settings:", error);
@@ -337,12 +373,15 @@ export const getAvailableTimeSlots = async (
   serviceDuration: number
 ): Promise<string[]> => {
   try {
+    console.log(`Getting available time slots for ${businessId}, date: ${formatDate(date)}, duration: ${serviceDuration}`);
+    
     // Get business availability settings
     const settings = await getAvailabilitySettings(businessId);
     
     // Check for blocked dates
     const blockedInfo = isDateBlocked(date, settings.blockedDates);
     if (blockedInfo.isBlocked && blockedInfo.fullDay) {
+      console.log("Date is fully blocked");
       return []; // Day entirely blocked
     }
     
@@ -352,23 +391,31 @@ export const getAvailableTimeSlots = async (
     // Set daySchedule based on whether a special schedule was found
     let daySchedule: DaySchedule | null = null;
     if (found && schedule) {
+      console.log("Found special schedule for date");
       daySchedule = schedule;
     } else {
       // Use the active schedule set
       const activeScheduleId = settings.activeScheduleId;
       const activeScheduleSet = settings.scheduleSets.find(s => s.id === activeScheduleId);
       
-      if (!activeScheduleSet) return [];
+      if (!activeScheduleSet) {
+        console.log("No active schedule set found");
+        return [];
+      }
       
       // Get the day of week schedule
       const dayOfWeek = getDayName(date);
+      console.log(`Using regular schedule for ${dayOfWeek}`);
       daySchedule = activeScheduleSet.regularSchedule[dayOfWeek];
     }
     
     // If day is not active, return empty array
     if (!daySchedule || !daySchedule.isActive || !daySchedule.timeSlots.length) {
+      console.log("Day is not active or has no time slots");
       return [];
     }
+    
+    console.log(`Day schedule has ${daySchedule.timeSlots.length} time slots:`, daySchedule.timeSlots);
     
     const availableSlots: string[] = [];
     const serviceDurationMs = serviceDuration * 60 * 1000;
@@ -416,6 +463,7 @@ export const getAvailableTimeSlots = async (
       }
     }
     
+    console.log(`Generated ${availableSlots.length} available time slots`);
     return availableSlots;
   } catch (error) {
     console.error("Error getting available time slots:", error);

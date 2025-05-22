@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import RegularSchedule from '@/components/Settings/Availability/RegularSchedule';
 import BlockedDates from '@/components/Settings/Availability/BlockedDates';
 import SpecialDates from '@/components/Settings/Availability/SpecialDates';
+import { AppLayout } from '@/components/AppLayout';
 
 const AvailabilityPage = () => {
   const { currentBusiness } = useBusiness();
@@ -76,7 +77,7 @@ const AvailabilityPage = () => {
   };
   
   return (
-    <div className="container mx-auto py-8 max-w-5xl">
+    <AppLayout>
       <Helmet>
         <title>Gestion des disponibilités - Reservatoo</title>
       </Helmet>
@@ -193,7 +194,7 @@ const AvailabilityPage = () => {
           </div>
         )}
       </div>
-    </div>
+    </AppLayout>
   );
 };
 

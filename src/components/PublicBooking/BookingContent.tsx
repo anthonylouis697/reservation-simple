@@ -1,209 +1,258 @@
 
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { useBookingSteps } from '@/hooks/useBookingSteps';
+import { useState, useEffect } from 'react';
 import { useBookingPage } from '@/components/Visibility/BookingPage/BookingPageContext';
 import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
-import { useBookingHandler } from '@/hooks/useBookingHandler';
-import { useStepNavigation } from '@/hooks/useStepNavigation';
-import { useButtonStyle } from '@/hooks/useButtonStyle';
-import { defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
-
-// Import components
+import { Service } from '@/types/service';
 import StepNavigation from './StepNavigation';
 import StepRenderer from './StepRenderer';
-import LoadingScreen from './LoadingScreen';
-import EmptyServicesState from './EmptyServicesState';
 import BusinessHeader from './BusinessHeader';
+import { Steps } from '@/components/Visibility/BookingPage/types';
+import BookingConfirmation from './BookingConfirmation';
+import { createBooking, type BookingResult } from '@/services/booking';
+import { toast } from 'sonner';
+import EmptyServicesState from './EmptyServicesState';
+import { BookingData } from '@/services/booking';
 
 interface BookingContentProps {
-  businessId: string | null;
+  businessId: string;
 }
 
-const BookingContent = ({ businessId = null }: BookingContentProps) => {
-  const { businessSlug } = useParams<{ businessSlug?: string }>();
+const BookingContent = ({ businessId }: BookingContentProps) => {
+  const { services, isLoading, error, hasServices } = usePublicBookingData();
+  const { steps, customTexts, primaryColor, buttonCorners, businessName } = useBookingPage();
   
-  // Get booking page style data and handle potential undefined values
-  const bookingPageContext = useBookingPage();
-  
-  // Create safe default values
-  const {
-    businessName = "",
-    welcomeMessage = "",
-    primaryColor = "#9b87f5",
-    secondaryColor = "#7E69AB",
-    buttonCorners = "rounded" as const,
-    logo = null,
-    bookingButtonText = "Réserver",
-    showConfirmation = true,
-    confirmationMessage = "Merci pour votre réservation !",
-    layoutType = "stepped" as const,
-    steps = [],
-    customTexts = defaultCustomTexts
-  } = bookingPageContext || {};
-
-  // Get services and categories
-  const { 
-    services = [], 
-    categories = [], 
-    isLoading: isLoadingData = false,
-    error: dataError = null,
-    hasServices = false
-  } = usePublicBookingData() || {};
-  
-  // Custom hook for booking steps
-  const bookingSteps = useBookingSteps(
-    Array.isArray(services) ? services : [], 
-    Array.isArray(categories) ? categories : [], 
-    Array.isArray(steps) ? steps : []
-  );
-  
-  // Safely destructure bookingSteps with default values
-  const {
-    selectedCategory = null,
-    setSelectedCategory = () => {},
-    selectedService = null,
-    setSelectedService = () => {},
-    selectedDate = undefined,
-    setSelectedDate = () => {},
-    selectedTime = null,
-    setSelectedTime = () => {},
-    availableTimes = [],
-    currentStep = 0,
-    setCurrentStep = () => {},
-    clientName = "",
-    setClientName = () => {},
-    clientEmail = "",
-    setClientEmail = () => {},
-    clientPhone = "",
-    setClientPhone = () => {},
-    clientNotes = "",
-    setClientNotes = () => {},
-    bookingComplete = false,
-    setBookingComplete = () => {},
-    isLoadingTimes = false,
-    filteredServices = [],
-    activeCategories = [],
-    handleStartOver = () => {}
-  } = bookingSteps || {};
-
-  // Hook for booking handling with safe defaults
-  const {
-    isBooking = false,
-    handleBooking = () => {}
-  } = useBookingHandler({
-    businessId,
-    selectedService,
-    selectedDate,
-    selectedTime,
-    clientName,
-    clientEmail,
-    clientPhone,
-    clientNotes,
-    setCurrentStep,
-    setBookingComplete
-  }) || {};
-
-  // Create stepNavigation with safe defaults
-  const stepNavigation = useStepNavigation({
-    selectedService,
-    selectedDate,
-    selectedTime,
-    clientName,
-    clientEmail,
-    currentStep,
-    setCurrentStep,
-    handleBooking,
-    steps: Array.isArray(steps) ? steps : []
+  const [currentStep, setCurrentStep] = useState(0);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [clientInfo, setClientInfo] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    notes: ''
   });
+  const [booking, setBooking] = useState<BookingResult | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [isLoadingTimes, setIsLoadingTimes] = useState(false);
   
-  const {
-    handleNextStep = () => {},
-    handlePrevStep = () => {},
-    getStepLabel = () => "",
-    getCurrentStepIcon = () => null,
-    getActiveStepsLength = () => 4
-  } = stepNavigation || {};
+  // Reset selected time when date or service changes
+  useEffect(() => {
+    if (selectedDate && selectedService) {
+      setSelectedTime(null);
+      setIsLoadingTimes(true);
+      // In a real app, this would fetch from API
+      setTimeout(() => {
+        setAvailableTimes([]);
+        setIsLoadingTimes(false);
+      }, 500);
+    }
+  }, [selectedDate, selectedService]);
 
-  // Hook for button styling with safe defaults
-  const { getButtonStyle = () => ({ className: "", style: { backgroundColor: "", borderColor: "" } }) } = 
-    useButtonStyle({ buttonCorners: buttonCorners || "rounded", primaryColor: primaryColor || "#9b87f5" }) || {};
+  // Handle step change
+  const handleNextStep = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
 
-  // If data is loading
-  if (isLoadingData) {
-    return <LoadingScreen />;
+  const handlePrevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+  
+  // Helper to determine if current step is complete
+  const isCurrentStepComplete = () => {
+    const currentStepType = steps[currentStep]?.type;
+    
+    switch (currentStepType) {
+      case Steps.SERVICE:
+        return selectedService !== null;
+      case Steps.DATE:
+        return selectedDate !== undefined;
+      case Steps.TIME:
+        return selectedTime !== null;
+      case Steps.CLIENT_INFO:
+        return clientInfo.firstName && clientInfo.lastName && clientInfo.email;
+      default:
+        return true;
+    }
+  };
+  
+  // Get button style based on booking page settings
+  const getButtonStyle = () => {
+    let className = "bg-primary hover:bg-primary/90";
+    
+    // Add corners based on buttonCorners setting
+    if (buttonCorners === "pill") {
+      className += " rounded-full";
+    } else if (buttonCorners === "squared") {
+      className += " rounded-none";
+    } else {
+      className += " rounded-md";
+    }
+    
+    return {
+      className,
+      style: {
+        backgroundColor: primaryColor,
+        borderColor: primaryColor
+      }
+    };
+  };
+  
+  // Handle booking submission
+  const handleSubmit = async () => {
+    if (!selectedService || !selectedDate || !selectedTime) {
+      toast.error("Veuillez compléter toutes les étapes");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Create a booking data object
+      const bookingData: BookingData = {
+        serviceId: selectedService.id,
+        serviceName: selectedService.name,
+        date: selectedDate,
+        time: selectedTime,
+        clientInfo: {
+          firstName: clientInfo.firstName,
+          lastName: clientInfo.lastName,
+          email: clientInfo.email,
+          phone: clientInfo.phone || '',
+        },
+        notes: clientInfo.notes || '',
+        businessId: businessId
+      };
+      
+      // Create the booking
+      const result = await createBooking(bookingData);
+      
+      setBooking(result);
+      // Move to end state without adding extra step
+      setCurrentStep(steps.length);
+      
+      toast.success("Réservation confirmée !");
+    } catch (error) {
+      console.error("Error creating booking:", error);
+      toast.error("Erreur lors de la création de la réservation");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  if (isLoading) {
+    return (
+      <div className="py-10">
+        <div className="max-w-3xl mx-auto px-4">
+          <BusinessHeader 
+            businessName={businessName} 
+            primaryColor={primaryColor} 
+          />
+          <div className="mt-10 flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-800"></div>
+          </div>
+        </div>
+      </div>
+    );
   }
-
-  // If no services available
-  if (!hasServices || !Array.isArray(services) || services.length === 0) {
-    return <EmptyServicesState />;
+  
+  if (!hasServices || services.length === 0) {
+    return <EmptyServicesState businessName={businessName} />;
   }
-
-  console.log('Rendering BookingContent with services:', services.length);
-  console.log('Selected service:', selectedService);
-  console.log('Filtered services:', filteredServices.length);
+  
+  // Show confirmation page if booking is complete
+  if (currentStep >= steps.length && booking) {
+    return (
+      <div className="py-10">
+        <div className="max-w-3xl mx-auto px-4">
+          <BusinessHeader 
+            businessName={businessName} 
+            primaryColor={primaryColor} 
+          />
+          <BookingConfirmation 
+            booking={booking}
+            customTexts={customTexts}
+            primaryColor={primaryColor}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div 
-      className="max-w-4xl mx-auto p-4 md:p-8" 
-      style={{ 
-        '--primary-color': primaryColor || '#9b87f5',
-        '--secondary-color': secondaryColor || '#7E69AB'
-      } as React.CSSProperties}
-    >
-      {/* Header */}
-      <BusinessHeader
-        businessName={businessName || ""}
-        welcomeMessage={welcomeMessage || ""}
-        logo={logo || ""}
-        primaryColor={primaryColor || ""}
-      />
-      
-      {/* Current step content */}
-      <StepRenderer
-        currentStep={currentStep}
-        bookingComplete={bookingComplete}
-        customTexts={customTexts || defaultCustomTexts}
-        activeCategories={activeCategories || []}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        filteredServices={filteredServices || []}
-        selectedService={selectedService}
-        setSelectedService={setSelectedService}
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-        isLoadingTimes={isLoadingTimes}
-        availableTimes={availableTimes || []}
-        selectedTime={selectedTime}
-        setSelectedTime={setSelectedTime}
-        clientName={clientName}
-        setClientName={setClientName}
-        clientEmail={clientEmail}
-        setClientEmail={setClientEmail}
-        clientPhone={clientPhone}
-        setClientPhone={setClientPhone}
-        clientNotes={clientNotes}
-        setClientNotes={setClientNotes}
-        confirmationMessage={confirmationMessage || ""}
-        handleStartOver={handleStartOver}
-        getButtonStyle={getButtonStyle}
-        primaryColor={primaryColor || ""}
-      />
-      
-      {/* Step navigation */}
-      {!bookingComplete && (
-        <StepNavigation 
-          currentStep={currentStep}
-          handlePrevStep={handlePrevStep}
-          handleNextStep={handleNextStep}
-          isBooking={isBooking}
-          getButtonStyle={getButtonStyle}
-          getCurrentStepIcon={getCurrentStepIcon}
-          getStepLabel={getStepLabel}
-          bookingButtonText={bookingButtonText}
-          activeStepsLength={getActiveStepsLength()}
+    <div className="py-10">
+      <div className="max-w-3xl mx-auto px-4">
+        <BusinessHeader 
+          businessName={businessName} 
+          primaryColor={primaryColor} 
         />
-      )}
+        
+        <div className="mt-6">
+          <StepNavigation 
+            steps={steps} 
+            currentStep={currentStep} 
+            primaryColor={primaryColor} 
+          />
+          
+          <div className="mt-6">
+            <StepRenderer 
+              currentStep={steps[currentStep]} 
+              services={services}
+              selectedService={selectedService}
+              setSelectedService={setSelectedService}
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              selectedTime={selectedTime}
+              setSelectedTime={setSelectedTime}
+              clientInfo={clientInfo}
+              setClientInfo={setClientInfo}
+              availableTimes={availableTimes}
+              isLoadingTimes={isLoadingTimes}
+              customTexts={customTexts}
+              getButtonStyle={getButtonStyle}
+              businessId={businessId}
+            />
+          </div>
+          
+          <div className="mt-10 flex justify-between">
+            {currentStep > 0 ? (
+              <button
+                onClick={handlePrevStep}
+                className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Précédent
+              </button>
+            ) : (
+              <div></div> {/* Spacer */}
+            )}
+            
+            {currentStep < steps.length - 1 ? (
+              <button
+                onClick={handleNextStep}
+                disabled={!isCurrentStepComplete()}
+                className={`px-6 py-2 ${getButtonStyle().className} text-white disabled:opacity-50 disabled:cursor-not-allowed`}
+                style={getButtonStyle().style}
+              >
+                Suivant
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={!isCurrentStepComplete() || isSubmitting}
+                className={`px-6 py-2 ${getButtonStyle().className} text-white disabled:opacity-50 disabled:cursor-not-allowed`}
+                style={getButtonStyle().style}
+              >
+                {isSubmitting ? "Traitement en cours..." : "Réserver"}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

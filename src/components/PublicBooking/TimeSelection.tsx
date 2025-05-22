@@ -22,8 +22,8 @@ interface TimeSelectionProps {
 
 const TimeSelection = ({
   customTexts = defaultCustomTexts,
-  isLoadingTimes,
-  availableTimes = [],
+  isLoadingTimes: propIsLoadingTimes,
+  availableTimes: propAvailableTimes = [],
   selectedTime,
   setSelectedTime,
   selectedService,
@@ -31,27 +31,36 @@ const TimeSelection = ({
   getButtonStyle,
   businessId
 }: TimeSelectionProps) => {
-  const [timeSlots, setTimeSlots] = useState<string[]>(availableTimes);
-  const [loading, setLoading] = useState(isLoadingTimes);
+  const [timeSlots, setTimeSlots] = useState<string[]>(propAvailableTimes);
+  const [loading, setLoading] = useState(propIsLoadingTimes);
 
   // Ensure customTexts has safe defaults
   const safeCustomTexts = customTexts || defaultCustomTexts;
   const selectTimeLabel = safeCustomTexts.selectTimeLabel || "Sélectionnez un horaire";
 
-  // Load time slots from API when selectedDate or selectedService changes
+  // Load time slots from the backend based on availability settings
   useEffect(() => {
     const fetchTimeSlots = async () => {
       if (!selectedDate || !selectedService || !businessId) {
+        console.log("Missing required data for fetching time slots:", { 
+          selectedDate, 
+          serviceId: selectedService?.id, 
+          businessId 
+        });
         return;
       }
 
       setLoading(true);
       try {
+        console.log(`Fetching available slots for ${businessId}, ${format(selectedDate, 'yyyy-MM-dd')}, duration: ${selectedService.duration}`);
+        
         const availableSlots = await getAvailableTimeSlots(
           businessId,
           selectedDate,
           selectedService.duration
         );
+        
+        console.log(`Received ${availableSlots.length} time slots:`, availableSlots);
         setTimeSlots(availableSlots);
       } catch (error) {
         console.error("Error fetching time slots:", error);
@@ -61,20 +70,22 @@ const TimeSelection = ({
       }
     };
 
-    // Use provided availableTimes if present, otherwise fetch from API
-    if (availableTimes && availableTimes.length > 0) {
-      setTimeSlots(availableTimes);
-      setLoading(false);
-    } else if (businessId) {
+    // Always use the API to get time slots if we have a business ID
+    if (businessId && selectedDate && selectedService) {
       fetchTimeSlots();
+    } else if (propAvailableTimes && propAvailableTimes.length > 0) {
+      // Use provided availableTimes if present
+      setTimeSlots(propAvailableTimes);
+      setLoading(false);
     } else {
-      // Fallback to generate mock times for demo purposes
+      // No business ID or provided times, use demo times
+      console.log("Using demo time slots (no businessId or provided times)");
       setTimeSlots(generateTimeSlotsForDate(selectedDate));
       setLoading(false);
     }
-  }, [selectedDate, selectedService, businessId, availableTimes]);
+  }, [selectedDate, selectedService, businessId, propAvailableTimes]);
 
-  // Generate time slots based on the day
+  // Generate time slots based on the day (for demo purposes)
   const generateTimeSlotsForDate = (date: Date | undefined) => {
     if (!date) return [];
     
