@@ -142,20 +142,31 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
     // Get the active schedule for regular_schedule field
     const activeSchedule = settings.scheduleSets.find(s => s.id === settings.activeScheduleId) || settings.scheduleSets[0];
     
-    // Convert all custom types to JSON strings that can be stored in the database
-    const dbObject = {
+    // Convert custom types to proper Json format for database storage
+    // We need to create a properly typed object for Supabase
+    const dbObject: {
+      business_id: string;
+      active_schedule_id: number;
+      regular_schedule: Json;
+      schedule_sets: Json;
+      special_dates: Json;
+      blocked_dates: Json;
+      buffer_time_minutes: number;
+      advance_booking_days: number;
+      min_advance_hours: number;
+    } = {
       business_id: settings.businessId,
       active_schedule_id: settings.activeScheduleId,
-      regular_schedule: JSON.stringify(activeSchedule.regularSchedule),
-      schedule_sets: JSON.stringify(settings.scheduleSets),
-      special_dates: JSON.stringify(settings.specialDates),
-      blocked_dates: JSON.stringify(settings.blockedDates),
+      regular_schedule: activeSchedule.regularSchedule as unknown as Json,
+      schedule_sets: settings.scheduleSets as unknown as Json,
+      special_dates: settings.specialDates as unknown as Json,
+      blocked_dates: settings.blockedDates as unknown as Json,
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours
     };
 
-    // Pass a single object to upsert
+    // Pass the properly typed object to upsert
     const { error } = await supabase
       .from('availability_settings')
       .upsert(dbObject, {
