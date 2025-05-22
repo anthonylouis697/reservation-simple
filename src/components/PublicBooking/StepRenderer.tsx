@@ -64,8 +64,20 @@ const StepRenderer = ({
   const safeCustomTexts = customTexts || defaultCustomTexts;
   const safeAvailableTimes = Array.isArray(availableTimes) ? availableTimes : [];
   
+  // Protégeons nous contre les valeurs undefined ou null
+  if (!currentStep || !currentStep.type) {
+    console.error("StepRenderer: currentStep or currentStep.type is undefined", { currentStep });
+    return (
+      <div className="text-center py-6">
+        <p>Type de composant non disponible</p>
+      </div>
+    );
+  }
+
+  const stepType = currentStep.type.toLowerCase();
+  
   // Determine which component to render based on step type
-  switch (currentStep.type.toLowerCase()) {
+  switch (stepType) {
     case 'service':
     case Steps.SERVICE.toLowerCase():
       return (
