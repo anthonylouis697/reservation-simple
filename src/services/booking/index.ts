@@ -3,13 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 import { BookingData, BookingResult, Booking } from './types';
 
-// Helper function to combine date and time
-export const combineDateTime = (date: Date, timeString: string): Date => {
-  const [hours, minutes] = timeString.split(':').map(Number);
-  const result = new Date(date);
-  result.setHours(hours, minutes, 0, 0);
-  return result;
-};
+// Re-export types
+export type { BookingData, BookingResult, Booking, ClientInfo } from './types';
+export * from './clientService';
+export { combineDateTime } from './dateUtils';
 
 // Creates a new booking
 export const createBooking = async (bookingData: BookingData): Promise<BookingResult> => {
@@ -45,6 +42,7 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
       serviceId: data.service_id,
       serviceName: data.service_name,
       clientName: `${data.client_first_name} ${data.client_last_name}`,
+      clientEmail: data.client_email,
       status: data.status
     };
   } catch (error) {

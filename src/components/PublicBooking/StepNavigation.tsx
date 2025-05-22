@@ -1,6 +1,7 @@
 
 import { BookingStep } from '@/components/Visibility/BookingPage/types';
 import { CalendarCheck, CalendarDays, Clock, User } from 'lucide-react';
+import React from 'react';
 
 interface StepNavigationProps {
   steps: BookingStep[];

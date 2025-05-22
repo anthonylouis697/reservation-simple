@@ -23,6 +23,7 @@ export interface BookingResult {
   serviceId?: string;
   serviceName: string;
   clientName: string;
+  clientEmail?: string;
   status: 'confirmed' | 'cancelled' | 'pending';
 }
 

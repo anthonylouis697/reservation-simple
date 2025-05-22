@@ -1,4 +1,5 @@
 
+import { BookingStep } from '@/components/Visibility/BookingPage/types';
 import { Service } from '@/types/service';
 import { BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
 import { defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
@@ -9,43 +10,33 @@ import ClientInfoForm from './ClientInfoForm';
 import BookingConfirmation from './BookingConfirmation';
 
 interface StepRendererProps {
-  currentStep: number;
-  bookingComplete: boolean;
-  customTexts: BookingCustomTexts;
-  activeCategories: any[];
-  selectedCategory: string | null;
-  setSelectedCategory: (categoryId: string | null) => void;
-  filteredServices: Service[];
+  currentStep: BookingStep;
+  services: Service[];
   selectedService: Service | null;
-  setSelectedService: (service: Service) => void;
+  setSelectedService: (service: Service | null) => void;
   selectedDate: Date | undefined;
   setSelectedDate: (date: Date | undefined) => void;
-  isLoadingTimes: boolean;
-  availableTimes: string[];
   selectedTime: string | null;
-  setSelectedTime: (time: string) => void;
-  clientName: string;
-  setClientName: (name: string) => void;
-  clientEmail: string;
-  setClientEmail: (email: string) => void;
-  clientPhone: string;
-  setClientPhone: (phone: string) => void;
-  clientNotes: string;
-  setClientNotes: (notes: string) => void;
-  confirmationMessage: string;
-  handleStartOver: () => void;
+  setSelectedTime: (time: string | null) => void;
+  clientInfo: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    notes: string;
+  };
+  setClientInfo: (clientInfo: any) => void;
+  availableTimes: string[];
+  isLoadingTimes: boolean;
+  customTexts: BookingCustomTexts;
   getButtonStyle: () => { className: string; style: { backgroundColor: string; borderColor: string } };
   primaryColor: string;
+  businessId: string;
 }
 
 const StepRenderer = ({
-  currentStep = 0,
-  bookingComplete = false,
-  customTexts = defaultCustomTexts,
-  activeCategories = [],
-  selectedCategory = null,
-  setSelectedCategory = () => {},
-  filteredServices = [],
+  currentStep,
+  services = [],
   selectedService = null,
   setSelectedService = () => {},
   selectedDate = undefined,
@@ -54,47 +45,31 @@ const StepRenderer = ({
   availableTimes = [],
   selectedTime = null,
   setSelectedTime = () => {},
-  clientName = "",
-  setClientName = () => {},
-  clientEmail = "",
-  setClientEmail = () => {},
-  clientPhone = "",
-  setClientPhone = () => {},
-  clientNotes = "",
-  setClientNotes = () => {},
-  confirmationMessage = "Merci pour votre réservation !",
-  handleStartOver = () => {},
+  clientInfo = {
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    notes: ""
+  },
+  setClientInfo = () => {},
+  customTexts = defaultCustomTexts,
   getButtonStyle = () => ({ className: "", style: { backgroundColor: "", borderColor: "" } }),
   primaryColor = "#9b87f5",
+  businessId = ""
 }: StepRendererProps) => {
   
   // Ensure customTexts is never undefined or null by providing a default
   const safeCustomTexts = customTexts || defaultCustomTexts;
-  const safeActiveCategories = Array.isArray(activeCategories) ? activeCategories : [];
-  const safeFilteredServices = Array.isArray(filteredServices) ? filteredServices : [];
   const safeAvailableTimes = Array.isArray(availableTimes) ? availableTimes : [];
   
-  // Show confirmation component if booking is complete
-  if (bookingComplete) {
-    return (
-      <BookingConfirmation 
-        confirmationMessage={confirmationMessage}
-        handleStartOver={handleStartOver}
-        getButtonStyle={getButtonStyle}
-      />
-    );
-  }
-
-  // Render appropriate component based on current step
-  switch (currentStep) {
-    case 0: // Service selection
+  // Determine which component to render based on step type
+  switch (currentStep.type) {
+    case 'service':
       return (
         <ServiceSelection
           customTexts={safeCustomTexts}
-          activeCategories={safeActiveCategories}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          filteredServices={safeFilteredServices}
+          services={services}
           selectedService={selectedService}
           setSelectedService={setSelectedService}
           getButtonStyle={getButtonStyle}
@@ -102,7 +77,7 @@ const StepRenderer = ({
         />
       );
 
-    case 1: // Date selection
+    case 'date':
       return (
         <DateSelection
           customTexts={safeCustomTexts}
@@ -112,7 +87,7 @@ const StepRenderer = ({
         />
       );
 
-    case 2: // Time selection
+    case 'time':
       return (
         <TimeSelection
           customTexts={safeCustomTexts}
@@ -126,38 +101,23 @@ const StepRenderer = ({
         />
       );
 
-    case 3: // Client information
+    case 'client_info':
       return (
         <ClientInfoForm
           customTexts={safeCustomTexts}
-          clientName={clientName}
-          setClientName={setClientName}
-          clientEmail={clientEmail}
-          setClientEmail={setClientEmail}
-          clientPhone={clientPhone}
-          setClientPhone={setClientPhone}
-          clientNotes={clientNotes}
-          setClientNotes={setClientNotes}
+          clientInfo={clientInfo}
+          setClientInfo={setClientInfo}
           selectedService={selectedService}
           selectedDate={selectedDate}
           selectedTime={selectedTime}
         />
       );
-
+      
     default:
-      // Fallback to service selection if step is invalid
       return (
-        <ServiceSelection
-          customTexts={safeCustomTexts}
-          activeCategories={safeActiveCategories}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          filteredServices={safeFilteredServices}
-          selectedService={selectedService}
-          setSelectedService={setSelectedService}
-          getButtonStyle={getButtonStyle}
-          primaryColor={primaryColor}
-        />
+        <div className="text-center py-6">
+          <p>Type de composant non reconnu: {currentStep.type}</p>
+        </div>
       );
   }
 };

@@ -7,10 +7,10 @@ import StepNavigation from './StepNavigation';
 import StepRenderer from './StepRenderer';
 import BusinessHeader from './BusinessHeader';
 import BookingConfirmation from './BookingConfirmation';
-import { createBooking, BookingResult } from '@/services/booking';
+import { BookingData, BookingResult } from '@/services/booking/types';
+import { createBooking } from '@/services/booking';
 import { toast } from 'sonner';
 import EmptyServicesState from './EmptyServicesState';
-import { BookingData } from '@/services/booking/types';
 import { getAvailableTimeSlots } from '@/services/booking/availabilityService';
 
 interface BookingContentProps {
@@ -242,6 +242,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
                 isLoadingTimes={isLoadingTimes}
                 customTexts={customTexts}
                 getButtonStyle={getButtonStyle}
+                primaryColor={primaryColor}
                 businessId={businessId}
               />
             )}
