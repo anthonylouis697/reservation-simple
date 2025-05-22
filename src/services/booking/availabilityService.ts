@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 
@@ -124,9 +123,11 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
 export const saveAvailabilitySettings = async (settings: AvailabilitySettings): Promise<boolean> => {
   try {
     // Create the database object with snake_case field names
+    // and ensure regular_schedule is included as required by the database schema
     const dbObject = {
       business_id: settings.businessId,
       active_schedule_id: settings.activeScheduleId,
+      regular_schedule: settings.scheduleSets[0]?.regularSchedule || defaultAvailabilitySettings.scheduleSets[0].regularSchedule,
       schedule_sets: settings.scheduleSets,
       special_dates: settings.specialDates,
       blocked_dates: settings.blockedDates,
@@ -135,7 +136,7 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
       min_advance_hours: settings.minAdvanceHours
     };
 
-    // Pass a single object (not an array) to upsert
+    // Pass a single object in an array to upsert
     const { error } = await supabase
       .from('availability_settings')
       .upsert([dbObject], {

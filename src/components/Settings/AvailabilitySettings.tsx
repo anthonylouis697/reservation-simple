@@ -640,9 +640,9 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
                           color: "white",
                           fontWeight: "bold"
                         },
-                        day: (date) => ({
-                          backgroundColor: getDayHighlightClass(date) || undefined
-                        })
+                        day: {
+                          backgroundColor: "transparent"
+                        }
                       }}
                       className="rounded-md border"
                     />
