@@ -15,9 +15,14 @@ export const BookingLinkCard = () => {
     return null;
   }
 
-  const bookingUrl = `${window.location.origin}/booking/${currentBusiness.slug || ""}`;
+  const businessSlug = currentBusiness.slug || "";
+  const bookingUrl = businessSlug ? `${window.location.origin}/booking/${businessSlug}` : "";
 
   const handleCopyUrl = () => {
+    if (!bookingUrl) {
+      toast.error("Veuillez d'abord configurer le slug de votre entreprise");
+      return;
+    }
     navigator.clipboard.writeText(bookingUrl).then(() => {
       setCopied(true);
       toast.success("URL copiée dans le presse-papier");
@@ -26,6 +31,10 @@ export const BookingLinkCard = () => {
   };
 
   const handleOpenPreview = () => {
+    if (!bookingUrl) {
+      toast.error("Veuillez d'abord configurer le slug de votre entreprise");
+      return;
+    }
     window.open(bookingUrl, '_blank');
   };
 
@@ -41,20 +50,30 @@ export const BookingLinkCard = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="p-3 bg-muted rounded-md flex items-center justify-between mb-4">
-          <div className="font-mono text-sm truncate">{bookingUrl}</div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={handleCopyUrl}
-            className="ml-2 flex-shrink-0"
-          >
-            <Copy className="h-4 w-4" />
-          </Button>
-        </div>
+        {!businessSlug ? (
+          <div className="p-3 bg-muted rounded-md flex items-center justify-between mb-4">
+            <div className="text-sm text-muted-foreground">Configurez d'abord le slug de votre entreprise</div>
+          </div>
+        ) : (
+          <div className="p-3 bg-muted rounded-md flex items-center justify-between mb-4">
+            <div className="font-mono text-sm truncate">{bookingUrl}</div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleCopyUrl}
+              className="ml-2 flex-shrink-0"
+            >
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
         
         <div className="flex gap-2 justify-end">
-          <Button onClick={handleOpenPreview} className="w-full">
+          <Button 
+            onClick={handleOpenPreview} 
+            className="w-full"
+            disabled={!businessSlug}
+          >
             <ExternalLink className="mr-2 h-4 w-4" />
             Ouvrir la page
           </Button>

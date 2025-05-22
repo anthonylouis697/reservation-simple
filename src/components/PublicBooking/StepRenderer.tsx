@@ -65,9 +65,9 @@ const StepRenderer = ({
   const safeAvailableTimes = Array.isArray(availableTimes) ? availableTimes : [];
   
   // Determine which component to render based on step type
-  switch (currentStep.type) {
+  switch (currentStep.type.toLowerCase()) {
     case 'service':
-    case Steps.SERVICE:
+    case Steps.SERVICE.toLowerCase():
       return (
         <ServiceSelection
           customTexts={safeCustomTexts}
@@ -80,7 +80,7 @@ const StepRenderer = ({
       );
 
     case 'date':
-    case Steps.DATE:
+    case Steps.DATE.toLowerCase():
       return (
         <DateSelection
           customTexts={safeCustomTexts}
@@ -92,7 +92,7 @@ const StepRenderer = ({
       );
 
     case 'time':
-    case Steps.TIME:
+    case Steps.TIME.toLowerCase():
       return (
         <TimeSelection
           customTexts={safeCustomTexts}
@@ -107,7 +107,7 @@ const StepRenderer = ({
       );
 
     case 'client_info':
-    case Steps.CLIENT_INFO:
+    case Steps.CLIENT_INFO.toLowerCase():
       return (
         <ClientInfoForm
           customTexts={safeCustomTexts}
@@ -120,7 +120,7 @@ const StepRenderer = ({
       );
       
     case 'confirmation':
-    case Steps.CONFIRMATION:
+    case Steps.CONFIRMATION.toLowerCase():
       return (
         <BookingConfirmation
           customTexts={safeCustomTexts}
@@ -135,6 +135,7 @@ const StepRenderer = ({
       return (
         <div className="text-center py-6">
           <p>Type de composant non reconnu: {currentStep.type}</p>
+          <pre className="text-xs text-gray-500 mt-2">{JSON.stringify(currentStep, null, 2)}</pre>
         </div>
       );
   }

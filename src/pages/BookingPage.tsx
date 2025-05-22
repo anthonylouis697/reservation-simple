@@ -35,7 +35,7 @@ export default function BookingPage() {
     } = useBookingPage();
     
     // URL de la page de réservation publique
-    const businessSlug = currentBusiness?.slug || "demo-business";
+    const businessSlug = currentBusiness?.slug || "";
     const publicBookingUrl = `${window.location.origin}/booking/${businessSlug}`;
     
     // Fonction pour copier l'URL dans le presse-papier
@@ -49,8 +49,12 @@ export default function BookingPage() {
 
     // Fonction pour ouvrir la page de réservation dans un nouvel onglet
     const handleOpenPreview = () => {
-      const previewUrl = `/booking/${businessSlug}`;
-      window.open(previewUrl, '_blank');
+      if (businessSlug) {
+        const previewUrl = `/booking/${businessSlug}`;
+        window.open(previewUrl, '_blank');
+      } else {
+        toast.error("Votre entreprise n'a pas de slug défini. Veuillez configurer votre entreprise.");
+      }
     };
 
     // Fonction pour sauvegarder les paramètres
@@ -83,7 +87,11 @@ export default function BookingPage() {
             >
               Partager
             </Button>
-            <Button onClick={handleOpenPreview}>
+            <Button 
+              onClick={handleOpenPreview}
+              disabled={!businessSlug}
+              title={!businessSlug ? "Configurez d'abord votre entreprise" : "Prévisualiser la page de réservation"}
+            >
               <ExternalLink className="mr-2 h-4 w-4" />
               Prévisualiser
             </Button>
@@ -118,11 +126,15 @@ export default function BookingPage() {
               <div className="grid flex-1 gap-2">
                 <Input
                   readOnly
-                  value={publicBookingUrl}
+                  value={businessSlug ? publicBookingUrl : "Configurez d'abord votre entreprise"}
                   className="w-full"
                 />
               </div>
-              <Button size="icon" onClick={handleCopyUrl}>
+              <Button 
+                size="icon" 
+                onClick={handleCopyUrl}
+                disabled={!businessSlug}
+              >
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
@@ -130,7 +142,10 @@ export default function BookingPage() {
               <DialogClose asChild>
                 <Button variant="outline">Fermer</Button>
               </DialogClose>
-              <Button onClick={handleOpenPreview}>
+              <Button 
+                onClick={handleOpenPreview}
+                disabled={!businessSlug}
+              >
                 <ExternalLink className="mr-2 h-4 w-4" />
                 Ouvrir
               </Button>
