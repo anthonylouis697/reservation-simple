@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import AccountLayout from '@/components/Account/AccountLayout';
 import { Helmet } from 'react-helmet';
@@ -7,7 +8,8 @@ import { toast } from 'sonner';
 import { getAvailabilitySettings, saveAvailabilitySettings } from '@/services/booking/availabilityService';
 import { useBusiness } from '@/contexts/BusinessContext';
 import type { AvailabilitySettings as AvailabilitySettingsType } from '@/services/booking/availabilityService';
-import { Loader } from 'lucide-react';
+import { Loader, Save } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const AvailabilityPage = () => {
   const { currentBusiness } = useBusiness();
@@ -15,6 +17,7 @@ const AvailabilityPage = () => {
   const [settings, setSettings] = useState<AvailabilitySettingsType | null>(null);
   const [saveError, setSaveError] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
   
   const loadSettings = async () => {
     if (currentBusiness?.id) {
@@ -23,6 +26,7 @@ const AvailabilityPage = () => {
       try {
         const availabilitySettings = await getAvailabilitySettings(currentBusiness.id);
         setSettings(availabilitySettings);
+        setUnsavedChanges(false);
       } catch (error) {
         console.error("Error loading availability settings:", error);
         toast.error("Impossible de charger les paramètres de disponibilité.");
@@ -36,20 +40,20 @@ const AvailabilityPage = () => {
     loadSettings();
   }, [currentBusiness]);
   
-  const handleSettingsChange = async (newSettings: AvailabilitySettingsType) => {
-    if (!currentBusiness?.id) return;
-    
+  const handleSettingsChange = (newSettings: AvailabilitySettingsType) => {
     setSettings(newSettings);
-    
-    // Prevent multiple concurrent save operations
-    if (saving) return;
+    setUnsavedChanges(true);
+  };
+  
+  const handleSaveSettings = async () => {
+    if (!currentBusiness?.id || !settings) return;
     
     try {
       setSaving(true);
       setSaveError(false);
       
       const success = await saveAvailabilitySettings({
-        ...newSettings,
+        ...settings,
         businessId: currentBusiness.id
       });
       
@@ -57,7 +61,8 @@ const AvailabilityPage = () => {
         setSaveError(true);
         toast.error("Erreur lors de l'enregistrement des paramètres.");
       } else {
-        setSaveError(false);
+        setUnsavedChanges(false);
+        toast.success("Paramètres enregistrés avec succès.");
       }
     } catch (error) {
       setSaveError(true);
@@ -81,25 +86,33 @@ const AvailabilityPage = () => {
             <p className="text-muted-foreground">
               Définissez vos heures de disponibilité et paramètres pour les réservations.
             </p>
-            <p className="text-sm text-muted-foreground mt-1">
-              {saving ? "Enregistrement en cours..." : "Vos modifications sont automatiquement enregistrées."}
-            </p>
           </div>
           
-          {saveError && (
-            <button 
-              onClick={loadSettings} 
-              className="text-sm gap-2 flex items-center text-primary hover:underline ml-4"
-              disabled={loading}
+          <div className="flex gap-3">
+            {saveError && (
+              <button 
+                onClick={loadSettings} 
+                className="text-sm gap-2 flex items-center text-primary hover:underline"
+                disabled={loading}
+              >
+                {loading ? (
+                  <Loader className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Loader className="h-4 w-4" />
+                )}
+                Rafraîchir les données
+              </button>
+            )}
+            
+            <Button
+              onClick={handleSaveSettings}
+              disabled={saving || loading || !unsavedChanges}
+              className="gap-2"
             >
-              {loading ? (
-                <Loader className="h-4 w-4 animate-spin" />
-              ) : (
-                <Loader className="h-4 w-4" />
-              )}
-              Rafraîchir les données
-            </button>
-          )}
+              {saving ? <Loader className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Enregistrer
+            </Button>
+          </div>
         </div>
         
         {loading ? (
@@ -124,7 +137,7 @@ const AvailabilityPage = () => {
                   Impossible de charger vos paramètres de disponibilité.
                 </p>
                 <button 
-                  className="mt-4 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
+                  className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
                   onClick={() => window.location.reload()}
                 >
                   Réessayer
@@ -132,6 +145,17 @@ const AvailabilityPage = () => {
               </div>
             </CardContent>
           </Card>
+        )}
+        
+        {/* Status footer */}
+        {settings && (
+          <div className="flex justify-end text-sm text-muted-foreground">
+            {unsavedChanges ? (
+              <span className="text-amber-600">Modifications non enregistrées</span>
+            ) : (
+              <span>Tous les changements sont enregistrés</span>
+            )}
+          </div>
         )}
       </div>
     </AccountLayout>
