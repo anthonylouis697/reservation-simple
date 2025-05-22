@@ -116,7 +116,8 @@ const DateSelection = ({
               day_today: "bg-accent text-accent-foreground"
             }}
             styles={{
-              day_selected: getButtonStyle().style
+              // Use "day_selected" for the selected day style (this is the correct property name)
+              day_selected: getButtonStyle().style 
             }}
             fromDate={new Date()}
             toDate={addMonths(new Date(), 3)}

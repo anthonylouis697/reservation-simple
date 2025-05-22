@@ -112,7 +112,7 @@ export const getBusinessBookings = async (
 
     const bookings: Booking[] = (data || []).map(booking => {
       // Safely access client data with default empty object
-      const clientData: DbClient = (booking.clients || {}) as DbClient;
+      const clientData: DbClient = ((booking.clients as any) || {}) as DbClient;
       
       // Format the booking data
       const result: Booking = {
@@ -198,8 +198,8 @@ export const getUpcomingBookings = async (businessId: string): Promise<Booking[]
     const bookings = data || [];
     
     return bookings.map(booking => {
-      // Safe access for clients with default values
-      const clientData = booking.clients || {};
+      // Safe access for clients with default values 
+      const clientData = (booking.clients as any) || {};
       
       return {
         id: booking.id,

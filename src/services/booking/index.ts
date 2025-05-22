@@ -65,25 +65,25 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
 // Gets all bookings for a business
 export const getAllBookings = async (businessId: string): Promise<Booking[]> => {
   try {
-    // Make sure we select the right fields for the current database schema
+    // Make sure we have the right fields in our query
     const { data, error } = await supabase
       .from('reservations')
       .select(`
         id,
         business_id,
         service_id,
+        service_name,
         client_id,
+        client_first_name,
+        client_last_name,
+        client_email,
+        client_phone,
         start_time,
         end_time,
         notes,
         status,
         created_at,
-        updated_at,
-        client_first_name,
-        client_last_name,
-        client_email,
-        client_phone,
-        service_name
+        updated_at
       `)
       .eq('business_id', businessId)
       .order('start_time', { ascending: true });

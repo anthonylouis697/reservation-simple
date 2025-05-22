@@ -78,6 +78,12 @@ export const defaultAvailabilitySettings: AvailabilitySettings = {
   minAdvanceHours: 24
 };
 
+// Helper function to get day name from date
+export const getDayName = (date: Date): 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday' => {
+  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  return days[date.getDay()] as 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+};
+
 // Function to get availability settings for a business
 export const getAvailabilitySettings = async (businessId: string): Promise<AvailabilitySettings> => {
   try {
@@ -195,7 +201,7 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
   try {
     console.log("Saving availability settings for business:", settings.businessId);
     
-    // Convert complex objects to properly formatted JSON for database storage
+    // Convert complex objects to properly formatted JSON strings
     const scheduleSetsJson = JSON.stringify(settings.scheduleSets);
     const specialDatesJson = JSON.stringify(settings.specialDates);
     const blockedDatesJson = JSON.stringify(settings.blockedDates);
@@ -215,12 +221,13 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
     
     const regularScheduleJson = JSON.stringify(regularScheduleObj) as unknown as Json;
     
-    // Create a sanitized object for saving to the database
+    // Create a sanitized object for saving to the database with proper typing
     const dbObject = {
       business_id: settings.businessId,
       regular_schedule: regularScheduleJson,
-      special_dates: specialDatesJson,
-      blocked_dates: blockedDatesJson,
+      // Use empty arrays as the default fallback value for these JSON arrays
+      special_dates: specialDatesJson as unknown as Json[],
+      blocked_dates: blockedDatesJson as unknown as Json[],
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours
@@ -233,7 +240,7 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
       min_advance_hours: dbObject.min_advance_hours
     });
 
-    // Save to database - making sure we convert JSON fields correctly
+    // Save to database
     const { error } = await supabase
       .from('availability_settings')
       .upsert(dbObject, {
@@ -251,12 +258,6 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
     console.error("Error saving availability settings:", error);
     return false;
   }
-};
-
-// Helper function to get day name from date
-export const getDayName = (date: Date): 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday' => {
-  const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-  return days[date.getDay()] as 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 };
 
 // Format date as YYYY-MM-DD
