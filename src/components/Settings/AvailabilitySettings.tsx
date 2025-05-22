@@ -635,21 +635,14 @@ const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySetting
                         special: "!font-bold !border !border-primary",
                       }}
                       styles={{
-                        day_today: { 
-                          backgroundColor: "transparent",
-                          color: "inherit",
-                          fontWeight: "bold"
-                        },
                         day_selected: {
                           backgroundColor: "hsl(var(--primary))",
                           color: "white",
                           fontWeight: "bold"
                         },
-                        day: {
-                          backgroundColor: selectedDate ? 
-                            getDayHighlightClass(selectedDate) || undefined : 
-                            undefined
-                        }
+                        day: (date) => ({
+                          backgroundColor: getDayHighlightClass(date) || undefined
+                        })
                       }}
                       className="rounded-md border"
                     />
