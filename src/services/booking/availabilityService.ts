@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 import { Json } from '@/integrations/supabase/types';
@@ -157,11 +156,12 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
       settings.blockedDates.map(date => JSON.parse(JSON.stringify(date))) : 
       [];
     
+    // Explicitly cast objects to Json type to fix TypeScript error
     const dbObject = {
       business_id: settings.businessId,
-      regular_schedule: safeRegularSchedule as Json,
-      special_dates: safeSpecialDates as Json[],
-      blocked_dates: safeBlockedDates as Json[],
+      regular_schedule: JSON.parse(JSON.stringify(safeRegularSchedule)) as Json,
+      special_dates: JSON.parse(JSON.stringify(safeSpecialDates)) as Json[],
+      blocked_dates: JSON.parse(JSON.stringify(safeBlockedDates)) as Json[],
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours

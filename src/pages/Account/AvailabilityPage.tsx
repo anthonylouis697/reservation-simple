@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import AccountLayout from '@/components/Account/AccountLayout';
 import { Helmet } from 'react-helmet';
@@ -8,7 +7,7 @@ import { toast } from 'sonner';
 import { getAvailabilitySettings, saveAvailabilitySettings } from '@/services/booking/availabilityService';
 import { useBusiness } from '@/contexts/BusinessContext';
 import type { AvailabilitySettings as AvailabilitySettingsType } from '@/services/booking/availabilityService';
-import { ReloadIcon } from 'lucide-react';
+import { Loader } from 'lucide-react';
 
 const AvailabilityPage = () => {
   const { currentBusiness } = useBusiness();
@@ -94,9 +93,9 @@ const AvailabilityPage = () => {
               disabled={loading}
             >
               {loading ? (
-                <ReloadIcon className="h-4 w-4 animate-spin" />
+                <Loader className="h-4 w-4 animate-spin" />
               ) : (
-                <ReloadIcon className="h-4 w-4" />
+                <Loader className="h-4 w-4" />
               )}
               Rafraîchir les données
             </button>
