@@ -36,27 +36,18 @@ export const DeleteBookingDialog = ({
   const safeOnOpenChange = onOpenChange || (() => {});
   const safeOnConfirmDelete = onConfirmDelete || (() => {});
 
-  // Safely transform date to Date object if needed
-  let bookingDate: Date;
-  try {
-    bookingDate = booking.date instanceof Date 
-      ? booking.date 
-      : new Date(booking.date || Date.now());
-  } catch (error) {
-    console.error("Erreur lors de la conversion de la date:", error);
-    bookingDate = new Date();
-  }
+  // Create booking date from start_time
+  const bookingDate = booking.start_time ? new Date(booking.start_time) : new Date();
+  
+  // Extract time from start_time
+  const bookingTime = booking.start_time ? 
+    new Date(booking.start_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 
+    "Heure non spécifiée";
 
-  // Safely get client data
-  const clientName = 
-    booking.client && 
-    typeof booking.client === 'object' && 
-    booking.client.name 
-      ? booking.client.name 
-      : "Client inconnu";
-
-  const serviceName = service && service.name ? service.name : "Service inconnu";
-  const bookingTime = booking.time || "Heure non spécifiée";
+  // Build client name from first and last name
+  const clientName = `${booking.client_first_name} ${booking.client_last_name}`.trim() || "Client inconnu";
+  
+  const serviceName = service?.name || booking.service_name || "Service inconnu";
 
   return (
     <Dialog open={open} onOpenChange={safeOnOpenChange}>

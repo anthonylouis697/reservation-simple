@@ -1,24 +1,28 @@
 
-import { Button } from '@/components/ui/button';
-import { ReactNode } from 'react';
+import { BookingStep } from '@/components/Visibility/BookingPage/types';
+import { CalendarCheck, CalendarDays, Clock, User } from 'lucide-react';
 
 interface StepNavigationProps {
+  steps: BookingStep[];
   currentStep: number;
-  handlePrevStep: () => void;
-  handleNextStep: () => void;
-  isBooking: boolean;
+  primaryColor: string;
+  handlePrevStep?: () => void;
+  handleNextStep?: () => void;
+  isBooking?: boolean;
   getButtonStyle?: () => { 
     className?: string; 
     style?: { backgroundColor?: string; borderColor?: string } 
   };
-  getCurrentStepIcon?: () => ReactNode;
+  getCurrentStepIcon?: () => React.ReactNode;
   getStepLabel?: (index: number) => string;
   bookingButtonText?: string;
   activeStepsLength?: number;
 }
 
 const StepNavigation = ({
+  steps = [],
   currentStep = 0,
+  primaryColor,
   handlePrevStep,
   handleNextStep,
   isBooking = false,
@@ -26,59 +30,56 @@ const StepNavigation = ({
   getCurrentStepIcon,
   getStepLabel,
   bookingButtonText = "Réserver",
-  activeStepsLength = 4
+  activeStepsLength
 }: StepNavigationProps) => {
-  // Ensure all handler functions have fallbacks
-  const safeHandlePrevStep = handlePrevStep || (() => {});
-  const safeHandleNextStep = handleNextStep || (() => {});
-  const safeGetButtonStyle = getButtonStyle || (() => ({ className: "", style: { backgroundColor: "", borderColor: "" } }));
-  const safeGetCurrentStepIcon = getCurrentStepIcon || (() => null);
-  const safeGetStepLabel = getStepLabel || ((index: number) => `Étape ${index + 1}`);
+  // Get the correct icon for the current step
+  const getIconForStep = (step: BookingStep) => {
+    if (!step || !step.type) return null;
+    
+    const type = step.type.toLowerCase();
+    if (type.includes('service')) return <CalendarCheck size={20} />;
+    if (type.includes('date')) return <CalendarDays size={20} />;
+    if (type.includes('time')) return <Clock size={20} />;
+    if (type.includes('client')) return <User size={20} />;
+    
+    return null;
+  };
   
-  // Get button styles safely
-  const buttonStyle = safeGetButtonStyle();
-  const buttonClassName = buttonStyle?.className || "";
-  const buttonStyleObj = buttonStyle?.style || { backgroundColor: "", borderColor: "" };
-  
-  // Get current step icon and label safely
-  const currentStepIcon = safeGetCurrentStepIcon();
-  const stepLabel = safeGetStepLabel(currentStep);
+  // Get label for current step
+  const getCurrentStepLabel = () => {
+    if (currentStep >= steps.length || !steps[currentStep]) {
+      return "Étape";
+    }
+    
+    const step = steps[currentStep];
+    return step.customLabel || step.name || `Étape ${currentStep + 1}`;
+  };
   
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6">
+    <div className="flex justify-between items-center mb-6">
       <div className="flex items-center gap-2">
-        {currentStepIcon}
-        <span className="font-medium">{stepLabel}</span>
+        {steps[currentStep] && (
+          <>
+            <div style={{ color: primaryColor }}>
+              {getIconForStep(steps[currentStep])}
+            </div>
+            <span className="font-medium">{getCurrentStepLabel()}</span>
+          </>
+        )}
       </div>
       
-      <div className="flex gap-2">
-        {currentStep > 0 && (
-          <Button
-            variant="outline"
-            onClick={safeHandlePrevStep}
-            disabled={isBooking}
-          >
-            Précédent
-          </Button>
-        )}
-        
-        <Button 
-          onClick={safeHandleNextStep}
-          disabled={isBooking}
-          className={buttonClassName}
-          style={buttonStyleObj}
-        >
-          {isBooking ? (
-            <>
-              <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
-              Traitement...
-            </>
-          ) : currentStep === activeStepsLength - 1 ? (
-            bookingButtonText
-          ) : (
-            "Suivant"
-          )}
-        </Button>
+      <div className="flex items-center gap-2">
+        <div className="flex space-x-1">
+          {steps.map((_, index) => (
+            <div 
+              key={index}
+              className="h-1 w-6 rounded"
+              style={{ 
+                backgroundColor: index <= currentStep ? primaryColor : '#e5e7eb',
+              }}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

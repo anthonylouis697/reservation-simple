@@ -182,9 +182,11 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
     console.log("Saving availability settings for business:", settings.businessId);
     
     // Convert complex objects to JSON strings for the database
-    const specialDatesJson = JSON.stringify(settings.specialDates);
-    const blockedDatesJson = JSON.stringify(settings.blockedDates);
-    const regularScheduleJson = JSON.stringify({
+    const specialDatesJson = JSON.stringify(settings.specialDates) as unknown as Json;
+    const blockedDatesJson = JSON.stringify(settings.blockedDates) as unknown as Json;
+    
+    // Create a regular schedule JSON object without circular references
+    const regularScheduleObj = {
       monday: settings.scheduleSets[0].regularSchedule.monday,
       tuesday: settings.scheduleSets[0].regularSchedule.tuesday,
       wednesday: settings.scheduleSets[0].regularSchedule.wednesday,
@@ -193,8 +195,10 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
       saturday: settings.scheduleSets[0].regularSchedule.saturday,
       sunday: settings.scheduleSets[0].regularSchedule.sunday,
       _activeScheduleId: settings.activeScheduleId,
-      _scheduleSets: settings.scheduleSets
-    });
+      _scheduleSets: JSON.stringify(settings.scheduleSets)
+    };
+    
+    const regularScheduleJson = JSON.stringify(regularScheduleObj) as unknown as Json;
     
     // Create a sanitized copy for saving to the database
     const dbObject = {

@@ -14,6 +14,7 @@ import { initialServices } from '@/mock/serviceData';
 import { LoadingState } from '@/components/Reservations/LoadingState';
 import { BookingsTable } from '@/components/Reservations/BookingsTable';
 import { DeleteBookingDialog } from '@/components/Reservations/DeleteBookingDialog';
+import { useBusiness } from '@/contexts/BusinessContext';
 
 const Reservations = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -23,17 +24,24 @@ const Reservations = () => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const { currentBusiness } = useBusiness();
 
   // Load reservations on page load
   useEffect(() => {
     const fetchBookings = async () => {
       try {
         setIsLoading(true);
-        const fetchedBookings = await getAllBookings();
+        
+        if (!currentBusiness?.id) {
+          setBookings([]);
+          return;
+        }
+        
+        const fetchedBookings = await getAllBookings(currentBusiness.id);
         
         // Ensure all bookings have proper structure
         const validBookings = fetchedBookings.filter(booking => 
-          booking && booking.id && booking.client && typeof booking.client === 'object'
+          booking && booking.id
         );
         
         setBookings(validBookings);
@@ -46,7 +54,7 @@ const Reservations = () => {
     };
 
     fetchBookings();
-  }, []);
+  }, [currentBusiness]);
 
   // Filter bookings according to active tab
   const filteredBookings = bookings.filter(booking => {
@@ -135,6 +143,12 @@ const Reservations = () => {
     }
   };
 
+  // Service used in the delete dialog
+  const getSelectedService = () => {
+    if (!selectedBooking) return undefined;
+    return getServiceById(selectedBooking.service_id);
+  };
+
   return (
     <AppLayout>
       <Helmet>
@@ -198,7 +212,7 @@ const Reservations = () => {
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         booking={selectedBooking}
-        service={selectedBooking ? getServiceById(selectedBooking.serviceId) : undefined}
+        service={getSelectedService()}
         isProcessing={isProcessing}
         onConfirmDelete={handleDeleteBooking}
       />

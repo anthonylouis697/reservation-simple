@@ -1,23 +1,30 @@
 
 import React from 'react';
-import { CalendarX } from 'lucide-react';
-import { useParams } from 'react-router-dom';
 
-const EmptyServicesState = () => {
-  const { businessSlug } = useParams<{ businessSlug?: string }>();
-  
+interface EmptyServicesStateProps {
+  businessName: string;
+}
+
+const EmptyServicesState = ({ businessName }: EmptyServicesStateProps) => {
   return (
-    <div className="flex flex-col items-center justify-center px-4 py-12">
-      <div className="bg-amber-50 text-amber-500 p-4 rounded-full mb-6">
-        <CalendarX className="h-12 w-12" />
-      </div>
-      <h2 className="text-2xl font-bold mb-2 text-center">Aucun service disponible</h2>
-      <p className="text-gray-600 text-center max-w-md mb-6">
-        Cette entreprise n'a pas encore configuré de services disponibles à la réservation.
-        Veuillez d'abord créer des services dans la section "Services" de votre tableau de bord.
-      </p>
-      <div className="text-sm text-gray-500 text-center">
-        Identifiant entreprise: <span className="font-mono">{businessSlug}</span>
+    <div className="min-h-screen bg-gray-50 py-10">
+      <div className="max-w-3xl mx-auto px-4">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">{businessName}</h1>
+          <div className="w-16 h-1 bg-gray-300 mx-auto mb-8 rounded"></div>
+        </div>
+        
+        <div className="mt-12 text-center py-12 border rounded-lg bg-white">
+          <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-medium mb-2">Aucun service disponible</h2>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            Ce professionnel n'a pas encore ajouté de services à son calendrier de réservation.
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -56,35 +56,33 @@ export const BookingsTable = ({
         <TableBody>
           {bookings.map((booking) => {
             // Ensure booking is valid and has required fields
-            if (!booking || !booking.id || !booking.serviceId) {
+            if (!booking || !booking.id || !booking.service_id) {
               return null;
             }
 
-            const service = getServiceById(booking.serviceId);
+            const service = getServiceById(booking.service_id);
             
-            // Ensure booking.date is properly converted to a Date object
-            const bookingDate = booking.date instanceof Date 
-              ? booking.date 
-              : new Date(booking.date);
+            // Ensure booking date is properly processed
+            const bookingDate = booking.start_time ? new Date(booking.start_time) : new Date();
             
-            // Ensure client object is properly handled
-            const clientName = booking.client && typeof booking.client === 'object' && booking.client.name 
-              ? booking.client.name 
-              : "Client inconnu";
+            // Extract time from start_time
+            const bookingTime = booking.start_time ? 
+              new Date(booking.start_time).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : 
+              '';
             
-            const clientEmail = booking.client && typeof booking.client === 'object' && booking.client.email 
-              ? booking.client.email 
-              : "";
+            // Build client name from first and last name
+            const clientName = `${booking.client_first_name} ${booking.client_last_name}`.trim() || "Client inconnu";
+            const clientEmail = booking.client_email || "";
             
             const servicePrice = service?.price || 0;
-            const serviceName = service?.name || "Service inconnu";
+            const serviceName = service?.name || booking.service_name || "Service inconnu";
             
             return (
               <TableRow key={booking.id}>
                 <TableCell>
                   {format(bookingDate, 'dd/MM/yyyy', { locale: fr })}
                 </TableCell>
-                <TableCell>{booking.time || "-"}</TableCell>
+                <TableCell>{bookingTime}</TableCell>
                 <TableCell>
                   <div>
                     <p className="font-medium">{clientName}</p>

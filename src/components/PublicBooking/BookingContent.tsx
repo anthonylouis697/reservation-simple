@@ -6,12 +6,11 @@ import { Service } from '@/types/service';
 import StepNavigation from './StepNavigation';
 import StepRenderer from './StepRenderer';
 import BusinessHeader from './BusinessHeader';
-import { Steps } from '@/components/Visibility/BookingPage/types';
 import BookingConfirmation from './BookingConfirmation';
-import { createBooking, type BookingResult } from '@/services/booking';
+import { createBooking, BookingResult } from '@/services/booking';
 import { toast } from 'sonner';
 import EmptyServicesState from './EmptyServicesState';
-import { BookingData } from '@/services/booking';
+import { BookingData } from '@/services/booking/types';
 import { getAvailableTimeSlots } from '@/services/booking/availabilityService';
 
 interface BookingContentProps {
@@ -94,13 +93,13 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     const currentStepType = steps[currentStep].type;
     
     switch (currentStepType) {
-      case Steps.SERVICE:
+      case 'service':
         return selectedService !== null;
-      case Steps.DATE:
+      case 'date':
         return selectedDate !== undefined;
-      case Steps.TIME:
+      case 'time':
         return selectedTime !== null;
-      case Steps.CLIENT_INFO:
+      case 'client_info':
         return clientInfo.firstName && clientInfo.lastName && clientInfo.email;
       default:
         return true;
@@ -204,6 +203,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
             booking={booking}
             customTexts={customTexts}
             primaryColor={primaryColor}
+            getButtonStyle={getButtonStyle}
           />
         </div>
       </div>

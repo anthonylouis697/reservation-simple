@@ -41,6 +41,17 @@ export interface Booking {
   notes?: string | null;
   status: string;
   created_at: string;
+  // Adding client property for compatibility
+  client?: {
+    name: string;
+    email: string;
+    phone?: string;
+    notes?: string;
+  };
+  // Adding calculated properties
+  serviceId?: string; // Alias for service_id
+  date?: Date;        // Calculated from start_time
+  time?: string;      // Extracted from start_time
 }
 
 // Interface for the database client object

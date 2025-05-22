@@ -31,6 +31,17 @@ export const useBookingHandler = ({
 }: BookingHandlerProps) => {
   const [isBooking, setIsBooking] = useState(false);
   
+  // Parse client name to get first and last name
+  const parseClientName = (fullName: string) => {
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 1) {
+      return { firstName: parts[0], lastName: '' };
+    }
+    const firstName = parts[0];
+    const lastName = parts.slice(1).join(' ');
+    return { firstName, lastName };
+  };
+  
   // Fonction pour soumettre la réservation
   const handleBooking = async () => {
     if (!selectedService || !selectedDate || !selectedTime || !clientName || !clientEmail || !businessId) {
@@ -57,18 +68,23 @@ export const useBookingHandler = ({
         return;
       }
       
+      // Extract first and last name
+      const { firstName, lastName } = parseClientName(clientName);
+      
       // Préparer les données de réservation
       const bookingData: BookingData = {
         businessId: businessId,
         serviceId: selectedService.id,
+        serviceName: selectedService.name,
         date: selectedDate,
         time: selectedTime,
-        client: {
-          name: clientName,
+        clientInfo: {
+          firstName: firstName,
+          lastName: lastName,
           email: clientEmail,
-          phone: clientPhone || undefined,
-          notes: clientNotes || undefined
-        }
+          phone: clientPhone || '',
+        },
+        notes: clientNotes || ''
       };
       
       // Enregistrer la réservation

@@ -1,53 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
-
-// Types for client information
-export interface ClientInfo {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-}
-
-// Types for booking data
-export interface BookingData {
-  serviceId: string;
-  serviceName: string;
-  date: Date;
-  time: string;  
-  clientInfo: ClientInfo;
-  notes?: string;
-  businessId: string;
-}
-
-// Type for booking result
-export interface BookingResult {
-  id: string;
-  startTime: Date;
-  endTime: Date;
-  serviceName: string;
-  clientName: string;
-  status: string;
-}
-
-// Type for booking record
-export interface Booking {
-  id: string;
-  business_id: string;
-  service_id: string;
-  service_name: string;
-  client_id?: string | null;
-  client_first_name: string;
-  client_last_name: string;
-  client_email: string;
-  client_phone: string;
-  start_time: string;
-  end_time: string;
-  notes?: string | null;
-  status: string;
-  created_at: string;
-}
+import { BookingData, BookingResult, Booking } from './types';
 
 // Helper function to combine date and time
 export const combineDateTime = (date: Date, timeString: string): Date => {
@@ -88,6 +42,7 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
       id: data.id,
       startTime: new Date(data.start_time),
       endTime: new Date(data.end_time),
+      serviceId: data.service_id,
       serviceName: data.service_name,
       clientName: `${data.client_first_name} ${data.client_last_name}`,
       status: data.status
@@ -108,7 +63,31 @@ export const getAllBookings = async (businessId: string): Promise<Booking[]> => 
       .order('start_time', { ascending: true });
       
     if (error) throw error;
-    return data || [];
+    
+    // Process the raw bookings to add derived fields
+    const processedBookings: Booking[] = (data || []).map(booking => {
+      // Add client field for compatibility
+      const result: Booking = {
+        ...booking,
+        serviceId: booking.service_id,
+        client: {
+          name: `${booking.client_first_name} ${booking.client_last_name}`.trim(),
+          email: booking.client_email,
+          phone: booking.client_phone,
+        }
+      };
+      
+      // Add date and time fields from start_time
+      if (booking.start_time) {
+        const startTime = new Date(booking.start_time);
+        result.date = startTime;
+        result.time = startTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+      }
+      
+      return result;
+    });
+    
+    return processedBookings;
   } catch (error) {
     console.error('Error fetching bookings:', error);
     return [];
