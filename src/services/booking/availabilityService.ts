@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 import { Json } from '@/integrations/supabase/types';
@@ -103,9 +104,12 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
     const activeScheduleId = regularScheduleData._activeScheduleId || 1;
     const scheduleSets = regularScheduleData._scheduleSets || defaultAvailabilitySettings.scheduleSets;
     
-    // Extract special dates and blocked dates
-    const specialDates = rawData.special_dates || [];
-    const blockedDates = rawData.blocked_dates || [];
+    // Extract special dates and blocked dates - ensure proper types
+    const specialDates = Array.isArray(rawData.special_dates) ? 
+      rawData.special_dates : [];
+    
+    const blockedDates = Array.isArray(rawData.blocked_dates) ? 
+      rawData.blocked_dates : [];
     
     const settings: AvailabilitySettings = {
       businessId,
@@ -128,56 +132,51 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
   }
 };
 
-// Function to save availability settings
+// Function to save availability settings with proper type handling
 export const saveAvailabilitySettings = async (settings: AvailabilitySettings): Promise<boolean> => {
   try {
     // Get the active schedule for regular_schedule field
     const activeSchedule = settings.scheduleSets.find(s => s.id === settings.activeScheduleId) || settings.scheduleSets[0];
     
-    // Create a deep copy of the schedule without circular references
-    const safeRegularSchedule = {
-      monday: { ...activeSchedule.regularSchedule.monday },
-      tuesday: { ...activeSchedule.regularSchedule.tuesday },
-      wednesday: { ...activeSchedule.regularSchedule.wednesday },
-      thursday: { ...activeSchedule.regularSchedule.thursday },
-      friday: { ...activeSchedule.regularSchedule.friday },
-      saturday: { ...activeSchedule.regularSchedule.saturday },
-      sunday: { ...activeSchedule.regularSchedule.sunday },
+    // Create regular schedule object with proper structure
+    const regularSchedule = {
+      monday: activeSchedule.regularSchedule.monday,
+      tuesday: activeSchedule.regularSchedule.tuesday,
+      wednesday: activeSchedule.regularSchedule.wednesday,
+      thursday: activeSchedule.regularSchedule.thursday,
+      friday: activeSchedule.regularSchedule.friday,
+      saturday: activeSchedule.regularSchedule.saturday,
+      sunday: activeSchedule.regularSchedule.sunday,
       _activeScheduleId: settings.activeScheduleId,
-      _scheduleSets: JSON.parse(JSON.stringify(settings.scheduleSets))
+      _scheduleSets: settings.scheduleSets
     };
     
-    // Create properly structured arrays for Supabase
-    const safeSpecialDates = Array.isArray(settings.specialDates) ? 
-      settings.specialDates.map(date => JSON.parse(JSON.stringify(date))) : 
-      [];
+    // First serialize then deserialize to avoid TypeScript errors
+    const jsonRegularSchedule = JSON.stringify(regularSchedule);
+    const jsonSpecialDates = JSON.stringify(settings.specialDates);
+    const jsonBlockedDates = JSON.stringify(settings.blockedDates);
     
-    const safeBlockedDates = Array.isArray(settings.blockedDates) ? 
-      settings.blockedDates.map(date => JSON.parse(JSON.stringify(date))) : 
-      [];
-    
-    // Explicitly cast objects to Json type to fix TypeScript error
     const dbObject = {
       business_id: settings.businessId,
-      regular_schedule: JSON.parse(JSON.stringify(safeRegularSchedule)) as Json,
-      special_dates: JSON.parse(JSON.stringify(safeSpecialDates)) as Json[],
-      blocked_dates: JSON.parse(JSON.stringify(safeBlockedDates)) as Json[],
+      regular_schedule: JSON.parse(jsonRegularSchedule) as Json,
+      special_dates: JSON.parse(jsonSpecialDates) as Json[],
+      blocked_dates: JSON.parse(jsonBlockedDates) as Json[],
       buffer_time_minutes: settings.bufferTimeMinutes,
       advance_booking_days: settings.advanceBookingDays,
       min_advance_hours: settings.minAdvanceHours
     };
-
+    
     // For debug purposes
     console.log("Saving availability settings:", {
-      business_id: dbObject.business_id,
-      buffer_time_minutes: dbObject.buffer_time_minutes,
-      advance_booking_days: dbObject.advance_booking_days,
-      min_advance_hours: dbObject.min_advance_hours,
-      special_dates_count: safeSpecialDates.length,
-      blocked_dates_count: safeBlockedDates.length
+      business_id: settings.businessId,
+      buffer_time_minutes: settings.bufferTimeMinutes,
+      advance_booking_days: settings.advanceBookingDays,
+      min_advance_hours: settings.minAdvanceHours,
+      special_dates_count: settings.specialDates.length,
+      blocked_dates_count: settings.blockedDates.length
     });
 
-    // Pass the properly typed object to upsert
+    // Save the data
     const { error } = await supabase
       .from('availability_settings')
       .upsert(dbObject, {
@@ -324,13 +323,7 @@ export const checkAvailability = async (
       }
     }
     
-    if (!isWithinTimeSlot) {
-      return false;
-    }
-    
-    // In a real system, we'd also check for existing reservations here
-    // For demo purposes, we'll simulate that 90% of slots are available
-    return Math.random() > 0.1;
+    return isWithinTimeSlot;
   } catch (error) {
     console.error("Error checking availability:", error);
     return false;
@@ -414,7 +407,7 @@ export const getAvailableTimeSlots = async (
         }
         
         // If not blocked, add to available slots
-        if (!isBlocked && Math.random() > 0.1) { // 10% random unavailability for demo
+        if (!isBlocked) {
           availableSlots.push(timeString);
         }
         

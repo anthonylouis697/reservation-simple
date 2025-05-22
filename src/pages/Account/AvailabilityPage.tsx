@@ -1,15 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
-import AccountLayout from '@/components/Account/AccountLayout';
 import { Helmet } from 'react-helmet';
-import AvailabilitySettings from '@/components/Settings/AvailabilitySettings';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { getAvailabilitySettings, saveAvailabilitySettings } from '@/services/booking/availabilityService';
 import { useBusiness } from '@/contexts/BusinessContext';
 import type { AvailabilitySettings as AvailabilitySettingsType } from '@/services/booking/availabilityService';
-import { Loader, Save } from 'lucide-react';
+import { Loader, Save, Calendar, Clock, CalendarX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import RegularSchedule from '@/components/Settings/Availability/RegularSchedule';
+import BlockedDates from '@/components/Settings/Availability/BlockedDates';
+import SpecialDates from '@/components/Settings/Availability/SpecialDates';
 
 const AvailabilityPage = () => {
   const { currentBusiness } = useBusiness();
@@ -74,7 +76,7 @@ const AvailabilityPage = () => {
   };
   
   return (
-    <AccountLayout>
+    <div className="container mx-auto py-8 max-w-5xl">
       <Helmet>
         <title>Gestion des disponibilités - Reservatoo</title>
       </Helmet>
@@ -124,10 +126,43 @@ const AvailabilityPage = () => {
             </CardContent>
           </Card>
         ) : settings ? (
-          <AvailabilitySettings
-            initialSettings={settings}
-            onChange={handleSettingsChange}
-          />
+          <Tabs defaultValue="regular" className="w-full">
+            <TabsList className="grid grid-cols-3 mb-6">
+              <TabsTrigger value="regular" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>Horaires réguliers</span>
+              </TabsTrigger>
+              <TabsTrigger value="blocked" className="flex items-center gap-2">
+                <CalendarX className="h-4 w-4" />
+                <span>Jours bloqués</span>
+              </TabsTrigger>
+              <TabsTrigger value="special" className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span>Horaires spéciaux</span>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="regular">
+              <RegularSchedule 
+                settings={settings} 
+                onSettingsChange={handleSettingsChange} 
+              />
+            </TabsContent>
+
+            <TabsContent value="blocked">
+              <BlockedDates 
+                settings={settings} 
+                onSettingsChange={handleSettingsChange} 
+              />
+            </TabsContent>
+
+            <TabsContent value="special">
+              <SpecialDates 
+                settings={settings} 
+                onSettingsChange={handleSettingsChange} 
+              />
+            </TabsContent>
+          </Tabs>
         ) : (
           <Card>
             <CardContent className="py-6 flex justify-center">
@@ -158,7 +193,7 @@ const AvailabilityPage = () => {
           </div>
         )}
       </div>
-    </AccountLayout>
+    </div>
   );
 };
 
