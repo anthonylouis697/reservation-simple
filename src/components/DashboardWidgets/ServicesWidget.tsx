@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
-// Mock data for services
+// Mock data for services avec les nouvelles propriétés
 const services = [
   { 
     id: "1", 
@@ -14,8 +14,8 @@ const services = [
     duration: 30, 
     price: 50, 
     bookings: 12,
-    isRecurring: false,
-    hasVariablePricing: false
+    hasVariableOptions: false,
+    imageUrl: "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=100&h=60&fit=crop"
   },
   { 
     id: "2", 
@@ -23,8 +23,8 @@ const services = [
     duration: 60, 
     price: 100, 
     bookings: 8,
-    isRecurring: true,
-    hasVariablePricing: false
+    hasVariableOptions: false,
+    imageUrl: undefined
   },
   { 
     id: "3", 
@@ -32,8 +32,8 @@ const services = [
     duration: 90, 
     price: 0, 
     bookings: 4,
-    isRecurring: false,
-    hasVariablePricing: true
+    hasVariableOptions: true,
+    imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=100&h=60&fit=crop"
   }
 ];
 
@@ -55,28 +55,32 @@ export const ServicesWidget = () => {
           {services.map((service, index) => (
             <div key={service.id}>
               <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <p className="font-medium">{service.name}</p>
-                    {service.isRecurring && (
-                      <Badge variant="secondary" className="bg-purple-100 text-purple-800 text-[10px] px-1.5 py-0">
-                        Récurrent
-                      </Badge>
-                    )}
-                    {service.hasVariablePricing && (
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-[10px] px-1.5 py-0">
-                        Prix variable
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    <span>{service.duration} min</span>
-                    <span className="mx-1">•</span>
-                    {service.hasVariablePricing ? (
-                      <span>Prix variable</span>
-                    ) : (
-                      <span>{service.price} €</span>
-                    )}
+                <div className="flex items-center gap-3">
+                  {service.imageUrl && (
+                    <img 
+                      src={service.imageUrl} 
+                      alt={service.name}
+                      className="w-12 h-8 object-cover rounded"
+                    />
+                  )}
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-medium">{service.name}</p>
+                      {service.hasVariableOptions && (
+                        <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-[10px] px-1.5 py-0">
+                          Options variables
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center text-xs text-muted-foreground">
+                      <span>{service.duration} min</span>
+                      <span className="mx-1">•</span>
+                      {service.hasVariableOptions ? (
+                        <span>À partir de {service.price} €</span>
+                      ) : (
+                        <span>{service.price} €</span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">

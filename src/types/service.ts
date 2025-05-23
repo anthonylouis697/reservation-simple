@@ -5,18 +5,14 @@ export interface Service {
   description: string;
   duration: number;
   price: number;
-  location: string;
   capacity: number;
-  category: string;
   categoryId?: string;
   bufferTimeBefore: number;
   bufferTimeAfter: number;
-  assignedEmployees: string[];
-  isRecurring: boolean;
-  recurringFrequency?: 'daily' | 'weekly' | 'monthly' | 'yearly';
-  recurringExceptions?: string[]; // Dates au format ISO pour les exceptions
   isActive: boolean;
   variableDurationOptions?: VariableDurationOption[];
+  imageUrl?: string;
+  // Supprimé: location, category, assignedEmployees, isRecurring, recurringFrequency, recurringExceptions
 }
 
 export interface VariableDurationOption {
