@@ -203,10 +203,10 @@ export const normalizeTimeSlot = (timeSlot: any): TimeSlot => {
 // Save availability settings
 export const saveAvailabilitySettings = async (settings: AvailabilitySettings): Promise<boolean> => {
   try {
-    // Fix: we need to pass an object, not an array, to the upsert method
+    // Fix: we need to pass an array for the upsert method, not a single object
     const { error } = await supabase
       .from('availability_settings')
-      .upsert({
+      .upsert([{
         business_id: settings.businessId,
         min_advance_hours: settings.minAdvanceHours,
         advance_booking_days: settings.advanceBookingDays,
@@ -215,7 +215,7 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
         special_dates: settings.specialDates,
         regular_schedule: settings.regularSchedule,
         id: settings.id === 'new' ? undefined : settings.id
-      })
+      }])
       .select();
       
     if (error) {
