@@ -92,14 +92,35 @@ export const getPublicServices = async (businessId: string): Promise<Service[]> 
       category: null,
       bufferTimeBefore: 0,
       bufferTimeAfter: 0,
-      assignedEmployees: [],
+      assignedEmployees: [], // Add this missing property
       notes: '',
       color: '',
-      isRecurring: false
+      isRecurring: false // Add this missing property
     }));
   } catch (error) {
     console.error('Error in getPublicServices:', error);
     return [];
+  }
+};
+
+// Add the missing hasActiveServices function
+export const hasActiveServices = async (businessId: string): Promise<boolean> => {
+  try {
+    const { count, error } = await supabase
+      .from('services')
+      .select('*', { count: 'exact', head: true })
+      .eq('business_id', businessId)
+      .eq('is_active', true);
+    
+    if (error) {
+      console.error('Error checking for active services:', error);
+      return false;
+    }
+    
+    return count !== null && count > 0;
+  } catch (error) {
+    console.error('Error in hasActiveServices:', error);
+    return false;
   }
 };
 
