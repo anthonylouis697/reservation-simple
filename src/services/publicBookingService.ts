@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Service } from '@/types/service';
 import { Category } from '@/types/service';
+import { Json } from '@/integrations/supabase/types';
 
 export interface BookingPageSettings {
   id: string;
@@ -92,8 +93,8 @@ export const getPublicServices = async (businessId: string): Promise<Service[]> 
       category: null,
       bufferTimeBefore: 0,
       bufferTimeAfter: 0,
-      // Fix: Ensure assignedEmployees is properly initialized as a string array
-      assignedEmployees: [] as string[],
+      // Fix: Ensure assignedEmployees is always an array
+      assignedEmployees: Array.isArray(item.assigned_employees) ? item.assigned_employees : [],
       notes: '',
       color: '',
       isRecurring: false
