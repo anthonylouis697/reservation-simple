@@ -50,8 +50,10 @@ export const getPublicBusinessSettings = async (businessId: string): Promise<Boo
       buttonCorners: data.button_corners || 'rounded',
       selectedTemplate: data.selected_template || 'standard',
       showConfirmation: data.show_confirmation !== false,
-      steps: data.steps || [],
-      customTexts: data.custom_texts || {},
+      // Ensure steps is always an array
+      steps: Array.isArray(data.steps) ? data.steps : [],
+      // Ensure customTexts is always an object
+      customTexts: typeof data.custom_texts === 'object' ? data.custom_texts || {} : {},
       layoutType: data.layout_type || 'stepped',
       confirmationMessage: data.confirmation_message,
       bookingButtonText: data.booking_button_text || 'Réserver',
