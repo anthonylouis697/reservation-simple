@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useBookingPage } from '@/components/Visibility/BookingPage/BookingPageContext';
 import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
@@ -139,7 +138,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     };
   };
   
-  // Handle booking submission
+  // Fonction pour soumettre une réservation
   const handleSubmit = async () => {
     if (!selectedService || !selectedDate || !selectedTime) {
       toast.error("Veuillez compléter toutes les étapes");
@@ -149,10 +148,11 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     setIsSubmitting(true);
     
     try {
-      // Create a booking data object
+      // Création des données de réservation
       const bookingData: BookingData = {
         serviceId: selectedService.id,
         serviceName: selectedService.name,
+        serviceDuration: selectedService.duration,
         date: selectedDate,
         time: selectedTime,
         clientInfo: {
@@ -165,21 +165,25 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
         businessId: businessId
       };
       
-      console.log("Creating booking with data:", bookingData);
+      console.log("Création de la réservation avec les données:", bookingData);
       
-      // Create the booking
+      // Création de la réservation via le service booking
       const result = await createBooking(bookingData);
       
-      console.log("Booking result:", result);
+      console.log("Résultat de la réservation:", result);
       
-      setBooking(result);
-      // Move to end state without adding extra step
-      setCurrentStep(steps.length);
-      
-      toast.success("Réservation confirmée !");
+      if (result && result.id) {
+        setBooking(result);
+        // Passer à l'étape de confirmation sans ajouter d'étape supplémentaire
+        setCurrentStep(steps.length);
+        
+        toast.success("Réservation confirmée !");
+      } else {
+        throw new Error("Aucun identifiant de réservation retourné");
+      }
     } catch (error) {
-      console.error("Error creating booking:", error);
-      toast.error("Erreur lors de la création de la réservation");
+      console.error("Erreur lors de la création de la réservation:", error);
+      toast.error("Erreur lors de la création de la réservation. Veuillez réessayer.");
     } finally {
       setIsSubmitting(false);
     }

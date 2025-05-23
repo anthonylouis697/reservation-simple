@@ -6,7 +6,7 @@ import { BookingPageCustomization } from "@/components/Visibility/BookingPage/Bo
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Check, Copy, ExternalLink, Save } from "lucide-react";
+import { Check, Copy, ExternalLink } from 'lucide-react';
 import { toast } from "sonner";
 import { useBookingPage } from "@/components/Visibility/BookingPage/BookingPageContext";
 import { BookingPageProvider } from "@/components/Visibility/BookingPage/BookingPageContext";
@@ -24,10 +24,10 @@ export default function BookingPage() {
   const PageContent = () => {
     const { 
       customUrl = "", 
-      saveBookingPageSettings, 
       primaryColor = "#9b87f5", 
       buttonCorners = "rounded", 
-      businessName = "Votre entreprise"
+      businessName = "Votre entreprise",
+      saveBookingPageSettings
     } = useBookingPage();
     
     // URL de la page de réservation publique
@@ -67,7 +67,6 @@ export default function BookingPage() {
         await saveBookingPageSettings();
         toast.success("Paramètres de la page de réservation enregistrés avec succès", {
           duration: 2000,
-          position: "bottom-right"
         });
       } catch (error) {
         toast.error("Une erreur est survenue lors de l'enregistrement des paramètres");
@@ -111,7 +110,6 @@ export default function BookingPage() {
                 <>Enregistrement...</>
               ) : (
                 <>
-                  <Save className="mr-2 h-4 w-4" />
                   Enregistrer
                 </>
               )}

@@ -1,64 +1,92 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 import { BookingData, BookingResult, Booking, DbReservationWithClient } from './types';
 import { ClientInfo } from './clientService';
+import { getOrCreateClient } from './clientService';
 
 // Re-export types
 export type { BookingData, BookingResult, Booking, ClientInfo };
 export * from './clientService';
 export { combineDateTime } from './dateUtils';
 
-// Creates a new booking
+// Creates a new booking with improved error handling
 export const createBooking = async (bookingData: BookingData): Promise<BookingResult> => {
-  const startTime = combineDateTime(bookingData.date, bookingData.time);
-  
-  // Calculate end time based on service duration
-  const duration = bookingData.serviceDuration || 60;
-  const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
+  console.log("Création d'une réservation avec les données:", bookingData);
   
   try {
-    // Get client information
-    const clientFirstName = bookingData.clientInfo.firstName;
-    const clientLastName = bookingData.clientInfo.lastName;
-    const clientEmail = bookingData.clientInfo.email;
-    const clientPhone = bookingData.clientInfo.phone || '';
+    // Get or create client first
+    const clientInfo = bookingData.clientInfo;
+    let clientId;
     
-    // In a real app, this would save to a database
-    const { data, error } = await supabase.from('reservations').insert({
+    try {
+      clientId = await getOrCreateClient(bookingData.businessId, clientInfo);
+      console.log("ID client récupéré/créé:", clientId);
+    } catch (clientError) {
+      console.error("Erreur lors de la création/récupération du client:", clientError);
+      // Continue without client ID if there's an error
+    }
+    
+    // Calculate times
+    const startTime = combineDateTime(bookingData.date, bookingData.time);
+    const duration = bookingData.serviceDuration || 60;
+    const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
+    
+    console.log("Horaires calculés:", { 
+      startTime: startTime.toISOString(), 
+      endTime: endTime.toISOString() 
+    });
+    
+    // Prepare reservation data
+    const reservationData = {
       business_id: bookingData.businessId,
       service_id: bookingData.serviceId,
       service_name: bookingData.serviceName,
-      client_first_name: clientFirstName,
-      client_last_name: clientLastName,
-      client_email: clientEmail,
-      client_phone: clientPhone,
+      client_id: clientId,
+      client_first_name: clientInfo.firstName,
+      client_last_name: clientInfo.lastName,
+      client_email: clientInfo.email,
+      client_phone: clientInfo.phone || null,
       start_time: startTime.toISOString(),
       end_time: endTime.toISOString(),
-      notes: bookingData.notes,
-      status: 'pending'
-    }).select().single();
+      notes: bookingData.notes || null,
+      status: 'confirmed'
+    };
     
-    if (error) throw error;
+    console.log("Données de réservation à insérer:", reservationData);
     
-    if (!data) {
-      throw new Error('Failed to create booking: No data returned');
+    // Insert reservation
+    const { data, error } = await supabase
+      .from('reservations')
+      .insert(reservationData)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Erreur Supabase lors de la création de réservation:", error);
+      throw error;
     }
     
-    // Return booking result
+    if (!data) {
+      console.error("Aucune donnée retournée après la création de la réservation");
+      throw new Error('Échec de la création de la réservation: Aucune donnée retournée');
+    }
+    
+    console.log("Réservation créée avec succès:", data);
+    
+    // Return booking result with proper data
     return {
       id: data.id,
       startTime: new Date(data.start_time),
       endTime: new Date(data.end_time),
       serviceId: data.service_id,
       serviceName: data.service_name || bookingData.serviceName,
-      clientName: `${clientFirstName} ${clientLastName}`,
-      clientEmail: clientEmail,
+      clientName: `${clientInfo.firstName} ${clientInfo.lastName}`,
+      clientEmail: clientInfo.email,
       status: data.status as 'confirmed' | 'cancelled' | 'pending'
     };
   } catch (error) {
-    console.error('Error creating booking:', error);
-    throw new Error('Failed to create booking');
+    console.error('Erreur complète lors de la création de la réservation:', error);
+    throw new Error(`Échec de la création de la réservation: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
   }
 };
 

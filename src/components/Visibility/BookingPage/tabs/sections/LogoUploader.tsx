@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
@@ -14,6 +15,9 @@ export function LogoUploader() {
     saveBookingPageSettings
   } = useBookingPage();
   
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
   // Handle logo upload
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -24,39 +28,50 @@ export function LogoUploader() {
       return;
     }
     
-    const reader = new FileReader();
-    reader.onload = async () => {
-      setLogo(reader.result as string);
-      
-      // Enregistrer les changements
-      try {
+    setIsUploading(true);
+    
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const logoData = reader.result as string;
+        await setLogo(logoData);
+        
+        // Enregistrer les changements
         await saveBookingPageSettings();
         toast.success('Logo téléchargé et enregistré avec succès', {
           duration: 2000,
-          position: "bottom-right"
         });
-      } catch (error) {
-        console.error("Erreur lors de l'enregistrement du logo", error);
-        toast.error("Erreur lors de l'enregistrement du logo");
-      }
-    };
-    reader.readAsDataURL(file);
+        setIsUploading(false);
+      };
+      reader.onerror = () => {
+        toast.error("Erreur lors de la lecture du fichier");
+        setIsUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement du logo", error);
+      toast.error("Erreur lors de l'enregistrement du logo");
+      setIsUploading(false);
+    }
   };
   
   // Reset logo
   const handleResetLogo = async () => {
-    setLogo(null);
+    setIsDeleting(true);
     
-    // Enregistrer les changements
     try {
+      await setLogo(null);
+      
+      // Enregistrer les changements
       await saveBookingPageSettings();
       toast.success('Logo supprimé avec succès', {
         duration: 2000,
-        position: "bottom-right"
       });
     } catch (error) {
       console.error("Erreur lors de la suppression du logo", error);
       toast.error("Erreur lors de la suppression du logo");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -82,11 +97,11 @@ export function LogoUploader() {
           <div className="space-y-2 flex-1">
             <Label 
               htmlFor="logo-upload" 
-              className="block w-full cursor-pointer text-center py-2 px-4 border-2 border-dashed rounded-md hover:bg-muted/50 transition-colors"
+              className={`block w-full cursor-pointer text-center py-2 px-4 border-2 border-dashed rounded-md hover:bg-muted/50 transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <span className="flex items-center justify-center gap-2">
                 <Upload className="h-4 w-4" />
-                {logo ? "Changer le logo" : "Télécharger un logo"}
+                {isUploading ? "Téléchargement..." : logo ? "Changer le logo" : "Télécharger un logo"}
               </span>
               <Input 
                 id="logo-upload" 
@@ -94,6 +109,7 @@ export function LogoUploader() {
                 className="sr-only" 
                 onChange={handleLogoUpload}
                 accept="image/*"
+                disabled={isUploading}
               />
             </Label>
             
@@ -102,8 +118,9 @@ export function LogoUploader() {
                 variant="outline"
                 onClick={handleResetLogo}
                 className="w-full"
+                disabled={isDeleting}
               >
-                Supprimer le logo
+                {isDeleting ? "Suppression..." : "Supprimer le logo"}
               </Button>
             )}
             

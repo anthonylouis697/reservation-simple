@@ -23,6 +23,7 @@ export function ColorAndButtonStyles() {
   
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [tempColor, setTempColor] = useState(primaryColor);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Update temp color when primary color changes
   useEffect(() => {
@@ -31,34 +32,36 @@ export function ColorAndButtonStyles() {
 
   // Fonction pour enregistrer la couleur
   const handleColorChange = async (color: string) => {
-    setPrimaryColor(color);
-    setShowColorPicker(false);
-    
+    setIsSaving(true);
     try {
+      await setPrimaryColor(color);
+      setShowColorPicker(false);
       await saveBookingPageSettings();
       toast.success("Couleur principale mise à jour", {
         duration: 2000,
-        position: "bottom-right"
       });
     } catch (error) {
       console.error("Erreur lors de l'enregistrement de la couleur", error);
       toast.error("Erreur lors de l'enregistrement de la couleur");
+    } finally {
+      setIsSaving(false);
     }
   };
 
   // Fonction pour enregistrer le style des boutons
   const handleButtonStyleChange = async (value: 'squared' | 'rounded' | 'pill') => {
-    setButtonCorners(value);
-    
+    setIsSaving(true);
     try {
+      await setButtonCorners(value);
       await saveBookingPageSettings();
       toast.success(`Style de bouton "${value}" appliqué`, {
         duration: 2000,
-        position: "bottom-right"
       });
     } catch (error) {
       console.error("Erreur lors de l'enregistrement du style de bouton", error);
       toast.error("Erreur lors de l'enregistrement du style de bouton");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -100,8 +103,12 @@ export function ColorAndButtonStyles() {
                     size="sm"
                     onClick={() => handleColorChange(tempColor)}
                     className="h-8"
+                    disabled={isSaving}
                   >
-                    <Check className="h-4 w-4" />
+                    {isSaving ? 
+                      <span className="animate-pulse">...</span> : 
+                      <Check className="h-4 w-4" />
+                    }
                   </Button>
                 </div>
               </PopoverContent>
