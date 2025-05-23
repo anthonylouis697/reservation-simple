@@ -1,5 +1,3 @@
-
-
 import { supabase } from '@/integrations/supabase/client';
 import { format, parse, addMinutes, isWithinInterval, isBefore, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -399,6 +397,9 @@ const generateTimeSlots = (
   interval: number = 30
 ): string[] => {
   const slots = [];
+  
+  console.log(`Generating time slots from ${startHour}h to ${endHour}h with ${interval}min intervals`);
+  
   for (let hour = startHour; hour < endHour; hour++) {
     for (let minute = 0; minute < 60; minute += interval) {
       const formattedHour = hour.toString().padStart(2, '0');
@@ -406,6 +407,7 @@ const generateTimeSlots = (
       slots.push(`${formattedHour}:${formattedMinute}`);
     }
   }
+  
   return slots;
 };
 
@@ -427,12 +429,15 @@ export const getAvailableTimeSlots = async (
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayOfWeek = format(date, 'EEEE', { locale: fr }).toLowerCase();
     
+    console.log(`Generating time slots for ${dateStr}, day: ${dayOfWeek}`);
+    
     // Vérifier si la date est bloquée
     const isBlocked = availabilitySettings.blockedDates.some(blockedDate => 
       blockedDate.date === dateStr && blockedDate.fullDay
     );
     
     if (isBlocked) {
+      console.log(`Date ${dateStr} is blocked, no time slots available`);
       return []; // Aucun créneau disponible pour les dates bloquées
     }
     
@@ -441,21 +446,32 @@ export const getAvailableTimeSlots = async (
     
     if (specialDate) {
       if (!specialDate.isActive) {
+        console.log(`Date ${dateStr} has special schedule but is not active`);
         return []; // Jour non disponible
       }
       
-      if (specialDate.timeSlots && specialDate.timeSlots.length > 0) {
+      if (Array.isArray(specialDate.timeSlots) && specialDate.timeSlots.length > 0) {
         // Générer des créneaux pour chaque plage horaire
         let availableSlots: string[] = [];
         
+        console.log(`Date ${dateStr} has ${specialDate.timeSlots.length} special time slots`);
+        
         for (const slot of specialDate.timeSlots) {
+          if (!slot.startTime || !slot.endTime) {
+            console.log(`Invalid time slot format: missing start or end time`);
+            continue;
+          }
+          
           const startHour = parseInt(slot.startTime.split(':')[0] || '9');
           const endHour = parseInt(slot.endTime.split(':')[0] || '18');
+          
+          console.log(`Generating slots from ${startHour}:00 to ${endHour}:00`);
           
           const slotsForRange = generateTimeSlots(startHour, endHour, defaultInterval);
           availableSlots = [...availableSlots, ...slotsForRange];
         }
         
+        console.log(`Generated ${availableSlots.length} slots before filtering`);
         return filterAvailableSlots(businessId, date, availableSlots, duration);
       }
     }
@@ -463,28 +479,97 @@ export const getAvailableTimeSlots = async (
     // Utiliser l'horaire régulier pour le jour de la semaine
     const daySchedule = availabilitySettings.regularSchedule[dayOfWeek];
     
-    if (daySchedule) {
-      if (!daySchedule.isActive) {
-        return []; // Jour non disponible
-      }
+    if (!daySchedule) {
+      console.log(`No schedule found for day: ${dayOfWeek}, checking French day name`);
+      // Try with French day name mapping
+      const frenchDayNames: Record<string, string> = {
+        'monday': 'lundi',
+        'tuesday': 'mardi',
+        'wednesday': 'mercredi',
+        'thursday': 'jeudi',
+        'friday': 'vendredi',
+        'saturday': 'samedi',
+        'sunday': 'dimanche'
+      };
       
-      if (daySchedule.timeSlots && daySchedule.timeSlots.length > 0) {
-        // Générer des créneaux pour chaque plage horaire
-        let availableSlots: string[] = [];
+      // Get the French equivalent of the English day name
+      const frenchDayName = Object.entries(frenchDayNames).find(([eng]) => 
+        dayOfWeek.includes(eng.toLowerCase())
+      )?.[1];
+      
+      if (frenchDayName && availabilitySettings.regularSchedule[frenchDayName]) {
+        console.log(`Found schedule using French day name: ${frenchDayName}`);
+        const frenchDaySchedule = availabilitySettings.regularSchedule[frenchDayName];
         
-        for (const slot of daySchedule.timeSlots) {
-          const startHour = parseInt(slot.startTime.split(':')[0] || '9');
-          const endHour = parseInt(slot.endTime.split(':')[0] || '18');
-          
-          const slotsForRange = generateTimeSlots(startHour, endHour, defaultInterval);
-          availableSlots = [...availableSlots, ...slotsForRange];
+        if (!frenchDaySchedule.isActive) {
+          console.log(`Day ${frenchDayName} is not active`);
+          return []; // Jour non disponible
         }
         
-        return filterAvailableSlots(businessId, date, availableSlots, duration);
+        if (Array.isArray(frenchDaySchedule.timeSlots) && frenchDaySchedule.timeSlots.length > 0) {
+          // Générer des créneaux pour chaque plage horaire
+          let availableSlots: string[] = [];
+          
+          console.log(`Day ${frenchDayName} has ${frenchDaySchedule.timeSlots.length} time slots`);
+          
+          for (const slot of frenchDaySchedule.timeSlots) {
+            if (!slot.startTime || !slot.endTime) {
+              console.log(`Invalid time slot format for ${frenchDayName}`);
+              continue;
+            }
+            
+            const startHour = parseInt(slot.startTime.split(':')[0] || '9');
+            const endHour = parseInt(slot.endTime.split(':')[0] || '18');
+            
+            console.log(`Generating slots from ${startHour}:00 to ${endHour}:00`);
+            
+            const slotsForRange = generateTimeSlots(startHour, endHour, defaultInterval);
+            availableSlots = [...availableSlots, ...slotsForRange];
+          }
+          
+          console.log(`Generated ${availableSlots.length} slots before filtering`);
+          return filterAvailableSlots(businessId, date, availableSlots, duration);
+        }
       }
+      
+      // Fallback to default time slots if no schedule found
+      console.log(`No day schedule found, using default time slots`);
+      const defaultSlots = generateTimeSlots(defaultStartHour, defaultEndHour, defaultInterval);
+      return filterAvailableSlots(businessId, date, defaultSlots, duration);
+    }
+    
+    if (!daySchedule.isActive) {
+      console.log(`Day ${dayOfWeek} is not active in regular schedule`);
+      return []; // Jour non disponible
+    }
+    
+    if (Array.isArray(daySchedule.timeSlots) && daySchedule.timeSlots.length > 0) {
+      // Générer des créneaux pour chaque plage horaire
+      let availableSlots: string[] = [];
+      
+      console.log(`Day ${dayOfWeek} has ${daySchedule.timeSlots.length} regular time slots`);
+      
+      for (const slot of daySchedule.timeSlots) {
+        if (!slot.startTime || !slot.endTime) {
+          console.log(`Invalid time slot format for ${dayOfWeek}`);
+          continue;
+        }
+        
+        const startHour = parseInt(slot.startTime.split(':')[0] || '9');
+        const endHour = parseInt(slot.endTime.split(':')[0] || '18');
+        
+        console.log(`Generating slots from ${startHour}:00 to ${endHour}:00`);
+        
+        const slotsForRange = generateTimeSlots(startHour, endHour, defaultInterval);
+        availableSlots = [...availableSlots, ...slotsForRange];
+      }
+      
+      console.log(`Generated ${availableSlots.length} slots before filtering`);
+      return filterAvailableSlots(businessId, date, availableSlots, duration);
     }
     
     // Utilisation des créneaux par défaut
+    console.log(`Falling back to default time slots (9am-6pm)`);
     const defaultSlots = generateTimeSlots(defaultStartHour, defaultEndHour, defaultInterval);
     return filterAvailableSlots(businessId, date, defaultSlots, duration);
   } catch (error) {

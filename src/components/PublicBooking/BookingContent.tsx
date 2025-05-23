@@ -57,10 +57,13 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
       setSelectedTime(null);
       setIsLoadingTimes(true);
       
+      console.log(`Fetching time slots for date: ${selectedDate.toISOString()} and service: ${selectedService.name} (duration: ${selectedService.duration}min)`);
+      
       // Fetch available times based on availability settings
       const fetchAvailableTimes = async () => {
         try {
           if (!businessId || !selectedService) {
+            console.log("Missing business ID or service, cannot fetch time slots");
             setAvailableTimes([]);
             return;
           }
@@ -71,7 +74,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
             selectedService.duration
           );
           
-          console.log("Available times fetched:", times);
+          console.log(`Available times fetched: ${times.length} slots found`, times);
           setAvailableTimes(times);
         } catch (error) {
           console.error("Error fetching available times:", error);
@@ -153,94 +156,91 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
         <div className="max-w-3xl mx-auto px-4">
           <BusinessHeader 
             businessName={businessName ?? ""}
-            primaryColor={primaryColor}
+            primaryColor={primaryColor} 
             logo={logo}
             welcomeMessage={welcomeMessage}
           />
-          <EmptyServicesState businessName={businessName ?? ""} />
+          <EmptyServicesState />
         </div>
       </div>
     );
   }
   
-  // Show confirmation page if booking is complete
-  if (currentStep >= steps.length && booking) {
-    return (
-      <div className="py-10">
-        <div className="max-w-3xl mx-auto px-4">
-          <BusinessHeader 
-            businessName={businessName ?? ""}
-            primaryColor={primaryColor}
-            logo={logo}
-            welcomeMessage={welcomeMessage}
-          />
-          <BookingConfirmation 
-            booking={booking}
-            customTexts={customTexts}
-            primaryColor={primaryColor}
-            getButtonStyle={getButtonStyle}
-          />
-        </div>
-      </div>
-    );
-  }
-
+  // Check if we're at the confirmation step (after all regular steps)
+  const isConfirmationStep = currentStep === steps.length;
+  
   return (
     <div className="py-10">
       <div className="max-w-3xl mx-auto px-4">
         <BusinessHeader 
           businessName={businessName ?? ""}
-          primaryColor={primaryColor}
+          primaryColor={primaryColor} 
           logo={logo}
           welcomeMessage={welcomeMessage}
         />
         
-        <div className="mt-6">
-          <StepNavigation 
-            steps={steps}
-            currentStep={currentStep} 
-            primaryColor={primaryColor} 
+        {isConfirmationStep ? (
+          <BookingConfirmation 
+            booking={booking}
+            service={selectedService}
+            date={selectedDate}
+            time={selectedTime}
+            customTexts={customTexts}
           />
-          
-          <div className="mt-6">
-            {steps[currentStep] && (
-              <StepRenderer 
-                currentStep={steps[currentStep]}
-                services={services}
-                selectedService={selectedService}
-                setSelectedService={setSelectedService}
-                selectedDate={selectedDate}
-                setSelectedDate={setSelectedDate}
-                selectedTime={selectedTime}
-                setSelectedTime={setSelectedTime}
-                clientInfo={clientInfo}
-                setClientInfo={setClientInfo}
-                availableTimes={availableTimes}
-                isLoadingTimes={isLoadingTimes}
-                customTexts={customTexts}
-                getButtonStyle={getButtonStyle}
+        ) : (
+          <>
+            {/* Step Navigation */}
+            <div className="mb-8">
+              <StepNavigation 
+                steps={steps} 
+                currentStep={currentStep}
+                setCurrentStep={setCurrentStep}
+                isStepComplete={isCurrentStepComplete}
                 primaryColor={primaryColor}
-                businessId={businessId}
               />
-            )}
-          </div>
-          
-          <BookingForm
-            currentStep={currentStep}
-            isCurrentStepComplete={isCurrentStepComplete()}
-            handlePrevStep={handlePrevStep}
-            handleNextStep={handleNextStep}
-            selectedService={selectedService}
-            selectedDate={selectedDate}
-            selectedTime={selectedTime}
-            clientInfo={clientInfo}
-            businessId={businessId}
-            buttonCorners={buttonCorners}
-            primaryColor={primaryColor}
-            steps={steps}
-            onBookingSuccess={handleBookingSuccess}
-          />
-        </div>
+            </div>
+            
+            {/* Current Step Content */}
+            <StepRenderer 
+              currentStep={steps[currentStep]}
+              services={services}
+              selectedService={selectedService}
+              setSelectedService={setSelectedService}
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              selectedTime={selectedTime}
+              setSelectedTime={setSelectedTime}
+              availableTimes={availableTimes}
+              isLoadingTimes={isLoadingTimes}
+              clientInfo={clientInfo}
+              setClientInfo={setClientInfo}
+              customTexts={customTexts}
+              businessId={businessId}
+              getButtonStyle={getButtonStyle}
+              onBookingSuccess={handleBookingSuccess}
+            />
+            
+            {/* Navigation Buttons */}
+            <div className="mt-8 flex justify-between">
+              <button
+                onClick={handlePrevStep}
+                className="px-5 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                disabled={currentStep === 0}
+              >
+                {customTexts.previousButtonText || "Précédent"}
+              </button>
+              
+              <button
+                onClick={handleNextStep}
+                className={`px-5 py-2 ${getButtonStyle().className} text-white`}
+                style={getButtonStyle().style}
+                disabled={!isCurrentStepComplete()}
+              >
+                {customTexts.nextButtonText || "Suivant"}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
