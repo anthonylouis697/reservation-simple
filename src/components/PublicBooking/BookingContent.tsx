@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useBookingPage } from '@/components/Visibility/BookingPage/BookingPageContext';
 import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
@@ -17,10 +18,8 @@ interface BookingContentProps {
 }
 
 const BookingContent = ({ businessId }: BookingContentProps) => {
+  // Use both contexts to get the required data
   const { 
-    services, 
-    isLoading, 
-    hasServices, 
     steps, 
     customTexts, 
     primaryColor, 
@@ -29,6 +28,9 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     welcomeMessage,
     logo 
   } = useBookingPage();
+  
+  // Use PublicBookingData for service-related information
+  const { services, isLoading, hasServices } = usePublicBookingData();
   
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
