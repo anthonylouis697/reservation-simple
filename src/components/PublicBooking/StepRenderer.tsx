@@ -64,9 +64,18 @@ const StepRenderer = ({
   const safeCustomTexts = customTexts || defaultCustomTexts;
   const safeAvailableTimes = Array.isArray(availableTimes) ? availableTimes : [];
   
-  // Protégeons nous contre les valeurs undefined ou null
-  if (!currentStep || !currentStep.type) {
-    console.error("StepRenderer: currentStep or currentStep.type is undefined", { currentStep });
+  // Protection contre les valeurs undefined ou null
+  if (!currentStep || typeof currentStep !== 'object') {
+    console.error("StepRenderer: currentStep is undefined or not an object", { currentStep });
+    return (
+      <div className="text-center py-6">
+        <p>Erreur de chargement du composant</p>
+      </div>
+    );
+  }
+
+  if (!currentStep.type || typeof currentStep.type !== 'string') {
+    console.error("StepRenderer: currentStep.type is undefined or not a string", { currentStep });
     return (
       <div className="text-center py-6">
         <p>Type de composant non disponible</p>
@@ -147,7 +156,6 @@ const StepRenderer = ({
       return (
         <div className="text-center py-6">
           <p>Type de composant non reconnu: {currentStep.type}</p>
-          <pre className="text-xs text-gray-500 mt-2">{JSON.stringify(currentStep, null, 2)}</pre>
         </div>
       );
   }

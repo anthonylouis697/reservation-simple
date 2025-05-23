@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { AppLayout } from "@/components/AppLayout";
 import { VisibilityNavigation, useVisibilityNavigation } from "@/components/Visibility/VisibilityNavigation";
@@ -36,10 +36,15 @@ export default function BookingPage() {
     
     // URL de la page de réservation publique
     const businessSlug = currentBusiness?.slug || "";
-    const publicBookingUrl = `${window.location.origin}/booking/${businessSlug}`;
+    const publicBookingUrl = businessSlug ? `${window.location.origin}/booking/${businessSlug}` : "";
     
     // Fonction pour copier l'URL dans le presse-papier
     const handleCopyUrl = () => {
+      if (!publicBookingUrl) {
+        toast.error("Veuillez d'abord configurer le slug de votre entreprise");
+        return;
+      }
+      
       navigator.clipboard.writeText(publicBookingUrl).then(() => {
         setCopied(true);
         toast.success("URL copiée dans le presse-papier");
@@ -84,6 +89,7 @@ export default function BookingPage() {
             <Button 
               variant="outline" 
               onClick={() => setShowPreviewDialog(true)}
+              disabled={!businessSlug}
             >
               Partager
             </Button>

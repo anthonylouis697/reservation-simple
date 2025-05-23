@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Home } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const BusinessNotFound = () => {
   const navigate = useNavigate();
@@ -33,12 +34,13 @@ const BusinessNotFound = () => {
             </ul>
           </div>
           
-          <button 
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
-            onClick={() => window.location.href = "/"}
+          <Button 
+            className="w-full"
+            onClick={() => navigate("/")}
           >
+            <Home className="mr-2 h-4 w-4" />
             Retour à l'accueil
-          </button>
+          </Button>
         </div>
       </div>
     </div>

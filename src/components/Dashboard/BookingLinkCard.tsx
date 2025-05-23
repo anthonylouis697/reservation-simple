@@ -35,7 +35,7 @@ export const BookingLinkCard = () => {
       toast.error("Veuillez d'abord configurer le slug de votre entreprise");
       return;
     }
-    window.open(bookingUrl, '_blank');
+    window.open(`/booking/${businessSlug}`, '_blank');
   };
 
   return (
