@@ -93,8 +93,8 @@ export const getPublicServices = async (businessId: string): Promise<Service[]> 
       category: null,
       bufferTimeBefore: 0,
       bufferTimeAfter: 0,
-      // Fix: Ensure assignedEmployees is always an array
-      assignedEmployees: Array.isArray(item.assigned_employees) ? item.assigned_employees : [],
+      // Always initialize assignedEmployees as an empty array
+      assignedEmployees: [], 
       notes: '',
       color: '',
       isRecurring: false
