@@ -10,7 +10,7 @@ import { HomeMenuItem } from '@/components/Navigation/HomeMenuItem';
 import { SignOutButton } from '@/components/Navigation/SignOutButton';
 import { NavigationCategory } from '@/components/Navigation/NavigationCategory';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, Clock, Calendar, Users, Palette, BookOpen, CalendarDays, CalendarClock } from 'lucide-react';
+import { User, Clock, Calendar, Users, Palette, BookOpen, CalendarClock, PackageCheck } from 'lucide-react';
 
 // Re-export components for backward compatibility
 export { HomeMenuItem as HomeNavItem } from '@/components/Navigation/HomeMenuItem';
@@ -21,7 +21,7 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
   const [firstTimeUser, setFirstTimeUser] = useState(false);
   const location = useLocation();
   
-  // Menu items avec href au lieu de url et événements ajoutés
+  // Menu items avec href au lieu de url et événements retirés
   const mainNavItems = [
     {
       title: "Réservations",
@@ -49,12 +49,15 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
       href: "/services",
       icon: <BookOpen className="h-4 w-4" />,
       description: "Gérer vos services"
-    },
+    }
+  ];
+
+  const additionalServicesNavItems = [
     {
-      title: "Événements",
-      href: "/events",
-      icon: <CalendarDays className="h-4 w-4" />,
-      description: "Gérer vos événements"
+      title: "Modules complémentaires",
+      href: "/additional-services",
+      icon: <PackageCheck className="h-4 w-4" />,
+      description: "Activer des fonctionnalités avancées"
     }
   ];
   
@@ -117,7 +120,7 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
           </div>
         ))}
 
-        {/* Services et Événements */}
+        {/* Services */}
         {!mobile && servicesNavItems.length > 0 && (
           <>
             <div className="mt-6 mb-2">
@@ -126,6 +129,27 @@ export function MainNavigation({ mobile = false }: { mobile?: boolean }) {
               </h4>
             </div>
             {servicesNavItems.map((item) => (
+              <div key={item.title} className="w-full">
+                <NavItem
+                  item={item}
+                  mobile={mobile}
+                  isFirstTimeUser={firstTimeUser}
+                  handleNavigation={handleNavigation}
+                />
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* Modules complémentaires */}
+        {!mobile && additionalServicesNavItems.length > 0 && (
+          <>
+            <div className="mt-6 mb-2">
+              <h4 className="px-2 text-xs font-semibold text-muted-foreground">
+                MODULES
+              </h4>
+            </div>
+            {additionalServicesNavItems.map((item) => (
               <div key={item.title} className="w-full">
                 <NavItem
                   item={item}

@@ -6,7 +6,7 @@ import { useBusiness } from "@/contexts/BusinessContext";
 import { NavItem } from "./Navigation/NavItem";
 import { HomeMenuItem } from "./Navigation/HomeMenuItem";
 import { SignOutButton } from '@/components/Navigation/SignOutButton';
-import { User, Clock, Calendar, Users, Palette, BookOpen, CalendarDays, CalendarClock } from 'lucide-react';
+import { User, Clock, Calendar, Users, Palette, BookOpen, CalendarClock, PackageCheck } from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
 
 export function DesktopSidebar() {
@@ -15,7 +15,7 @@ export function DesktopSidebar() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
   
-  // Menu items avec href au lieu de url et les événements ajoutés
+  // Menu items avec href au lieu de url et les événements retirés
   const mainNavItems = [
     {
       title: "Réservations",
@@ -43,12 +43,6 @@ export function DesktopSidebar() {
       href: "/services",
       icon: <BookOpen className="h-4 w-4" />,
       description: "Gérer vos services"
-    },
-    {
-      title: "Événements",
-      href: "/events",
-      icon: <CalendarDays className="h-4 w-4" />,
-      description: "Gérer vos événements"
     }
   ];
   
@@ -57,6 +51,13 @@ export function DesktopSidebar() {
     href: "/booking-page",
     icon: <Palette className="h-4 w-4" />,
     description: "Personnaliser votre page de réservation"
+  }];
+
+  const additionalServicesNavItems = [{
+    title: "Modules complémentaires",
+    href: "/additional-services",
+    icon: <PackageCheck className="h-4 w-4" />,
+    description: "Activer des fonctionnalités avancées"
   }];
   
   const profileNavItems = [
@@ -110,7 +111,7 @@ export function DesktopSidebar() {
             ))}
           </div>
           
-          {/* Services et Événements */}
+          {/* Services */}
           <div className="mt-6 mb-2">
             <h4 className="px-2 text-xs font-semibold text-muted-foreground">
               SERVICES
@@ -120,6 +121,23 @@ export function DesktopSidebar() {
             {servicesNavItems.map((item, index) => (
               <NavItem 
                 key={`service-${index}`}
+                item={item}
+                handleNavigation={handleNavigation}
+                disabled={isItemDisabled(item)}
+              />
+            ))}
+          </div>
+
+          {/* Modules complémentaires */}
+          <div className="mt-6 mb-2">
+            <h4 className="px-2 text-xs font-semibold text-muted-foreground">
+              MODULES
+            </h4>
+          </div>
+          <div className="flex flex-col space-y-1">
+            {additionalServicesNavItems.map((item, index) => (
+              <NavItem 
+                key={`addon-${index}`}
                 item={item}
                 handleNavigation={handleNavigation}
                 disabled={isItemDisabled(item)}

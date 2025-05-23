@@ -21,7 +21,6 @@ import Reservations from '@/pages/Reservations';
 import Statistics from '@/pages/Statistics';
 import Welcome from '@/pages/Welcome';
 import Payments from '@/pages/Payments';
-import Events from '@/pages/Events';
 import ProfilePage from '@/pages/Account/ProfilePage';
 import BillingPage from '@/pages/Account/BillingPage';
 import SecurityPage from '@/pages/Account/SecurityPage';
@@ -51,7 +50,6 @@ function App() {
               <Route path="/calendar" element={<RequireAuth><CalendarPage /></RequireAuth>} />
               <Route path="/clients" element={<RequireAuth><ClientsPage /></RequireAuth>} />
               <Route path="/services" element={<RequireAuth><Services /></RequireAuth>} />
-              <Route path="/events" element={<RequireAuth><Events /></RequireAuth>} />
               <Route path="/reservations" element={<RequireAuth><Reservations /></RequireAuth>} />
               <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
               <Route path="/booking-page" element={<RequireAuth><BookingPage /></RequireAuth>} />
