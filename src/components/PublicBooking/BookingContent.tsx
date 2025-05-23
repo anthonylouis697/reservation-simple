@@ -6,13 +6,13 @@ import { Service } from '@/types/service';
 import StepNavigation from './StepNavigation';
 import StepRenderer from './StepRenderer';
 import BusinessHeader from './BusinessHeader';
-import BookingConfirmation from './BookingConfirmation';
-import { BookingData, BookingResult } from '@/services/booking/types';
-import { createBooking } from '@/services/booking';
 import { toast } from 'sonner';
 import EmptyServicesState from './EmptyServicesState';
 import { getAvailableTimeSlots } from '@/services/booking/availabilityService';
 import { useButtonStyle } from '@/hooks/useButtonStyle';
+import BookingForm from './BookingForm';
+import BookingConfirmation from './BookingConfirmation';
+import { BookingResult } from '@/services/booking/types';
 
 interface BookingContentProps {
   businessId: string;
@@ -48,7 +48,6 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     notes: ''
   });
   const [booking, setBooking] = useState<BookingResult | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [isLoadingTimes, setIsLoadingTimes] = useState(false);
   
@@ -77,6 +76,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
         } catch (error) {
           console.error("Error fetching available times:", error);
           setAvailableTimes([]);
+          toast.error("Erreur lors du chargement des créneaux disponibles");
         } finally {
           setIsLoadingTimes(false);
         }
@@ -107,7 +107,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     
     const currentStepType = steps[currentStep].type;
     
-    switch (currentStepType) {
+    switch (currentStepType.toLowerCase()) {
       case 'service':
         return selectedService !== null;
       case 'date':
@@ -121,55 +121,11 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     }
   };
   
-  // Fonction pour soumettre une réservation
-  const handleSubmit = async () => {
-    if (!selectedService || !selectedDate || !selectedTime) {
-      toast.error("Veuillez compléter toutes les étapes");
-      return;
-    }
-    
-    setIsSubmitting(true);
-    
-    try {
-      // Création des données de réservation
-      const bookingData: BookingData = {
-        serviceId: selectedService.id,
-        serviceName: selectedService.name,
-        serviceDuration: selectedService.duration,
-        date: selectedDate,
-        time: selectedTime,
-        clientInfo: {
-          firstName: clientInfo.firstName,
-          lastName: clientInfo.lastName,
-          email: clientInfo.email,
-          phone: clientInfo.phone || '',
-        },
-        notes: clientInfo.notes || '',
-        businessId: businessId
-      };
-      
-      console.log("Création de la réservation avec les données:", bookingData);
-      
-      // Création de la réservation via le service booking
-      const result = await createBooking(bookingData);
-      
-      console.log("Résultat de la réservation:", result);
-      
-      if (result && result.id) {
-        setBooking(result);
-        // Passer à l'étape de confirmation sans ajouter d'étape supplémentaire
-        setCurrentStep(steps.length);
-        
-        toast.success("Réservation confirmée !");
-      } else {
-        throw new Error("Aucun identifiant de réservation retourné");
-      }
-    } catch (error) {
-      console.error("Erreur lors de la création de la réservation:", error);
-      toast.error("Erreur lors de la création de la réservation. Veuillez réessayer.");
-    } finally {
-      setIsSubmitting(false);
-    }
+  // Handle booking success
+  const handleBookingSuccess = (bookingResult: BookingResult) => {
+    setBooking(bookingResult);
+    setCurrentStep(steps.length); // Move to confirmation step (beyond normal steps)
+    toast.success("Réservation confirmée !");
   };
   
   if (isLoading) {
@@ -268,46 +224,21 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
             )}
           </div>
           
-          <div className="mt-10 flex justify-between">
-            {currentStep > 0 ? (
-              <button
-                onClick={handlePrevStep}
-                className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Précédent
-              </button>
-            ) : (
-              <div></div> // Spacer
-            )}
-            
-            {currentStep < steps.length - 1 ? (
-              <button
-                onClick={handleNextStep}
-                disabled={!isCurrentStepComplete()}
-                className="px-6 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{
-                  backgroundColor: primaryColor,
-                  borderRadius: buttonCorners === 'pill' ? '9999px' : 
-                               buttonCorners === 'squared' ? '0px' : '6px'
-                }}
-              >
-                Suivant
-              </button>
-            ) : (
-              <button
-                onClick={handleSubmit}
-                disabled={!isCurrentStepComplete() || isSubmitting}
-                className="px-6 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{
-                  backgroundColor: primaryColor,
-                  borderRadius: buttonCorners === 'pill' ? '9999px' : 
-                               buttonCorners === 'squared' ? '0px' : '6px'
-                }}
-              >
-                {isSubmitting ? "Traitement en cours..." : "Réserver"}
-              </button>
-            )}
-          </div>
+          <BookingForm
+            currentStep={currentStep}
+            isCurrentStepComplete={isCurrentStepComplete()}
+            handlePrevStep={handlePrevStep}
+            handleNextStep={handleNextStep}
+            selectedService={selectedService}
+            selectedDate={selectedDate}
+            selectedTime={selectedTime}
+            clientInfo={clientInfo}
+            businessId={businessId}
+            buttonCorners={buttonCorners}
+            primaryColor={primaryColor}
+            steps={steps}
+            onBookingSuccess={handleBookingSuccess}
+          />
         </div>
       </div>
     </div>

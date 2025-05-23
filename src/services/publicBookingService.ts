@@ -57,7 +57,7 @@ export const getPublicServices = async (businessId: string): Promise<Service[]> 
       categoryId: service.category_id || null,
       position: service.position || 0,
       isActive: service.is_active !== false,
-      // Add missing required properties from Service type
+      // Add required properties from Service type
       location: '',
       capacity: 1,
       category: null,

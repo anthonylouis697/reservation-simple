@@ -37,7 +37,7 @@ export const useButtonStyle = ({ buttonCorners, primaryColor }: ButtonStyleProps
     }
     
     // L'objet de style complet pour les boutons
-    const style: { backgroundColor: string; borderColor: string; borderRadius: string } = {
+    const style = {
       backgroundColor: primaryColor, 
       borderColor: primaryColor,
       borderRadius: borderRadiusStyle

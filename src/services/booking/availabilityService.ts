@@ -8,6 +8,9 @@ import { Json } from '@/integrations/supabase/types';
 export interface TimeSlot {
   startTime: string;
   endTime: string;
+  // For backward compatibility with existing components using start/end
+  start?: string;
+  end?: string;
 }
 
 export interface DaySchedule {
@@ -32,14 +35,16 @@ export interface BlockedTime {
   endTime?: string;
   reason?: string;
   fullDay: boolean;
+  timeSlots?: TimeSlot[]; // Added to support components using timeSlots
 }
 
 export interface SpecialDate {
   date: string;
   isActive: boolean;
-  startTime: string;
-  endTime: string;
-  timeSlots?: TimeSlot[];
+  startTime?: string;
+  endTime?: string;
+  timeSlots: TimeSlot[];
+  scheduleId?: string; // Added to support components using scheduleId
 }
 
 export interface ScheduleSet {
@@ -87,7 +92,7 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
     }
     
     // Transform the data from DB format to our app format
-    return {
+    const settings = {
       id: data.id,
       businessId: data.business_id,
       minAdvanceHours: data.min_advance_hours || 24,
@@ -99,11 +104,54 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
       scheduleSets: [], // Not implemented yet
       activeScheduleId: 'default'
     };
+    
+    // Ensure all time slots have both startTime/endTime and start/end properties for backward compatibility
+    settings.scheduleSets = [{
+      id: 'default',
+      name: 'Default Schedule',
+      isDefault: true,
+      regularSchedule: settings.regularSchedule
+    }];
+    
+    // Normalize time slots in blocked dates
+    settings.blockedDates.forEach(blockedDate => {
+      if (blockedDate.timeSlots) {
+        blockedDate.timeSlots = blockedDate.timeSlots.map(ts => normalizeTimeSlot(ts));
+      }
+    });
+    
+    // Normalize time slots in special dates
+    settings.specialDates.forEach(specialDate => {
+      if (specialDate.timeSlots) {
+        specialDate.timeSlots = specialDate.timeSlots.map(ts => normalizeTimeSlot(ts));
+      }
+    });
+    
+    // Normalize time slots in regular schedule
+    Object.keys(settings.regularSchedule).forEach(day => {
+      settings.regularSchedule[day].timeSlots = settings.regularSchedule[day].timeSlots.map(ts => normalizeTimeSlot(ts));
+    });
+    
+    return settings;
   } catch (error) {
     console.error('Error in getAvailabilitySettings:', error);
     // Return default settings on error
     return createDefaultAvailabilitySettings(businessId);
   }
+};
+
+// Helper function to normalize time slot properties
+const normalizeTimeSlot = (timeSlot: any): TimeSlot => {
+  const result: TimeSlot = {
+    startTime: timeSlot.startTime || timeSlot.start || '09:00',
+    endTime: timeSlot.endTime || timeSlot.end || '17:00',
+  };
+  
+  // Add legacy properties for backward compatibility
+  result.start = result.startTime;
+  result.end = result.endTime;
+  
+  return result;
 };
 
 // Save availability settings
@@ -138,11 +186,11 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
 // Create default availability settings
 const createDefaultAvailabilitySettings = (businessId: string): AvailabilitySettings => {
   const defaultSchedule: RegularSchedule = {
-    lundi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
-    mardi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
-    mercredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
-    jeudi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
-    vendredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+    lundi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
+    mardi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
+    mercredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
+    jeudi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
+    vendredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
     samedi: { isActive: false, timeSlots: [] },
     dimanche: { isActive: false, timeSlots: [] }
   };
@@ -191,13 +239,23 @@ const parseRegularSchedule = (scheduleData: Json | null): RegularSchedule => {
   }
   
   try {
+    let schedule: RegularSchedule;
     if (typeof scheduleData === 'string') {
-      return JSON.parse(scheduleData) as RegularSchedule;
+      schedule = JSON.parse(scheduleData) as RegularSchedule;
+    } else if (typeof scheduleData === 'object' && scheduleData !== null) {
+      schedule = scheduleData as RegularSchedule;
+    } else {
+      return createDefaultSchedule();
     }
-    if (typeof scheduleData === 'object' && scheduleData !== null) {
-      return scheduleData as RegularSchedule;
-    }
-    return createDefaultSchedule();
+    
+    // Make sure all time slots have both startTime/endTime and start/end properties
+    Object.keys(schedule).forEach(day => {
+      if (schedule[day] && Array.isArray(schedule[day].timeSlots)) {
+        schedule[day].timeSlots = schedule[day].timeSlots.map(ts => normalizeTimeSlot(ts));
+      }
+    });
+    
+    return schedule;
   } catch (e) {
     console.error('Error parsing regular schedule:', e);
     return createDefaultSchedule();
@@ -207,11 +265,11 @@ const parseRegularSchedule = (scheduleData: Json | null): RegularSchedule => {
 // Create default schedule
 const createDefaultSchedule = (): RegularSchedule => {
   return {
-    lundi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
-    mardi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
-    mercredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
-    jeudi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
-    vendredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+    lundi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
+    mardi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
+    mercredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
+    jeudi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
+    vendredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
     samedi: { isActive: false, timeSlots: [] },
     dimanche: { isActive: false, timeSlots: [] }
   };
