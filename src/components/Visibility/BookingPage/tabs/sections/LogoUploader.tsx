@@ -27,14 +27,17 @@ export function LogoUploader() {
     const reader = new FileReader();
     reader.onload = async () => {
       setLogo(reader.result as string);
-      toast.success('Logo téléchargé avec succès');
       
       // Enregistrer les changements
       try {
         await saveBookingPageSettings();
-        toast.success('Logo enregistré avec succès');
+        toast.success('Logo téléchargé et enregistré avec succès', {
+          duration: 2000,
+          position: "bottom-right"
+        });
       } catch (error) {
         console.error("Erreur lors de l'enregistrement du logo", error);
+        toast.error("Erreur lors de l'enregistrement du logo");
       }
     };
     reader.readAsDataURL(file);
@@ -47,9 +50,13 @@ export function LogoUploader() {
     // Enregistrer les changements
     try {
       await saveBookingPageSettings();
-      toast.success('Logo supprimé avec succès');
+      toast.success('Logo supprimé avec succès', {
+        duration: 2000,
+        position: "bottom-right"
+      });
     } catch (error) {
       console.error("Erreur lors de la suppression du logo", error);
+      toast.error("Erreur lors de la suppression du logo");
     }
   };
 

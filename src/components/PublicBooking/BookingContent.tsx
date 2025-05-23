@@ -165,8 +165,12 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
         businessId: businessId
       };
       
+      console.log("Creating booking with data:", bookingData);
+      
       // Create the booking
       const result = await createBooking(bookingData);
+      
+      console.log("Booking result:", result);
       
       setBooking(result);
       // Move to end state without adding extra step

@@ -43,8 +43,10 @@ export default function BookingPage() {
       
       navigator.clipboard.writeText(publicBookingUrl).then(() => {
         setCopied(true);
-        toast.success("URL copiée dans le presse-papier");
-        setTimeout(() => setCopied(false), 2000);
+        toast.success("URL copiée dans le presse-papier", {
+          duration: 2000,
+          onAutoClose: () => setCopied(false)
+        });
       });
     };
 
@@ -63,7 +65,10 @@ export default function BookingPage() {
       setIsSaving(true);
       try {
         await saveBookingPageSettings();
-        toast.success("Paramètres de la page de réservation enregistrés avec succès");
+        toast.success("Paramètres de la page de réservation enregistrés avec succès", {
+          duration: 2000,
+          position: "bottom-right"
+        });
       } catch (error) {
         toast.error("Une erreur est survenue lors de l'enregistrement des paramètres");
         console.error("Error saving booking page settings:", error);

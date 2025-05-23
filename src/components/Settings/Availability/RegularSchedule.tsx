@@ -20,6 +20,9 @@ const dayLabels: Record<WeekDay, string> = {
   sunday: "Dimanche"
 };
 
+// Define the correct day order
+const orderedDays: WeekDay[] = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+
 interface RegularScheduleProps {
   settings: AvailabilitySettings;
   onSettingsChange: (settings: AvailabilitySettings) => void;
@@ -100,95 +103,99 @@ const RegularSchedule: React.FC<RegularScheduleProps> = ({ settings, onSettingsC
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {Object.entries(activeSchedule.regularSchedule).map(([day, daySchedule]) => (
-            <div key={day} className="border rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={daySchedule.isActive}
-                    onCheckedChange={() => handleToggleDay(day as WeekDay)}
-                    id={`day-${day}`}
-                  />
-                  <Label htmlFor={`day-${day}`} className="font-medium">{dayLabels[day as WeekDay]}</Label>
+          {/* Use the orderedDays array to render days in correct order */}
+          {orderedDays.map((day) => {
+            const daySchedule = activeSchedule.regularSchedule[day];
+            return (
+              <div key={day} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={daySchedule.isActive}
+                      onCheckedChange={() => handleToggleDay(day as WeekDay)}
+                      id={`day-${day}`}
+                    />
+                    <Label htmlFor={`day-${day}`} className="font-medium">{dayLabels[day]}</Label>
+                  </div>
+                  
+                  {daySchedule.isActive && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleAddTimeSlot(day)}
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Ajouter une plage
+                    </Button>
+                  )}
                 </div>
                 
-                {daySchedule.isActive && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleAddTimeSlot(day as WeekDay)}
-                  >
-                    <Plus className="h-4 w-4 mr-1" /> Ajouter une plage
-                  </Button>
+                {daySchedule.isActive && daySchedule.timeSlots.length > 0 && (
+                  <div className="mt-3 space-y-3">
+                    {daySchedule.timeSlots.map((slot, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <Select
+                          value={slot.start}
+                          onValueChange={(value) => handleTimeChange(day, index, "start", value)}
+                        >
+                          <SelectTrigger className="w-28">
+                            <SelectValue>{slot.start}</SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 24 }, (_, i) => {
+                              const hour = i.toString().padStart(2, "0");
+                              return [
+                                <SelectItem key={`${hour}:00`} value={`${hour}:00`}>{`${hour}:00`}</SelectItem>,
+                                <SelectItem key={`${hour}:30`} value={`${hour}:30`}>{`${hour}:30`}</SelectItem>
+                              ];
+                            }).flat()}
+                          </SelectContent>
+                        </Select>
+                        <span>-</span>
+                        <Select
+                          value={slot.end}
+                          onValueChange={(value) => handleTimeChange(day, index, "end", value)}
+                        >
+                          <SelectTrigger className="w-28">
+                            <SelectValue>{slot.end}</SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 24 }, (_, i) => {
+                              const hour = i.toString().padStart(2, "0");
+                              return [
+                                <SelectItem key={`${hour}:00`} value={`${hour}:00`}>{`${hour}:00`}</SelectItem>,
+                                <SelectItem key={`${hour}:30`} value={`${hour}:30`}>{`${hour}:30`}</SelectItem>
+                              ];
+                            }).flat()}
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveTimeSlot(day, index)}
+                          disabled={daySchedule.timeSlots.length <= 1}
+                        >
+                          <X className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {daySchedule.isActive && daySchedule.timeSlots.length === 0 && (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Aucune plage horaire définie pour ce jour.
+                  </p>
+                )}
+                
+                {!daySchedule.isActive && (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Ce jour n'est pas disponible pour les réservations.
+                  </p>
                 )}
               </div>
-              
-              {daySchedule.isActive && daySchedule.timeSlots.length > 0 && (
-                <div className="mt-3 space-y-3">
-                  {daySchedule.timeSlots.map((slot, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <Select
-                        value={slot.start}
-                        onValueChange={(value) => handleTimeChange(day as WeekDay, index, "start", value)}
-                      >
-                        <SelectTrigger className="w-28">
-                          <SelectValue>{slot.start}</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 24 }, (_, i) => {
-                            const hour = i.toString().padStart(2, "0");
-                            return [
-                              <SelectItem key={`${hour}:00`} value={`${hour}:00`}>{`${hour}:00`}</SelectItem>,
-                              <SelectItem key={`${hour}:30`} value={`${hour}:30`}>{`${hour}:30`}</SelectItem>
-                            ];
-                          }).flat()}
-                        </SelectContent>
-                      </Select>
-                      <span>-</span>
-                      <Select
-                        value={slot.end}
-                        onValueChange={(value) => handleTimeChange(day as WeekDay, index, "end", value)}
-                      >
-                        <SelectTrigger className="w-28">
-                          <SelectValue>{slot.end}</SelectValue>
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Array.from({ length: 24 }, (_, i) => {
-                            const hour = i.toString().padStart(2, "0");
-                            return [
-                              <SelectItem key={`${hour}:00`} value={`${hour}:00`}>{`${hour}:00`}</SelectItem>,
-                              <SelectItem key={`${hour}:30`} value={`${hour}:30`}>{`${hour}:30`}</SelectItem>
-                            ];
-                          }).flat()}
-                        </SelectContent>
-                      </Select>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveTimeSlot(day as WeekDay, index)}
-                        disabled={daySchedule.timeSlots.length <= 1}
-                      >
-                        <X className="h-4 w-4 text-destructive" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {daySchedule.isActive && daySchedule.timeSlots.length === 0 && (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Aucune plage horaire définie pour ce jour.
-                </p>
-              )}
-              
-              {!daySchedule.isActive && (
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Ce jour n'est pas disponible pour les réservations.
-                </p>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </CardContent>
     </Card>

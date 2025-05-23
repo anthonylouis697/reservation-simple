@@ -33,22 +33,32 @@ export function ColorAndButtonStyles() {
   const handleColorChange = async (color: string) => {
     setPrimaryColor(color);
     setShowColorPicker(false);
-    toast.success("Couleur principale mise à jour");
+    
     try {
       await saveBookingPageSettings();
+      toast.success("Couleur principale mise à jour", {
+        duration: 2000,
+        position: "bottom-right"
+      });
     } catch (error) {
       console.error("Erreur lors de l'enregistrement de la couleur", error);
+      toast.error("Erreur lors de l'enregistrement de la couleur");
     }
   };
 
   // Fonction pour enregistrer le style des boutons
   const handleButtonStyleChange = async (value: 'squared' | 'rounded' | 'pill') => {
     setButtonCorners(value);
-    toast.success(`Style de bouton "${value}" appliqué`);
+    
     try {
       await saveBookingPageSettings();
+      toast.success(`Style de bouton "${value}" appliqué`, {
+        duration: 2000,
+        position: "bottom-right"
+      });
     } catch (error) {
       console.error("Erreur lors de l'enregistrement du style de bouton", error);
+      toast.error("Erreur lors de l'enregistrement du style de bouton");
     }
   };
 
