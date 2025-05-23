@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Helmet } from "react-helmet";
-import { ArrowLeft, Heart, CalendarDays, Ticket, CreditCard, Users, Crown, Star, Zap, CheckCircle, Info, MessageCircle, Bell, MapPin, Camera, FileText, BarChart3, Gift2, ShoppingCart, Calendar, Clock, Phone, Mail, Palette, Globe, Shield, Archive, Headphones, Smartphone, QrCode, Webhook, Bot, TrendingUp, UserCheck, Wifi, Package, DollarSign, Percent } from "lucide-react";
+import { ArrowLeft, Heart, CalendarDays, Ticket, CreditCard, Users, Crown, Star, Zap, CheckCircle, Info, MessageCircle, Bell, MapPin, Camera, FileText, BarChart3, Gift, ShoppingCart, Calendar, Clock, Phone, Mail, Palette, Globe, Shield, Archive, Headphones, Smartphone, QrCode, Webhook, Bot, TrendingUp, UserCheck, Wifi, Package, DollarSign, Percent } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -327,7 +326,7 @@ const modules: AdditionalModule[] = [
     name: 'Cartes Cadeaux',
     description: 'Vendez des cartes cadeaux digitales et physiques',
     longDescription: 'Système complet de cartes cadeaux avec personnalisation et suivi des utilisations.',
-    icon: <Gift2 className="h-6 w-6" />,
+    icon: <Gift className="h-6 w-6" />,
     category: 'marketing',
     status: 'available',
     isActive: false,
