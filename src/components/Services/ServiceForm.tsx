@@ -60,8 +60,9 @@ export const ServiceForm = ({ initialData, categories, onSubmit, onCancel }: Ser
 
   // Déterminer si le service a des options variables
   useEffect(() => {
-    setHasVariableOptions((formData.variableDurationOptions?.length || 0) > 0);
-  }, []);
+    const options = formData.variableDurationOptions || [];
+    setHasVariableOptions(options.length > 0);
+  }, [formData.variableDurationOptions]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -105,11 +106,19 @@ export const ServiceForm = ({ initialData, categories, onSubmit, onCancel }: Ser
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Générer un ID si ce n'est pas un service existant
+    const serviceData = {
+      ...formData,
+      id: formData.id || generateId(),
+      variableDurationOptions: formData.variableDurationOptions || []
+    };
+    
+    onSubmit(serviceData);
   };
 
   const organizeCategories = () => {
-    const activeCategories = categories.filter(cat => cat.isActive);
+    const activeCategories = categories?.filter(cat => cat.isActive) || [];
     
     return (
       <>
@@ -154,11 +163,11 @@ export const ServiceForm = ({ initialData, categories, onSubmit, onCancel }: Ser
               <Select 
                 value={formData.categoryId || "none"} 
                 onValueChange={handleSelectChange("categoryId")}
-                disabled={categories.length === 0}
+                disabled={!categories || categories.length === 0}
               >
-                <SelectTrigger className={categories.length === 0 ? "opacity-50" : ""}>
+                <SelectTrigger className={(!categories || categories.length === 0) ? "opacity-50" : ""}>
                   <SelectValue placeholder={
-                    categories.length === 0 
+                    (!categories || categories.length === 0)
                       ? "Aucune catégorie disponible" 
                       : "Sélectionnez une catégorie"
                   } />
@@ -167,7 +176,7 @@ export const ServiceForm = ({ initialData, categories, onSubmit, onCancel }: Ser
                   {organizeCategories()}
                 </SelectContent>
               </Select>
-              {categories.length === 0 && (
+              {(!categories || categories.length === 0) && (
                 <p className="text-xs text-muted-foreground">
                   Créez d'abord des catégories dans l'onglet Catégories
                 </p>
