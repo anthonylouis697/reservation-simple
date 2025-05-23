@@ -93,8 +93,8 @@ export const getPublicServices = async (businessId: string): Promise<Service[]> 
       category: null,
       bufferTimeBefore: 0,
       bufferTimeAfter: 0,
-      // Always initialize assignedEmployees as an empty array, regardless of what's in the database
-      assignedEmployees: [], 
+      // Explicitly ensure assignedEmployees is always an array
+      assignedEmployees: [],
       notes: '',
       color: '',
       isRecurring: false
