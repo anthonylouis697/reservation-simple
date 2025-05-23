@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useBookingPage } from '@/components/Visibility/BookingPage/BookingPageContext';
 import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
@@ -11,6 +12,7 @@ import { createBooking } from '@/services/booking';
 import { toast } from 'sonner';
 import EmptyServicesState from './EmptyServicesState';
 import { getAvailableTimeSlots } from '@/services/booking/availabilityService';
+import { useButtonStyle } from '@/hooks/useButtonStyle';
 
 interface BookingContentProps {
   businessId: string;
@@ -30,6 +32,9 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
   
   // Use PublicBookingData for service-related information
   const { services, isLoading, hasServices } = usePublicBookingData();
+  
+  // Get button style using our custom hook
+  const { getButtonStyle } = useButtonStyle({ buttonCorners, primaryColor });
   
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -114,28 +119,6 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
       default:
         return true;
     }
-  };
-  
-  // Get button style based on booking page settings
-  const getButtonStyle = () => {
-    let className = "bg-primary hover:bg-primary/90";
-    
-    // Add corners based on buttonCorners setting
-    if (buttonCorners === "pill") {
-      className += " rounded-full";
-    } else if (buttonCorners === "squared") {
-      className += " rounded-none";
-    } else {
-      className += " rounded-md";
-    }
-    
-    return {
-      className,
-      style: {
-        backgroundColor: primaryColor,
-        borderColor: primaryColor
-      }
-    };
   };
   
   // Fonction pour soumettre une réservation
@@ -301,8 +284,12 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
               <button
                 onClick={handleNextStep}
                 disabled={!isCurrentStepComplete()}
-                className={`px-6 py-2 ${getButtonStyle().className} text-white disabled:opacity-50 disabled:cursor-not-allowed`}
-                style={getButtonStyle().style}
+                className="px-6 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: primaryColor,
+                  borderRadius: buttonCorners === 'pill' ? '9999px' : 
+                               buttonCorners === 'squared' ? '0px' : '6px'
+                }}
               >
                 Suivant
               </button>
@@ -310,8 +297,12 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
               <button
                 onClick={handleSubmit}
                 disabled={!isCurrentStepComplete() || isSubmitting}
-                className={`px-6 py-2 ${getButtonStyle().className} text-white disabled:opacity-50 disabled:cursor-not-allowed`}
-                style={getButtonStyle().style}
+                className="px-6 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  backgroundColor: primaryColor,
+                  borderRadius: buttonCorners === 'pill' ? '9999px' : 
+                               buttonCorners === 'squared' ? '0px' : '6px'
+                }}
               >
                 {isSubmitting ? "Traitement en cours..." : "Réserver"}
               </button>

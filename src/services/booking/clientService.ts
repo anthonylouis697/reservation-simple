@@ -1,111 +1,104 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
-// Client information types
 export interface ClientInfo {
   firstName: string;
   lastName: string;
   email: string;
   phone?: string;
-  notes?: string;
 }
 
-// Helper for combining first and last names
-export const getFullName = (client: ClientInfo): string => {
-  return `${client.firstName} ${client.lastName}`;
-};
-
-// Helper to validate client email
-export const validateEmail = (email: string): boolean => {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return regex.test(email);
-};
-
-// Helper to format phone number (optional)
-export const formatPhoneNumber = (phone: string): string => {
-  // Basic formatting for French phone numbers
-  if (phone.length === 10 && phone.startsWith('0')) {
-    return phone.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
-  }
-  return phone;
-};
-
-// Gets or creates a client
-export const getOrCreateClient = async (
-  businessId: string,
-  clientInfo: ClientInfo
-): Promise<string> => {
+// Crée un nouveau client ou récupère l'ID d'un client existant
+export const getOrCreateClient = async (businessId: string, clientInfo: ClientInfo): Promise<string> => {
   try {
-    // Check if client already exists by email
+    if (!businessId) {
+      throw new Error("Business ID is required");
+    }
+    
+    if (!clientInfo.email) {
+      throw new Error("Client email is required");
+    }
+    
+    console.log("Recherche du client existant:", clientInfo.email, "pour le business:", businessId);
+    
+    // Vérifie si le client existe déjà (par email)
     const { data: existingClients, error: searchError } = await supabase
       .from('clients')
-      .select('id, email')
+      .select('id')
       .eq('business_id', businessId)
       .eq('email', clientInfo.email)
-      .maybeSingle();
-
+      .limit(1);
+    
     if (searchError) {
-      console.error('Error searching for client:', searchError);
+      console.error("Erreur lors de la recherche du client:", searchError);
       throw searchError;
     }
-
-    // If client exists, return their ID
-    if (existingClients) {
-      console.log('Found existing client:', existingClients.id);
-      return existingClients.id;
+    
+    // Si le client existe, retourne son ID
+    if (existingClients && existingClients.length > 0) {
+      console.log("Client existant trouvé:", existingClients[0].id);
+      return existingClients[0].id;
     }
-
-    // Otherwise create a new client
+    
+    // Sinon, crée un nouveau client
+    console.log("Création d'un nouveau client");
     const { data: newClient, error: createError } = await supabase
       .from('clients')
-      .insert({
-        business_id: businessId,
-        first_name: clientInfo.firstName,
-        last_name: clientInfo.lastName,
-        email: clientInfo.email,
-        phone: clientInfo.phone || null,
-        notes: clientInfo.notes || null
-      })
-      .select('id')
+      .insert([
+        {
+          business_id: businessId,
+          first_name: clientInfo.firstName,
+          last_name: clientInfo.lastName,
+          email: clientInfo.email,
+          phone: clientInfo.phone || null
+        }
+      ])
+      .select()
       .single();
-
+    
     if (createError) {
-      console.error('Error creating client:', createError);
+      console.error("Erreur lors de la création du client:", createError);
       throw createError;
     }
-
-    console.log('Created new client:', newClient.id);
+    
+    if (!newClient) {
+      throw new Error("Aucune donnée retournée lors de la création du client");
+    }
+    
+    console.log("Nouveau client créé avec ID:", newClient.id);
     return newClient.id;
   } catch (error) {
-    console.error('Error in getOrCreateClient:', error);
-    throw new Error('Failed to process client information');
+    console.error("Erreur complète lors de la gestion du client:", error);
+    throw new Error(`Erreur lors de la création/récupération du client: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
   }
 };
 
-// Get a client by id
+// Récupère les informations d'un client par son ID
 export const getClientById = async (clientId: string): Promise<ClientInfo | null> => {
   try {
     const { data, error } = await supabase
       .from('clients')
-      .select('first_name, last_name, email, phone, notes')
+      .select('first_name, last_name, email, phone')
       .eq('id', clientId)
       .single();
-      
+    
     if (error) {
-      console.error('Error getting client:', error);
+      console.error("Erreur lors de la récupération du client:", error);
       return null;
     }
     
-    if (!data) return null;
+    if (!data) {
+      return null;
+    }
     
     return {
       firstName: data.first_name,
       lastName: data.last_name,
-      email: data.email,
-      phone: data.phone || undefined,
-      notes: data.notes || undefined
+      email: data.email || '',
+      phone: data.phone || ''
     };
   } catch (error) {
-    console.error('Error in getClientById:', error);
+    console.error("Erreur lors de la récupération du client:", error);
     return null;
   }
 };

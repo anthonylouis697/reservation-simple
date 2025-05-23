@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { combineDateTime } from './dateUtils';
 import { BookingData, BookingResult, Booking, DbReservationWithClient } from './types';
@@ -63,7 +64,7 @@ export const createBooking = async (bookingData: BookingData): Promise<BookingRe
     
     if (error) {
       console.error("Erreur Supabase lors de la création de réservation:", error);
-      throw error;
+      throw new Error(`Erreur lors de la création de la réservation: ${error.message}`);
     }
     
     if (!data) {

@@ -18,39 +18,59 @@ export function LogoUploader() {
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   
-  // Handle logo upload
+  // Handle logo upload with improved error handling
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
+    // Vérification du type de fichier
     if (!file.type.startsWith('image/')) {
       toast.error('Veuillez choisir une image valide');
+      return;
+    }
+    
+    // Vérification de la taille du fichier (max 1MB)
+    if (file.size > 1024 * 1024) {
+      toast.error('La taille de l\'image ne doit pas dépasser 1MB');
       return;
     }
     
     setIsUploading(true);
     
     try {
+      // Utilisation de FileReader pour convertir l'image en base64
       const reader = new FileReader();
+      
       reader.onload = async () => {
         const logoData = reader.result as string;
-        await setLogo(logoData);
         
-        // Enregistrer les changements
-        await saveBookingPageSettings();
-        toast.success('Logo téléchargé et enregistré avec succès', {
-          duration: 2000,
-        });
-        setIsUploading(false);
+        try {
+          // Mettre à jour le logo dans le state
+          await setLogo(logoData);
+          
+          // Enregistrer les changements
+          await saveBookingPageSettings();
+          
+          toast.success('Logo téléchargé et enregistré avec succès', {
+            duration: 2000,
+          });
+        } catch (error) {
+          console.error("Erreur lors de l'enregistrement du logo", error);
+          toast.error("Erreur lors de l'enregistrement du logo");
+        } finally {
+          setIsUploading(false);
+        }
       };
+      
       reader.onerror = () => {
         toast.error("Erreur lors de la lecture du fichier");
         setIsUploading(false);
       };
+      
       reader.readAsDataURL(file);
     } catch (error) {
-      console.error("Erreur lors de l'enregistrement du logo", error);
-      toast.error("Erreur lors de l'enregistrement du logo");
+      console.error("Erreur lors de la lecture du fichier", error);
+      toast.error("Erreur lors du téléchargement du logo");
       setIsUploading(false);
     }
   };

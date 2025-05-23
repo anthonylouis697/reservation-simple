@@ -23,7 +23,7 @@ interface PublicBookingDataProviderProps {
 const defaultContextValue: PublicBookingDataContextType = {
   services: [],
   categories: [],
-  isLoading: false,
+  isLoading: true,
   error: null,
   hasServices: false
 };
@@ -59,7 +59,7 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
           console.log("No business slug provided, using mock data");
           setServices(initialServices);
           setCategories(initialCategories);
-          setHasServices(true);
+          setHasServices(initialServices.length > 0);
           setIsLoading(false);
           return;
         }
@@ -77,6 +77,7 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
           setError("Could not find this business");
           setServices([]);
           setCategories([]);
+          setHasServices(false);
           setIsLoading(false);
           return;
         }
@@ -86,6 +87,7 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
           setError("Business not found");
           setServices([]);
           setCategories([]);
+          setHasServices(false);
           setIsLoading(false);
           return;
         }
@@ -94,19 +96,19 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
         console.log("Business ID found:", businessId);
         
         // Check if business has active services
-        const serviceExists = await hasActiveServices(businessId);
-        setHasServices(serviceExists);
-        
-        if (!serviceExists) {
-          console.log("Business has no active services");
-          setServices([]);
-          setCategories([]);
-          setIsLoading(false);
-          return;
-        }
-        
-        // Get services and categories
         try {
+          const serviceExists = await hasActiveServices(businessId);
+          setHasServices(serviceExists);
+          
+          if (!serviceExists) {
+            console.log("Business has no active services");
+            setServices([]);
+            setCategories([]);
+            setIsLoading(false);
+            return;
+          }
+          
+          // Get services and categories
           const [fetchedServices, fetchedCategories] = await Promise.all([
             getPublicServices(businessId),
             getPublicCategories(businessId)
@@ -115,25 +117,30 @@ export const PublicBookingDataProvider = ({ children }: PublicBookingDataProvide
           console.log("Services fetched:", fetchedServices?.length || 0);
           console.log("Categories fetched:", fetchedCategories?.length || 0);
           
-          // Use fetched data if available
+          // Use fetched data or default to empty arrays
           setServices(Array.isArray(fetchedServices) && fetchedServices.length > 0 
             ? fetchedServices 
-            : []);
+            : initialServices);
             
           setCategories(Array.isArray(fetchedCategories) && fetchedCategories.length > 0 
             ? fetchedCategories 
-            : []);
+            : initialCategories);
+            
         } catch (fetchError) {
           console.error("Error fetching services/categories:", fetchError);
-          toast.error("Impossible de charger les services");
-          setServices([]);
-          setCategories([]);
+          // Fallback to mock data in case of error
+          setServices(initialServices);
+          setCategories(initialCategories);
+          setHasServices(initialServices.length > 0);
+          toast.error("Impossible de charger les services, utilisation des données par défaut");
         }
       } catch (error) {
         console.error("Error loading data:", error);
         setError(error instanceof Error ? error.message : "An error occurred");
-        setServices([]);
-        setCategories([]);
+        // Fallback to mock data
+        setServices(initialServices);
+        setCategories(initialCategories);
+        setHasServices(initialServices.length > 0);
       } finally {
         setIsLoading(false);
       }

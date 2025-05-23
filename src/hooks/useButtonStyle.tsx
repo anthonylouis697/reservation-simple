@@ -14,21 +14,38 @@ export const useButtonStyle = ({ buttonCorners, primaryColor }: ButtonStyleProps
    * Returns styling classes and inline styles for buttons based on configuration
    */
   const getButtonStyle = () => {
-    let roundedClass = '';
+    // Déterminer la classe de bord arrondi
+    let borderRadiusClass = '';
+    let borderRadiusStyle = '';
     
     switch (buttonCorners) {
-      case 'squared': roundedClass = 'rounded-none'; break;
-      case 'rounded': roundedClass = 'rounded-md'; break;
-      case 'pill': roundedClass = 'rounded-full'; break;
-      default: roundedClass = 'rounded-md';
+      case 'squared': 
+        borderRadiusClass = 'rounded-none'; 
+        borderRadiusStyle = '0px';
+        break;
+      case 'rounded': 
+        borderRadiusClass = 'rounded-md'; 
+        borderRadiusStyle = '6px';
+        break;
+      case 'pill': 
+        borderRadiusClass = 'rounded-full'; 
+        borderRadiusStyle = '9999px';
+        break;
+      default: 
+        borderRadiusClass = 'rounded-md';
+        borderRadiusStyle = '6px';
     }
     
+    // L'objet de style complet pour les boutons
+    const style: CSSProperties = {
+      backgroundColor: primaryColor, 
+      borderColor: primaryColor,
+      borderRadius: borderRadiusStyle
+    };
+    
     return {
-      className: `${roundedClass} transition-colors`,
-      style: { 
-        backgroundColor: primaryColor, 
-        borderColor: primaryColor 
-      } as { backgroundColor: string; borderColor: string }
+      className: `${borderRadiusClass} transition-colors`,
+      style
     };
   };
   
