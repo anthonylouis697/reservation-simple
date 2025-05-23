@@ -206,14 +206,14 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
     const { error } = await supabase
       .from('availability_settings')
       .upsert({
-        id: settings.id,
         business_id: settings.businessId,
         min_advance_hours: settings.minAdvanceHours,
         advance_booking_days: settings.advanceBookingDays,
         buffer_time_minutes: settings.bufferTimeMinutes,
         blocked_dates: settings.blockedDates,
         special_dates: settings.specialDates,
-        regular_schedule: settings.regularSchedule
+        regular_schedule: settings.regularSchedule,
+        id: settings.id === 'new' ? undefined : settings.id
       })
       .select();
       
@@ -299,7 +299,9 @@ const parseRegularSchedule = (scheduleData: Json | null): RegularSchedule => {
     if (typeof scheduleData === 'string') {
       schedule = JSON.parse(scheduleData) as RegularSchedule;
     } else if (typeof scheduleData === 'object' && scheduleData !== null) {
-      schedule = scheduleData as RegularSchedule;
+      // Cast to RegularSchedule after ensuring it's an object
+      const scheduleCast = scheduleData as unknown as RegularSchedule;
+      schedule = scheduleCast;
     } else {
       return createDefaultSchedule();
     }
@@ -535,6 +537,10 @@ const filterAvailableSlots = async (
       
       // Vérifier le chevauchement avec les réservations existantes
       return !existingBookings.some(booking => {
+        if (!booking || !booking.start_time || !booking.end_time) {
+          return false;
+        }
+        
         const bookingStart = new Date(booking.start_time);
         const bookingEnd = new Date(booking.end_time);
         

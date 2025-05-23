@@ -1,968 +1,445 @@
-import { useState, useEffect, useCallback } from "react";
-import { Calendar } from "@/components/ui/calendar";
-import { toast } from "sonner";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Clock, Plus, X, Calendar as CalendarIcon, CalendarX } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Calendar } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   AvailabilitySettings as AvailabilitySettingsType, 
-  DaySchedule, 
+  DaySchedule,
   TimeSlot, 
-  ScheduleSet,
-  BlockedTime,
-  SpecialDate 
+  ScheduleSet, 
+  BlockedTime, 
+  SpecialDate,
+  createTimeSlot,
+  getAvailabilitySettings,
+  saveAvailabilitySettings
 } from '@/services/booking/availabilityService';
 
-type WeekDay = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
+import { toast } from 'sonner';
+import { useBusiness } from '@/contexts/BusinessContext';
 
-const dayLabels: Record<WeekDay, string> = {
-  monday: "Lundi",
-  tuesday: "Mardi",
-  wednesday: "Mercredi",
-  thursday: "Jeudi",
-  friday: "Vendredi",
-  saturday: "Samedi",
-  sunday: "Dimanche"
-};
+const AvailabilitySettings = () => {
+  const { currentBusiness } = useBusiness();
+  const [settings, setSettings] = useState<AvailabilitySettingsType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-interface AvailabilitySettingsProps {
-  initialSettings?: AvailabilitySettingsType;
-  onChange?: (settings: AvailabilitySettingsType) => void;
-}
+  const [minAdvanceHours, setMinAdvanceHours] = useState(24);
+  const [advanceBookingDays, setAdvanceBookingDays] = useState(30);
+  const [bufferTimeMinutes, setBufferTimeMinutes] = useState(15);
+  const [unsavedChanges, setUnsavedChanges] = useState(false);
 
-const AvailabilitySettings = ({ initialSettings, onChange }: AvailabilitySettingsProps) => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [activeTab, setActiveTab] = useState("weekly");
-  const [blockedDates, setBlockedDates] = useState<BlockedTime[]>([]);
-  const [specialDates, setSpecialDates] = useState<SpecialDate[]>([]);
-  const [scheduleSets, setScheduleSets] = useState<ScheduleSet[]>([]);
-  const [activeScheduleId, setActiveScheduleId] = useState<number>(1);
-  const [availabilityBuffer, setAvailabilityBuffer] = useState(15);
-  const [advanceBookingLimit, setAdvanceBookingLimit] = useState(30);
-  const [blockDateDialog, setBlockDateDialog] = useState(false);
-  const [blockingFullDay, setBlockingFullDay] = useState(true);
-  const [blockTimeSlots, setBlockTimeSlots] = useState<TimeSlot[]>([{ start: "09:00", end: "17:00" }]);
-  const [specialDateDialog, setSpecialDateDialog] = useState(false);
-  const [specialDateScheduleId, setSpecialDateScheduleId] = useState<number>(1);
-  const [specialDateIsActive, setSpecialDateIsActive] = useState(true);
-  const [specialDateTimeSlots, setSpecialDateTimeSlots] = useState<TimeSlot[]>([{ start: "09:00", end: "17:00" }]);
-  
-  // Initialize from props if provided
-  useEffect(() => {
-    if (initialSettings) {
-      // Important: Make deep copies of arrays to avoid reference issues
-      setBlockedDates(initialSettings.blockedDates ? [...initialSettings.blockedDates] : []);
-      setSpecialDates(initialSettings.specialDates ? [...initialSettings.specialDates] : []);
-      setScheduleSets(initialSettings.scheduleSets ? JSON.parse(JSON.stringify(initialSettings.scheduleSets)) : []);
-      setActiveScheduleId(initialSettings.activeScheduleId || 1);
-      setAvailabilityBuffer(initialSettings.bufferTimeMinutes || 15);
-      setAdvanceBookingLimit(initialSettings.advanceBookingDays || 30);
+  const defaultTimeSlot = createTimeSlot("09:00", "17:00");
+
+  // Add a time slot dialog state
+  const [showAddTimeSlotDialog, setShowAddTimeSlotDialog] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<string>('');
+  const [newTimeSlots, setNewTimeSlots] = useState<TimeSlot[]>([
+    createTimeSlot("09:00", "17:00")
+  ]);
+
+  // Fetch settings on component mount
+  const fetchSettings = async () => {
+    if (!currentBusiness?.id) return;
+    
+    try {
+      setLoading(true);
+      const availabilitySettings = await getAvailabilitySettings(currentBusiness.id);
+      
+      // Initialize state with fetched settings
+      setSettings(availabilitySettings);
+      setMinAdvanceHours(availabilitySettings.minAdvanceHours);
+      setAdvanceBookingDays(availabilitySettings.advanceBookingDays);
+      setBufferTimeMinutes(availabilitySettings.bufferTimeMinutes);
+      
+      setUnsavedChanges(false);
+    } catch (error) {
+      console.error("Failed to fetch availability settings:", error);
+      toast.error("Impossible de charger les paramètres de disponibilité");
+    } finally {
+      setLoading(false);
     }
-  }, [initialSettings]);
+  };
 
-  // Debounced change notification
-  const debouncedNotifyChange = useCallback(
-    (() => {
-      let timeout: NodeJS.Timeout | null = null;
-      return (settings: AvailabilitySettingsType) => {
-        if (timeout) clearTimeout(timeout);
-        timeout = setTimeout(() => {
-          if (onChange) onChange(settings);
-        }, 1000);
+  // Save settings
+  const handleSaveSettings = async () => {
+    if (!settings || !currentBusiness?.id) return;
+    
+    try {
+      setSaving(true);
+      
+      // Update settings with current state values
+      const updatedSettings: AvailabilitySettingsType = {
+        ...settings,
+        minAdvanceHours: minAdvanceHours,
+        advanceBookingDays: advanceBookingDays,
+        bufferTimeMinutes: bufferTimeMinutes
       };
-    })(),
-    [onChange]
-  );
-
-  // When settings change, notify parent component
-  useEffect(() => {
-    if (!onChange || !initialSettings) return;
-    
-    const currentSettings: AvailabilitySettingsType = {
-      businessId: initialSettings.businessId,
-      activeScheduleId: activeScheduleId,
-      scheduleSets: scheduleSets,
-      specialDates: specialDates,
-      blockedDates: blockedDates,
-      bufferTimeMinutes: availabilityBuffer,
-      advanceBookingDays: advanceBookingLimit,
-      minAdvanceHours: initialSettings?.minAdvanceHours || 24
-    };
-    
-    debouncedNotifyChange(currentSettings);
-  }, [scheduleSets, activeScheduleId, specialDates, blockedDates, availabilityBuffer, advanceBookingLimit, initialSettings, debouncedNotifyChange]);
-
-  const notifyChange = () => {
-    if (!onChange || !initialSettings) return;
-    
-    const currentSettings: AvailabilitySettingsType = {
-      businessId: initialSettings.businessId,
-      activeScheduleId: activeScheduleId,
-      scheduleSets: JSON.parse(JSON.stringify(scheduleSets)),
-      specialDates: [...specialDates],
-      blockedDates: [...blockedDates],
-      bufferTimeMinutes: availabilityBuffer,
-      advanceBookingDays: advanceBookingLimit,
-      minAdvanceHours: initialSettings?.minAdvanceHours || 24
-    };
-    
-    onChange(currentSettings);
+      
+      // Save to database
+      const success = await saveAvailabilitySettings(updatedSettings);
+      
+      if (success) {
+        toast.success("Paramètres enregistrés avec succès");
+        setUnsavedChanges(false);
+      } else {
+        toast.error("Erreur lors de l'enregistrement des paramètres");
+      }
+    } catch (error) {
+      console.error("Failed to save availability settings:", error);
+      toast.error("Erreur lors de l'enregistrement des paramètres");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const getActiveSchedule = (): ScheduleSet | undefined => {
-    return scheduleSets.find(s => s.id === activeScheduleId);
+  // Function to handle input changes
+  const handleInputChange = (field: 'minAdvanceHours' | 'advanceBookingDays' | 'bufferTimeMinutes', value: string) => {
+    const numValue = parseInt(value, 10);
+    
+    if (isNaN(numValue)) return;
+    
+    switch (field) {
+      case 'minAdvanceHours':
+        setMinAdvanceHours(numValue);
+        break;
+      case 'advanceBookingDays':
+        setAdvanceBookingDays(numValue);
+        break;
+      case 'bufferTimeMinutes':
+        setBufferTimeMinutes(numValue);
+        break;
+    }
+    
+    setUnsavedChanges(true);
   };
 
-  const handleToggleDay = (day: WeekDay, scheduleId?: number) => {
-    const targetScheduleId = scheduleId || activeScheduleId;
+  // Toggle day availability
+  const handleToggleDayAvailability = (day: string) => {
+    if (!settings) return;
     
-    setScheduleSets(prev => 
-      prev.map(schedule => {
-        if (schedule.id === targetScheduleId) {
-          const updatedSchedule = { ...schedule };
-          updatedSchedule.regularSchedule = { ...schedule.regularSchedule };
-          updatedSchedule.regularSchedule[day] = {
-            ...schedule.regularSchedule[day],
-            isActive: !schedule.regularSchedule[day].isActive
-          };
-          return updatedSchedule;
-        }
-        return schedule;
-      })
-    );
+    const updatedSettings = { ...settings };
+    const schedule = updatedSettings.scheduleSets.find(set => set.id === updatedSettings.activeScheduleId);
     
-    setTimeout(notifyChange, 300);
+    if (schedule) {
+      schedule.regularSchedule[day] = {
+        ...schedule.regularSchedule[day],
+        isActive: !schedule.regularSchedule[day].isActive
+      };
+      
+      setSettings(updatedSettings);
+      setUnsavedChanges(true);
+    }
   };
 
-  const handleAddTimeSlot = (day: WeekDay, scheduleId?: number) => {
-    const targetScheduleId = scheduleId || activeScheduleId;
+  // Add time slot to a day
+  const handleAddTimeSlot = (day: string) => {
+    if (!settings) return;
     
-    setScheduleSets(prev => 
-      prev.map(schedule => {
-        if (schedule.id === targetScheduleId) {
-          const updatedSchedule = { ...schedule };
-          updatedSchedule.regularSchedule = { ...schedule.regularSchedule };
-          updatedSchedule.regularSchedule[day] = {
-            ...schedule.regularSchedule[day],
-            timeSlots: [
-              ...schedule.regularSchedule[day].timeSlots,
-              { start: "09:00", end: "17:00" }
-            ]
-          };
-          return updatedSchedule;
-        }
-        return schedule;
-      })
-    );
+    const updatedSettings = { ...settings };
+    const schedule = updatedSettings.scheduleSets.find(set => set.id === updatedSettings.activeScheduleId);
     
-    setTimeout(notifyChange, 300);
+    if (schedule) {
+      schedule.regularSchedule[day] = {
+        ...schedule.regularSchedule[day],
+        timeSlots: [
+          ...schedule.regularSchedule[day].timeSlots,
+          createTimeSlot("09:00", "17:00")
+        ]
+      };
+      
+      setSettings(updatedSettings);
+      setUnsavedChanges(true);
+    }
   };
 
-  const handleRemoveTimeSlot = (day: WeekDay, index: number, scheduleId?: number) => {
-    const targetScheduleId = scheduleId || activeScheduleId;
+  // Remove time slot from a day
+  const handleRemoveTimeSlot = (day: string, index: number) => {
+    if (!settings) return;
     
-    setScheduleSets(prev => 
-      prev.map(schedule => {
-        if (schedule.id === targetScheduleId) {
-          const updatedSchedule = { ...schedule };
-          updatedSchedule.regularSchedule = { ...schedule.regularSchedule };
-          updatedSchedule.regularSchedule[day] = {
-            ...schedule.regularSchedule[day],
-            timeSlots: schedule.regularSchedule[day].timeSlots.filter((_, i) => i !== index)
-          };
-          return updatedSchedule;
-        }
-        return schedule;
-      })
-    );
+    const updatedSettings = { ...settings };
+    const schedule = updatedSettings.scheduleSets.find(set => set.id === updatedSettings.activeScheduleId);
     
-    setTimeout(notifyChange, 300);
+    if (schedule && schedule.regularSchedule[day].timeSlots.length > 1) {
+      const updatedSlots = [...schedule.regularSchedule[day].timeSlots];
+      updatedSlots.splice(index, 1);
+      
+      schedule.regularSchedule[day] = {
+        ...schedule.regularSchedule[day],
+        timeSlots: updatedSlots
+      };
+      
+      setSettings(updatedSettings);
+      setUnsavedChanges(true);
+    }
   };
 
-  const handleTimeChange = (day: WeekDay, index: number, field: "start" | "end", value: string, scheduleId?: number) => {
-    const targetScheduleId = scheduleId || activeScheduleId;
+  // Update time slot
+  const handleUpdateTimeSlot = (day: string, index: number, field: 'startTime' | 'endTime', value: string) => {
+    if (!settings) return;
     
-    setScheduleSets(prev => 
-      prev.map(schedule => {
-        if (schedule.id === targetScheduleId) {
-          const updatedSchedule = { ...schedule };
-          updatedSchedule.regularSchedule = { ...schedule.regularSchedule };
-          const updatedTimeSlots = [...schedule.regularSchedule[day].timeSlots];
-          updatedTimeSlots[index] = { ...updatedTimeSlots[index], [field]: value };
-          
-          updatedSchedule.regularSchedule[day] = {
-            ...schedule.regularSchedule[day],
-            timeSlots: updatedTimeSlots
-          };
-          return updatedSchedule;
-        }
-        return schedule;
-      })
-    );
+    const updatedSettings = { ...settings };
+    const schedule = updatedSettings.scheduleSets.find(set => set.id === updatedSettings.activeScheduleId);
     
-    setTimeout(notifyChange, 300);
+    if (schedule) {
+      const updatedSlots = [...schedule.regularSchedule[day].timeSlots];
+      
+      if (field === 'startTime') {
+        updatedSlots[index] = {
+          ...updatedSlots[index],
+          startTime: value,
+          start: value
+        };
+      } else {
+        updatedSlots[index] = {
+          ...updatedSlots[index],
+          endTime: value,
+          end: value
+        };
+      }
+      
+      schedule.regularSchedule[day] = {
+        ...schedule.regularSchedule[day],
+        timeSlots: updatedSlots
+      };
+      
+      setSettings(updatedSettings);
+      setUnsavedChanges(true);
+    }
   };
 
-  const handleAddBlockedTime = () => {
-    if (!selectedDate) return;
+  // Add new time slot to the list
+  const handleAddNewTimeSlot = () => {
+    setNewTimeSlots(prev => [...prev, createTimeSlot("09:00", "17:00")]);
+  };
+
+  // Remove time slot from the list
+  const handleRemoveNewTimeSlot = (index: number) => {
+    if (newTimeSlots.length <= 1) return;
+    setNewTimeSlots(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Update new time slot field
+  const handleUpdateNewTimeSlot = (index: number, field: 'startTime' | 'endTime', value: string) => {
+    setNewTimeSlots(prev => {
+      const updated = [...prev];
+      if (field === 'startTime') {
+        updated[index] = {
+          ...updated[index],
+          startTime: value,
+          start: value
+        };
+      } else {
+        updated[index] = {
+          ...updated[index],
+          endTime: value,
+          end: value
+        };
+      }
+      return updated;
+    });
+  };
+
+  // Add multiple time slots to a day
+  const handleAddMultipleTimeSlots = () => {
+    if (!settings || !selectedDay) return;
+    
+    const updatedSettings = { ...settings };
+    const schedule = updatedSettings.scheduleSets.find(set => set.id === updatedSettings.activeScheduleId);
+    
+    if (schedule) {
+      schedule.regularSchedule[selectedDay] = {
+        ...schedule.regularSchedule[selectedDay],
+        timeSlots: [
+          ...schedule.regularSchedule[selectedDay].timeSlots,
+          ...newTimeSlots.map(slot => createTimeSlot(slot.startTime, slot.endTime))
+        ]
+      };
+      
+      setSettings(updatedSettings);
+      setUnsavedChanges(true);
+      setShowAddTimeSlotDialog(false);
+      setNewTimeSlots([createTimeSlot("09:00", "17:00")]);
+    }
+  };
+
+  // Open add time slots dialog
+  const openAddTimeSlotsDialog = (day: string) => {
+    setSelectedDay(day);
+    setNewTimeSlots([createTimeSlot("09:00", "17:00")]);
+    setShowAddTimeSlotDialog(true);
+  };
+
+  // Add blocked date
+  const handleAddBlockedDate = (date: Date, fullDay: boolean = true, timeSlots: TimeSlot[] = []) => {
+    if (!settings) return;
+    
+    const dateString = date.toISOString().split('T')[0];
+    const updatedSettings = { ...settings };
+    
+    // Check if date is already blocked
+    const existingIndex = updatedSettings.blockedDates.findIndex(d => d.date === dateString);
     
     const newBlockedDate: BlockedTime = {
-      date: selectedDate.toISOString().split('T')[0],
-      fullDay: blockingFullDay,
-      timeSlots: blockingFullDay ? [] : JSON.parse(JSON.stringify(blockTimeSlots))
+      date: dateString,
+      fullDay: fullDay,
+      timeSlots: fullDay ? [] : timeSlots.map(slot => createTimeSlot(slot.startTime, slot.endTime))
     };
     
-    // Remove any existing blocked date for the same date
-    const filteredDates = blockedDates.filter(bd => bd.date !== newBlockedDate.date);
+    if (existingIndex >= 0) {
+      updatedSettings.blockedDates[existingIndex] = newBlockedDate;
+    } else {
+      updatedSettings.blockedDates.push(newBlockedDate);
+    }
     
-    setBlockedDates([...filteredDates, newBlockedDate]);
-    setBlockDateDialog(false);
-    toast.success("Date bloquée avec succès");
-    
-    setTimeout(notifyChange, 300);
+    setSettings(updatedSettings);
+    setUnsavedChanges(true);
   };
-  
-  const handleAddSpecialDate = () => {
-    if (!selectedDate) return;
+
+  // Add special date
+  const handleAddSpecialDate = (date: Date, isActive: boolean = true, timeSlots: TimeSlot[] = []) => {
+    if (!settings) return;
+    
+    const dateString = date.toISOString().split('T')[0];
+    const updatedSettings = { ...settings };
+    
+    // Check if date already has special hours
+    const existingIndex = updatedSettings.specialDates.findIndex(d => d.date === dateString);
     
     const newSpecialDate: SpecialDate = {
-      date: selectedDate.toISOString().split('T')[0],
-      scheduleId: specialDateScheduleId,
-      isActive: specialDateIsActive,
-      timeSlots: specialDateIsActive ? JSON.parse(JSON.stringify(specialDateTimeSlots)) : []
+      date: dateString,
+      isActive: isActive,
+      timeSlots: isActive ? timeSlots.map(slot => createTimeSlot(slot.startTime, slot.endTime)) : [],
+      scheduleId: updatedSettings.activeScheduleId
     };
     
-    // Remove any existing special date for the same date
-    const filteredDates = specialDates.filter(sd => sd.date !== newSpecialDate.date);
+    if (existingIndex >= 0) {
+      updatedSettings.specialDates[existingIndex] = newSpecialDate;
+    } else {
+      updatedSettings.specialDates.push(newSpecialDate);
+    }
     
-    setSpecialDates([...filteredDates, newSpecialDate]);
-    setSpecialDateDialog(false);
-    toast.success("Exception de date ajoutée avec succès");
-    
-    setTimeout(notifyChange, 300);
-  };
-  
-  const handleRemoveBlockedDate = (date: string) => {
-    setBlockedDates(prev => prev.filter(bd => bd.date !== date));
-    toast.success("Date débloquée");
-    
-    setTimeout(notifyChange, 300);
-  };
-  
-  const handleRemoveSpecialDate = (date: string) => {
-    setSpecialDates(prev => prev.filter(sd => sd.date !== date));
-    toast.success("Exception de date supprimée");
-    
-    setTimeout(notifyChange, 300);
-  };
-  
-  const handleChangeActiveSchedule = (id: number) => {
-    setActiveScheduleId(id);
-    toast.success("Jeu d'horaires actif modifié");
-    
-    setTimeout(notifyChange, 300);
+    setSettings(updatedSettings);
+    setUnsavedChanges(true);
   };
 
-  const handleBufferChange = (value: string) => {
-    setAvailabilityBuffer(Number(value));
-    setTimeout(notifyChange, 300);
-  };
-  
-  const handleAdvanceBookingChange = (value: string) => {
-    setAdvanceBookingLimit(Number(value));
-    setTimeout(notifyChange, 300);
-  };
-  
-  const handleBlockTimeSlotAdd = () => {
-    setBlockTimeSlots(prev => [...prev, { start: "09:00", end: "17:00" }]);
-  };
-  
-  const handleBlockTimeSlotRemove = (index: number) => {
-    setBlockTimeSlots(prev => prev.filter((_, i) => i !== index));
-  };
-  
-  const handleBlockTimeSlotChange = (index: number, field: "start" | "end", value: string) => {
-    setBlockTimeSlots(prev => 
-      prev.map((slot, i) => i === index ? { ...slot, [field]: value } : slot)
-    );
-  };
-  
-  const handleSpecialTimeSlotAdd = () => {
-    setSpecialDateTimeSlots(prev => [...prev, { start: "09:00", end: "17:00" }]);
-  };
-  
-  const handleSpecialTimeSlotRemove = (index: number) => {
-    setSpecialDateTimeSlots(prev => prev.filter((_, i) => i !== index));
-  };
-  
-  const handleSpecialTimeSlotChange = (index: number, field: "start" | "end", value: string) => {
-    setSpecialDateTimeSlots(prev => 
-      prev.map((slot, i) => i === index ? { ...slot, [field]: value } : slot)
-    );
-  };
-  
-  // Check if there are any dates with exceptions or blocks
-  const hasSpecialDay = (date: Date): boolean => {
-    const dateString = date.toISOString().split('T')[0];
-    return blockedDates.some(bd => bd.date === dateString) || 
-           specialDates.some(sd => sd.date === dateString);
-  };
-  
-  const activeSchedule = getActiveSchedule();
-  
-  // Reset blocking time slots when the blocking type changes
-  useEffect(() => {
-    if (blockingFullDay) {
-      setBlockTimeSlots([{ start: "09:00", end: "17:00" }]);
+  // Generate time options for select dropdowns
+  const generateTimeOptions = () => {
+    const options = [];
+    
+    for (let hour = 0; hour < 24; hour++) {
+      const formattedHour = hour.toString().padStart(2, '0');
+      options.push(`${formattedHour}:00`);
+      options.push(`${formattedHour}:30`);
     }
-  }, [blockingFullDay]);
-  
-  // Reset special date time slots when the special date active status changes
-  useEffect(() => {
-    if (!specialDateIsActive) {
-      setSpecialDateTimeSlots([{ start: "09:00", end: "17:00" }]);
-    }
-  }, [specialDateIsActive]);
-  
-  // When selected date changes, reset dialog values
-  useEffect(() => {
-    if (selectedDate) {
-      const dateString = selectedDate.toISOString().split('T')[0];
-      
-      // Check if date is already blocked
-      const existingBlock = blockedDates.find(bd => bd.date === dateString);
-      if (existingBlock) {
-        setBlockingFullDay(existingBlock.fullDay);
-        setBlockTimeSlots(existingBlock.fullDay ? [{ start: "09:00", end: "17:00" }] : [...existingBlock.timeSlots]);
-      } else {
-        setBlockingFullDay(true);
-        setBlockTimeSlots([{ start: "09:00", end: "17:00" }]);
-      }
-      
-      // Check if date has special schedule
-      const existingSpecial = specialDates.find(sd => sd.date === dateString);
-      if (existingSpecial) {
-        setSpecialDateScheduleId(existingSpecial.scheduleId);
-        setSpecialDateIsActive(existingSpecial.isActive);
-        setSpecialDateTimeSlots(existingSpecial.isActive ? [...existingSpecial.timeSlots] : [{ start: "09:00", end: "17:00" }]);
-      } else {
-        setSpecialDateScheduleId(activeScheduleId);
-        setSpecialDateIsActive(true);
-        setSpecialDateTimeSlots([{ start: "09:00", end: "17:00" }]);
-      }
-    }
-  }, [selectedDate, blockedDates, specialDates, activeScheduleId]);
+    
+    return options;
+  };
 
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!settings) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="text-center">
+            <p>Aucun paramètre de disponibilité trouvé.</p>
+            <Button 
+              onClick={fetchSettings} 
+              className="mt-2"
+            >
+              Rafraîchir
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const activeSchedule = settings.scheduleSets.find(set => set.id === settings.activeScheduleId);
+  
   return (
-    <div className="space-y-6">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 mb-6">
-          <TabsTrigger value="weekly" className="flex items-center gap-2">
-            <CalendarIcon className="h-4 w-4" />
-            <span>Horaires réguliers</span>
-          </TabsTrigger>
-          <TabsTrigger value="exceptions" className="flex items-center gap-2">
-            <CalendarX className="h-4 w-4" />
-            <span>Exceptions</span>
-          </TabsTrigger>
-          <TabsTrigger value="settings" className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            <span>Paramètres</span>
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Onglet des horaires hebdomadaires */}
-        <TabsContent value="weekly" className="space-y-6">
-          <Card>
-            <CardHeader className="space-y-1">
-              <CardTitle>Jeux d'horaires</CardTitle>
-              <CardDescription>
-                Définissez vos horaires hebdomadaires par défaut.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {scheduleSets.map((schedule) => (
-                  <Card key={schedule.id} className={`border ${schedule.id === activeScheduleId ? 'border-primary' : ''}`}>
-                    <CardHeader className="py-3">
-                      <div className="flex justify-between items-center">
-                        <CardTitle className="text-lg">{schedule.name}</CardTitle>
-                        {schedule.id === activeScheduleId && (
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                            Actif
-                          </span>
-                        )}
-                      </div>
-                      {schedule.id === activeScheduleId && (
-                        <CardDescription>Jeu d'horaires actif</CardDescription>
-                      )}
-                    </CardHeader>
-                    <CardContent>
-                      <Accordion type="single" collapsible defaultValue={`schedule-${schedule.id}`} className="w-full">
-                        <AccordionItem value={`schedule-${schedule.id}`}>
-                          <AccordionTrigger>Voir les horaires</AccordionTrigger>
-                          <AccordionContent>
-                            <div className="space-y-4 mt-4">
-                              {Object.entries(schedule.regularSchedule).map(([day, daySchedule]) => (
-                                <div key={day} className="border rounded-lg p-4">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                      <Switch
-                                        checked={daySchedule.isActive}
-                                        onCheckedChange={() => handleToggleDay(day as WeekDay, schedule.id)}
-                                      />
-                                      <Label className="font-medium">{dayLabels[day as WeekDay]}</Label>
-                                    </div>
-                                    {daySchedule.isActive && (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleAddTimeSlot(day as WeekDay, schedule.id)}
-                                      >
-                                        <Plus className="h-4 w-4 mr-1" /> Ajouter une plage
-                                      </Button>
-                                    )}
-                                  </div>
-                                  
-                                  {daySchedule.isActive && daySchedule.timeSlots.length > 0 && (
-                                    <div className="mt-3 space-y-3">
-                                      {daySchedule.timeSlots.map((slot, index) => (
-                                        <div key={index} className="flex items-center gap-3">
-                                          <Clock className="h-4 w-4 text-muted-foreground" />
-                                          <Select
-                                            value={slot.start}
-                                            onValueChange={(value) => handleTimeChange(day as WeekDay, index, "start", value, schedule.id)}
-                                          >
-                                            <SelectTrigger className="w-28">
-                                              <SelectValue>{slot.start}</SelectValue>
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {Array.from({ length: 24 }, (_, i) => {
-                                                const hour = i.toString().padStart(2, "0");
-                                                return [
-                                                  <SelectItem key={`${hour}:00`} value={`${hour}:00`}>{`${hour}:00`}</SelectItem>,
-                                                  <SelectItem key={`${hour}:30`} value={`${hour}:30`}>{`${hour}:30`}</SelectItem>
-                                                ];
-                                              }).flat()}
-                                            </SelectContent>
-                                          </Select>
-                                          <span>-</span>
-                                          <Select
-                                            value={slot.end}
-                                            onValueChange={(value) => handleTimeChange(day as WeekDay, index, "end", value, schedule.id)}
-                                          >
-                                            <SelectTrigger className="w-28">
-                                              <SelectValue>{slot.end}</SelectValue>
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              {Array.from({ length: 24 }, (_, i) => {
-                                                const hour = i.toString().padStart(2, "0");
-                                                return [
-                                                  <SelectItem key={`${hour}:00`} value={`${hour}:00`}>{`${hour}:00`}</SelectItem>,
-                                                  <SelectItem key={`${hour}:30`} value={`${hour}:30`}>{`${hour}:30`}</SelectItem>
-                                                ];
-                                              }).flat()}
-                                            </SelectContent>
-                                          </Select>
-                                          <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => handleRemoveTimeSlot(day as WeekDay, index, schedule.id)}
-                                          >
-                                            <X className="h-4 w-4 text-destructive" />
-                                          </Button>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                  
-                                  {daySchedule.isActive && daySchedule.timeSlots.length === 0 && (
-                                    <p className="mt-2 text-sm text-muted-foreground">
-                                      Aucune plage horaire définie pour ce jour.
-                                    </p>
-                                  )}
-                                  
-                                  {!daySchedule.isActive && (
-                                    <p className="mt-2 text-sm text-muted-foreground">
-                                      Ce jour n'est pas disponible pour les réservations.
-                                    </p>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    </CardContent>
-                  </Card>
-                ))}
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Paramètres de disponibilité</CardTitle>
+          <CardDescription>
+            Configurez vos préférences pour les réservations
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="min-advance-hours">Délai minimum avant réservation (heures)</Label>
+                <Input 
+                  id="min-advance-hours" 
+                  type="number"
+                  min="0"
+                  value={minAdvanceHours}
+                  onChange={(e) => handleInputChange('minAdvanceHours', e.target.value)}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Les clients doivent réserver au moins ce nombre d'heures à l'avance.
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Onglet des exceptions et jours bloqués */}
-        <TabsContent value="exceptions" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CalendarX className="h-5 w-5 text-muted-foreground" />
-                Gérer les exceptions
-              </CardTitle>
-              <CardDescription>
-                Bloquez des dates spécifiques ou définissez des horaires personnalisés pour certains jours.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col md:flex-row gap-6">
-                <div className="flex-1">
-                  <div className="rounded-md border">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      modifiers={{
-                        special: (date) => hasSpecialDay(date),
-                      }}
-                      modifiersClassNames={{
-                        special: "!font-bold !border !border-primary",
-                      }}
-                      className="rounded-md border"
-                    />
-                  </div>
-                  
-                  <div className="mt-4 flex flex-col sm:flex-row gap-4">
-                    <Dialog open={blockDateDialog} onOpenChange={setBlockDateDialog}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" className="flex-1">
-                          <CalendarX className="h-4 w-4 mr-2" />
-                          Bloquer une date
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Bloquer une date</DialogTitle>
-                          <DialogDescription>
-                            {selectedDate && (
-                              <span className="font-medium">
-                                {selectedDate.toLocaleDateString('fr-FR', {
-                                  weekday: 'long',
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric'
-                                })}
-                              </span>
-                            )}
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={blockingFullDay}
-                              onCheckedChange={setBlockingFullDay}
-                              id="full-day"
-                            />
-                            <Label htmlFor="full-day">Bloquer toute la journée</Label>
-                          </div>
-                          
-                          {!blockingFullDay && (
-                            <div className="space-y-4 mt-2">
-                              <Label>Plages horaires à bloquer</Label>
-                              {blockTimeSlots.map((slot, index) => (
-                                <div key={index} className="flex items-center gap-3">
-                                  <Clock className="h-4 w-4 text-muted-foreground" />
-                                  <Select
-                                    value={slot.start}
-                                    onValueChange={(value) => handleBlockTimeSlotChange(index, "start", value)}
-                                  >
-                                    <SelectTrigger className="w-28">
-                                      <SelectValue>{slot.start}</SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {Array.from({ length: 24 }, (_, i) => {
-                                        const hour = i.toString().padStart(2, "0");
-                                        return [
-                                          <SelectItem key={`${hour}:00`} value={`${hour}:00`}>{`${hour}:00`}</SelectItem>,
-                                          <SelectItem key={`${hour}:30`} value={`${hour}:30`}>{`${hour}:30`}</SelectItem>
-                                        ];
-                                      }).flat()}
-                                    </SelectContent>
-                                  </Select>
-                                  <span>-</span>
-                                  <Select
-                                    value={slot.end}
-                                    onValueChange={(value) => handleBlockTimeSlotChange(index, "end", value)}
-                                  >
-                                    <SelectTrigger className="w-28">
-                                      <SelectValue>{slot.end}</SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {Array.from({ length: 24 }, (_, i) => {
-                                        const hour = i.toString().padStart(2, "0");
-                                        return [
-                                          <SelectItem key={`${hour}:00`} value={`${hour}:00`}>{`${hour}:00`}</SelectItem>,
-                                          <SelectItem key={`${hour}:30`} value={`${hour}:30`}>{`${hour}:30`}</SelectItem>
-                                        ];
-                                      }).flat()}
-                                    </SelectContent>
-                                  </Select>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleBlockTimeSlotRemove(index)}
-                                    disabled={blockTimeSlots.length <= 1}
-                                  >
-                                    <X className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                </div>
-                              ))}
-                              
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleBlockTimeSlotAdd}
-                                className="mt-2"
-                              >
-                                <Plus className="h-4 w-4 mr-1" /> Ajouter une plage
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                        <DialogFooter>
-                          <Button variant="outline" onClick={() => setBlockDateDialog(false)}>Annuler</Button>
-                          <Button onClick={handleAddBlockedTime}>Confirmer</Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                    
-                    <Dialog open={specialDateDialog} onOpenChange={setSpecialDateDialog}>
-                      <DialogTrigger asChild>
-                        <Button variant="outline" className="flex-1">
-                          <CalendarIcon className="h-4 w-4 mr-2" />
-                          Horaires spéciaux
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                          <DialogTitle>Horaires spéciaux</DialogTitle>
-                          <DialogDescription>
-                            {selectedDate && (
-                              <span className="font-medium">
-                                {selectedDate.toLocaleDateString('fr-FR', {
-                                  weekday: 'long',
-                                  day: 'numeric',
-                                  month: 'long'
-                                })}
-                              </span>
-                            )}
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="grid gap-2">
-                            <Label htmlFor="schedule">Jeu d'horaires à utiliser</Label>
-                            <Select
-                              value={specialDateScheduleId.toString()}
-                              onValueChange={(value) => setSpecialDateScheduleId(parseInt(value))}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder="Sélectionner un jeu d'horaires" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {scheduleSets.map((schedule) => (
-                                  <SelectItem 
-                                    key={schedule.id} 
-                                    value={schedule.id.toString()}
-                                  >
-                                    {schedule.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={specialDateIsActive}
-                              onCheckedChange={setSpecialDateIsActive}
-                              id="day-active"
-                            />
-                            <Label htmlFor="day-active">Jour disponible pour les réservations</Label>
-                          </div>
-                          
-                          {specialDateIsActive && (
-                            <div className="space-y-4 mt-2">
-                              <Label>Plages horaires disponibles ce jour</Label>
-                              {specialDateTimeSlots.map((slot, index) => (
-                                <div key={index} className="flex items-center gap-3">
-                                  <Clock className="h-4 w-4 text-muted-foreground" />
-                                  <Select
-                                    value={slot.start}
-                                    onValueChange={(value) => handleSpecialTimeSlotChange(index, "start", value)}
-                                  >
-                                    <SelectTrigger className="w-28">
-                                      <SelectValue>{slot.start}</SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {Array.from({ length: 24 }, (_, i) => {
-                                        const hour = i.toString().padStart(2, "0");
-                                        return [
-                                          <SelectItem key={`${hour}:00`} value={`${hour}:00`}>{`${hour}:00`}</SelectItem>,
-                                          <SelectItem key={`${hour}:30`} value={`${hour}:30`}>{`${hour}:30`}</SelectItem>
-                                        ];
-                                      }).flat()}
-                                    </SelectContent>
-                                  </Select>
-                                  <span>-</span>
-                                  <Select
-                                    value={slot.end}
-                                    onValueChange={(value) => handleSpecialTimeSlotChange(index, "end", value)}
-                                  >
-                                    <SelectTrigger className="w-28">
-                                      <SelectValue>{slot.end}</SelectValue>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {Array.from({ length: 24 }, (_, i) => {
-                                        const hour = i.toString().padStart(2, "0");
-                                        return [
-                                          <SelectItem key={`${hour}:00`} value={`${hour}:00`}>{`${hour}:00`}</SelectItem>,
-                                          <SelectItem key={`${hour}:30`} value={`${hour}:30`}>{`${hour}:30`}</SelectItem>
-                                        ];
-                                      }).flat()}
-                                    </SelectContent>
-                                  </Select>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleSpecialTimeSlotRemove(index)}
-                                    disabled={specialDateTimeSlots.length <= 1}
-                                  >
-                                    <X className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                </div>
-                              ))}
-                              
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleSpecialTimeSlotAdd}
-                                className="mt-2"
-                              >
-                                <Plus className="h-4 w-4 mr-1" /> Ajouter une plage
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                        <DialogFooter>
-                          <Button variant="outline" onClick={() => setSpecialDateDialog(false)}>Annuler</Button>
-                          <Button onClick={handleAddSpecialDate}>Confirmer</Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
-                
-                <div className="flex-1 space-y-6">
-                  {/* Liste des dates bloquées */}
-                  <div>
-                    <h3 className="font-medium mb-2">Dates bloquées</h3>
-                    {blockedDates.length > 0 ? (
-                      <div className="space-y-2">
-                        {blockedDates.map((blockDate, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 border rounded-md">
-                            <div>
-                              <span className="font-medium">
-                                {new Date(blockDate.date).toLocaleDateString('fr-FR', {
-                                  weekday: 'long',
-                                  day: 'numeric',
-                                  month: 'long'
-                                })}
-                              </span>
-                              <div className="text-sm text-muted-foreground">
-                                {blockDate.fullDay ? (
-                                  "Journée entière"
-                                ) : (
-                                  <>
-                                    {blockDate.timeSlots.map((slot, i) => (
-                                      <div key={i}>
-                                        {slot.start} - {slot.end}
-                                      </div>
-                                    ))}
-                                  </>
-                                )}
-                              </div>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleRemoveBlockedDate(blockDate.date)}
-                            >
-                              <X className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Aucune date bloquée. Cliquez sur "Bloquer une date" pour en ajouter.
-                      </p>
-                    )}
-                  </div>
-                  
-                  {/* Liste des dates avec horaires spéciaux */}
-                  <div>
-                    <h3 className="font-medium mb-2">Dates avec horaires spéciaux</h3>
-                    {specialDates.length > 0 ? (
-                      <div className="space-y-2">
-                        {specialDates.map((specialDate, index) => {
-                          const schedule = scheduleSets.find(s => s.id === specialDate.scheduleId);
-                          return (
-                            <div key={index} className="flex items-center justify-between p-2 border rounded-md">
-                              <div>
-                                <span className="font-medium">
-                                  {new Date(specialDate.date).toLocaleDateString('fr-FR', {
-                                    weekday: 'long',
-                                    day: 'numeric',
-                                    month: 'long'
-                                  })}
-                                </span>
-                                <div className="text-sm text-muted-foreground">
-                                  {schedule ? `Jeu d'horaires: ${schedule.name}` : 'Jeu inconnu'}
-                                  <div>
-                                    {specialDate.isActive ? (
-                                      <>
-                                        {specialDate.timeSlots.map((slot, i) => (
-                                          <div key={i}>
-                                            {slot.start} - {slot.end}
-                                          </div>
-                                        ))}
-                                      </>
-                                    ) : (
-                                      "Jour non disponible"
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleRemoveSpecialDate(specialDate.date)}
-                              >
-                                <X className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Aucune date avec horaires spéciaux. Cliquez sur "Horaires spéciaux" pour en ajouter.
-                      </p>
-                    )}
-                  </div>
-                </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="advance-booking-days">Période de réservation (jours)</Label>
+                <Input 
+                  id="advance-booking-days" 
+                  type="number"
+                  min="1"
+                  value={advanceBookingDays}
+                  onChange={(e) => handleInputChange('advanceBookingDays', e.target.value)}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Les clients peuvent réserver jusqu'à ce nombre de jours à l'avance.
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Onglet des paramètres avancés */}
-        <TabsContent value="settings" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Paramètres avancés</CardTitle>
-              <CardDescription>
-                Configurez les paramètres généraux de disponibilité et de réservation.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-8">
-                <div className="flex flex-col md:flex-row gap-6">
-                  <div className="w-full md:w-1/2">
-                    <Label htmlFor="buffer">Tampon entre rendez-vous</Label>
-                    <Select 
-                      value={availabilityBuffer.toString()} 
-                      onValueChange={handleBufferChange}
-                    >
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Sélectionnez un temps" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="0">Aucun tampon</SelectItem>
-                        <SelectItem value="5">5 minutes</SelectItem>
-                        <SelectItem value="10">10 minutes</SelectItem>
-                        <SelectItem value="15">15 minutes</SelectItem>
-                        <SelectItem value="30">30 minutes</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Temps minimum entre deux réservations
-                    </p>
-                  </div>
-                  
-                  <div className="w-full md:w-1/2">
-                    <Label htmlFor="advanceLimit">Réservation à l'avance</Label>
-                    <Select 
-                      value={advanceBookingLimit.toString()} 
-                      onValueChange={handleAdvanceBookingChange}
-                    >
-                      <SelectTrigger className="mt-2">
-                        <SelectValue placeholder="Sélectionnez une limite" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="7">1 semaine</SelectItem>
-                        <SelectItem value="14">2 semaines</SelectItem>
-                        <SelectItem value="30">1 mois</SelectItem>
-                        <SelectItem value="60">2 mois</SelectItem>
-                        <SelectItem value="90">3 mois</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Délai maximum pour prendre rendez-vous à l'avance
-                    </p>
-                  </div>
-                </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="buffer-time">Temps tampon entre rendez-vous (minutes)</Label>
+                <Input 
+                  id="buffer-time" 
+                  type="number"
+                  min="0"
+                  step="5"
+                  value={bufferTimeMinutes}
+                  onChange={(e) => handleInputChange('bufferTimeMinutes', e.target.value)}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Temps entre deux rendez-vous pour la préparation.
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <div className="flex justify-end">
+        <Button 
+          onClick={handleSaveSettings}
+          disabled={!unsavedChanges || saving}
+        >
+          {saving ? "Enregistrement..." : "Enregistrer les modifications"}
+        </Button>
+      </div>
     </div>
   );
 };
