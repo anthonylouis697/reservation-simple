@@ -8,9 +8,9 @@ import { fr } from 'date-fns/locale';
 import { CheckCircle, Calendar, Clock, User, Mail, Phone, ArrowLeft } from 'lucide-react';
 
 export interface BookingConfirmationProps {
-  booking?: BookingResult;
+  booking?: BookingResult | null;
   customTexts: BookingCustomTexts;
-  primaryColor: string;
+  primaryColor?: string;
   getButtonStyle?: () => { className: string; style: { backgroundColor: string; borderColor: string } };
   confirmationMessage?: string;
   handleStartOver?: () => void;

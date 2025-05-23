@@ -10,7 +10,6 @@ import { toast } from 'sonner';
 import EmptyServicesState from './EmptyServicesState';
 import { getAvailableTimeSlots } from '@/services/booking/availabilityService';
 import { useButtonStyle } from '@/hooks/useButtonStyle';
-import BookingForm from './BookingForm';
 import BookingConfirmation from './BookingConfirmation';
 import { BookingResult } from '@/services/booking/types';
 
@@ -160,7 +159,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
             logo={logo}
             welcomeMessage={welcomeMessage}
           />
-          <EmptyServicesState />
+          <EmptyServicesState businessName={businessName ?? ""} />
         </div>
       </div>
     );
@@ -182,10 +181,9 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
         {isConfirmationStep ? (
           <BookingConfirmation 
             booking={booking}
-            service={selectedService}
-            date={selectedDate}
-            time={selectedTime}
+            primaryColor={primaryColor}
             customTexts={customTexts}
+            getButtonStyle={getButtonStyle}
           />
         ) : (
           <>
@@ -194,8 +192,6 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
               <StepNavigation 
                 steps={steps} 
                 currentStep={currentStep}
-                setCurrentStep={setCurrentStep}
-                isStepComplete={isCurrentStepComplete}
                 primaryColor={primaryColor}
               />
             </div>
@@ -217,7 +213,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
               customTexts={customTexts}
               businessId={businessId}
               getButtonStyle={getButtonStyle}
-              onBookingSuccess={handleBookingSuccess}
+              primaryColor={primaryColor}
             />
             
             {/* Navigation Buttons */}
@@ -227,7 +223,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
                 className="px-5 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
                 disabled={currentStep === 0}
               >
-                {customTexts.previousButtonText || "Précédent"}
+                {customTexts?.previousButtonText || "Précédent"}
               </button>
               
               <button
@@ -236,7 +232,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
                 style={getButtonStyle().style}
                 disabled={!isCurrentStepComplete()}
               >
-                {customTexts.nextButtonText || "Suivant"}
+                {customTexts?.nextButtonText || "Suivant"}
               </button>
             </div>
           </>

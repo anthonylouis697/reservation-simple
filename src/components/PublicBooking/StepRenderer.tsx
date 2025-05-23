@@ -31,7 +31,7 @@ interface StepRendererProps {
   availableTimes: string[];
   isLoadingTimes: boolean;
   customTexts: BookingCustomTexts;
-  getButtonStyle: () => { className: string; style: { backgroundColor: string; borderColor: string; borderRadius: string } };
+  getButtonStyle: () => { className: string; style: { backgroundColor: string; borderColor: string; borderRadius?: string } };
   primaryColor: string;
   businessId: string;
 }
@@ -56,7 +56,7 @@ const StepRenderer = ({
   },
   setClientInfo = () => {},
   customTexts = defaultCustomTexts,
-  getButtonStyle = () => ({ className: "", style: { backgroundColor: "", borderColor: "", borderRadius: "" } }),
+  getButtonStyle = () => ({ className: "", style: { backgroundColor: "", borderColor: "" } }),
   primaryColor = "#9b87f5",
   businessId = ""
 }: StepRendererProps) => {

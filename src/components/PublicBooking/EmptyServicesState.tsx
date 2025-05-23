@@ -7,7 +7,7 @@ interface EmptyServicesStateProps {
 
 const EmptyServicesState = ({ businessName }: EmptyServicesStateProps) => {
   return (
-    <div className="min-h-screen bg-gray-50 py-10">
+    <div className="py-10">
       <div className="max-w-3xl mx-auto px-4">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-2">{businessName}</h1>

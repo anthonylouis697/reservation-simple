@@ -7,31 +7,12 @@ interface StepNavigationProps {
   steps: BookingStep[];
   currentStep: number;
   primaryColor: string;
-  handlePrevStep?: () => void;
-  handleNextStep?: () => void;
-  isBooking?: boolean;
-  getButtonStyle?: () => { 
-    className?: string; 
-    style?: { backgroundColor?: string; borderColor?: string } 
-  };
-  getCurrentStepIcon?: () => React.ReactNode;
-  getStepLabel?: (index: number) => string;
-  bookingButtonText?: string;
-  activeStepsLength?: number;
 }
 
 const StepNavigation = ({
   steps = [],
   currentStep = 0,
-  primaryColor,
-  handlePrevStep,
-  handleNextStep,
-  isBooking = false,
-  getButtonStyle,
-  getCurrentStepIcon,
-  getStepLabel,
-  bookingButtonText = "Réserver",
-  activeStepsLength
+  primaryColor
 }: StepNavigationProps) => {
   // Get the correct icon for the current step
   const getIconForStep = (step: BookingStep) => {
