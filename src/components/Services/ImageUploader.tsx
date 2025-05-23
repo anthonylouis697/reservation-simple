@@ -15,9 +15,9 @@ export const ImageUploader = ({ imageUrl, onImageChange }: ImageUploaderProps) =
 
   const handleFileChange = (file: File) => {
     if (file && file.type.startsWith('image/')) {
-      // Simuler l'upload - en production, vous utiliseriez Supabase Storage
-      const mockUrl = `https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=300&h=200&fit=crop`;
-      onImageChange(mockUrl);
+      // Créer une URL temporaire pour l'image
+      const url = URL.createObjectURL(file);
+      onImageChange(url);
     }
   };
 
