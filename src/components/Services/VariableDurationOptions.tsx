@@ -22,28 +22,45 @@ export const VariableDurationOptions = ({
   defaultPrice,
   onChange,
 }: VariableDurationOptionsProps) => {
-  const [showOptions, setShowOptions] = useState(options.length > 0);
+  console.log("VariableDurationOptions: Component rendering", { options, defaultDuration, defaultPrice });
+  
+  const [showOptions, setShowOptions] = useState(() => {
+    const show = options && options.length > 0;
+    console.log("VariableDurationOptions: Initial showOptions", show);
+    return show;
+  });
 
   const addOption = () => {
+    console.log("VariableDurationOptions: Adding option", { currentOptions: options });
+    const optionsArray = options || [];
     const newOption: VariableDurationOption = {
       id: generateId(),
-      name: `Option ${options.length + 1}`,
+      name: `Option ${optionsArray.length + 1}`,
       duration: defaultDuration,
       price: defaultPrice,
     };
-    onChange([...options, newOption]);
+    console.log("VariableDurationOptions: New option created", newOption);
+    const newOptions = [...optionsArray, newOption];
+    console.log("VariableDurationOptions: New options array", newOptions);
+    onChange(newOptions);
     setShowOptions(true);
   };
 
   const updateOption = (id: string, field: keyof VariableDurationOption, value: string | number) => {
-    const updatedOptions = options.map(option =>
+    console.log("VariableDurationOptions: Updating option", { id, field, value });
+    const optionsArray = options || [];
+    const updatedOptions = optionsArray.map(option =>
       option.id === id ? { ...option, [field]: value } : option
     );
+    console.log("VariableDurationOptions: Updated options", updatedOptions);
     onChange(updatedOptions);
   };
 
   const removeOption = (id: string) => {
-    const updatedOptions = options.filter(option => option.id !== id);
+    console.log("VariableDurationOptions: Removing option", { id, currentOptions: options });
+    const optionsArray = options || [];
+    const updatedOptions = optionsArray.filter(option => option.id !== id);
+    console.log("VariableDurationOptions: After removal", updatedOptions);
     onChange(updatedOptions);
     if (updatedOptions.length === 0) {
       setShowOptions(false);
@@ -51,12 +68,16 @@ export const VariableDurationOptions = ({
   };
 
   const toggleOptions = () => {
-    if (!showOptions && options.length === 0) {
+    console.log("VariableDurationOptions: Toggling options", { showOptions, optionsLength: options?.length });
+    if (!showOptions && (!options || options.length === 0)) {
       addOption();
     } else {
       setShowOptions(!showOptions);
     }
   };
+
+  const safeOptions = options || [];
+  console.log("VariableDurationOptions: Safe options", safeOptions);
 
   return (
     <div className="space-y-4">
@@ -74,7 +95,7 @@ export const VariableDurationOptions = ({
 
       {showOptions && (
         <div className="space-y-3">
-          {options.map((option, index) => (
+          {safeOptions.map((option, index) => (
             <Card key={option.id}>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center justify-between">

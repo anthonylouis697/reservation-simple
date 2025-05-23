@@ -40,19 +40,25 @@ interface ServiceFormProps {
 const generateId = () => Math.random().toString(36).substring(2, 11);
 
 export const ServiceForm = ({ initialData, categories, onSubmit, onCancel }: ServiceFormProps) => {
-  const [formData, setFormData] = useState<Service>({
-    id: initialData?.id || "",
-    name: initialData?.name || "",
-    description: initialData?.description || "",
-    duration: initialData?.duration || 30,
-    price: initialData?.price || 0,
-    capacity: initialData?.capacity || 1,
-    categoryId: initialData?.categoryId,
-    bufferTimeBefore: initialData?.bufferTimeBefore || 0,
-    bufferTimeAfter: initialData?.bufferTimeAfter || 0,
-    isActive: initialData?.isActive ?? true,
-    variableDurationOptions: initialData?.variableDurationOptions || [],
-    imageUrl: initialData?.imageUrl,
+  console.log("ServiceForm: Component rendering", { initialData, categories });
+  
+  const [formData, setFormData] = useState<Service>(() => {
+    const defaultData = {
+      id: initialData?.id || "",
+      name: initialData?.name || "",
+      description: initialData?.description || "",
+      duration: initialData?.duration || 30,
+      price: initialData?.price || 0,
+      capacity: initialData?.capacity || 1,
+      categoryId: initialData?.categoryId,
+      bufferTimeBefore: initialData?.bufferTimeBefore || 0,
+      bufferTimeAfter: initialData?.bufferTimeAfter || 0,
+      isActive: initialData?.isActive ?? true,
+      variableDurationOptions: initialData?.variableDurationOptions || [],
+      imageUrl: initialData?.imageUrl,
+    };
+    console.log("ServiceForm: Initial form data", defaultData);
+    return defaultData;
   });
 
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
@@ -60,7 +66,9 @@ export const ServiceForm = ({ initialData, categories, onSubmit, onCancel }: Ser
 
   // Déterminer si le service a des options variables
   useEffect(() => {
+    console.log("ServiceForm: useEffect for variable options", formData.variableDurationOptions);
     const options = formData.variableDurationOptions || [];
+    console.log("ServiceForm: Options array", options, "Length:", options.length);
     setHasVariableOptions(options.length > 0);
   }, [formData.variableDurationOptions]);
 
@@ -68,6 +76,7 @@ export const ServiceForm = ({ initialData, categories, onSubmit, onCancel }: Ser
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target;
+    console.log("ServiceForm: handleChange", { name, value, type });
     
     setFormData({
       ...formData,
@@ -76,6 +85,7 @@ export const ServiceForm = ({ initialData, categories, onSubmit, onCancel }: Ser
   };
 
   const handleSwitchChange = (name: string) => (checked: boolean) => {
+    console.log("ServiceForm: handleSwitchChange", { name, checked });
     setFormData({
       ...formData,
       [name]: checked,
@@ -83,6 +93,7 @@ export const ServiceForm = ({ initialData, categories, onSubmit, onCancel }: Ser
   };
 
   const handleSelectChange = (name: string) => (value: string) => {
+    console.log("ServiceForm: handleSelectChange", { name, value });
     setFormData({
       ...formData,
       [name]: value === "none" && name === "categoryId" ? undefined : value,
@@ -90,6 +101,7 @@ export const ServiceForm = ({ initialData, categories, onSubmit, onCancel }: Ser
   };
 
   const handleImageChange = (imageUrl: string | undefined) => {
+    console.log("ServiceForm: handleImageChange", { imageUrl });
     setFormData({
       ...formData,
       imageUrl,
@@ -97,6 +109,7 @@ export const ServiceForm = ({ initialData, categories, onSubmit, onCancel }: Ser
   };
 
   const handleVariableOptionsChange = (options: VariableDurationOption[]) => {
+    console.log("ServiceForm: handleVariableOptionsChange", options);
     setFormData({
       ...formData,
       variableDurationOptions: options,
@@ -106,6 +119,7 @@ export const ServiceForm = ({ initialData, categories, onSubmit, onCancel }: Ser
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("ServiceForm: handleSubmit", formData);
     
     // Générer un ID si ce n'est pas un service existant
     const serviceData = {
@@ -114,11 +128,14 @@ export const ServiceForm = ({ initialData, categories, onSubmit, onCancel }: Ser
       variableDurationOptions: formData.variableDurationOptions || []
     };
     
+    console.log("ServiceForm: Final service data", serviceData);
     onSubmit(serviceData);
   };
 
   const organizeCategories = () => {
+    console.log("ServiceForm: organizeCategories", categories);
     const activeCategories = categories?.filter(cat => cat.isActive) || [];
+    console.log("ServiceForm: Active categories", activeCategories);
     
     return (
       <>
