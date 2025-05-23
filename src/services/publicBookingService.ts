@@ -56,7 +56,15 @@ export const getPublicServices = async (businessId: string): Promise<Service[]> 
       duration: service.duration || 60,
       categoryId: service.category_id || null,
       position: service.position || 0,
-      isActive: service.is_active !== false
+      isActive: service.is_active !== false,
+      // Add missing required properties from Service type
+      location: '',
+      capacity: 1,
+      category: null,
+      bufferTimeBefore: 0,
+      bufferTimeAfter: 0,
+      notes: '',
+      color: '#000000'
     }));
   } catch (error) {
     console.error("Erreur lors de la récupération des services:", error);
@@ -89,6 +97,7 @@ export const getPublicCategories = async (businessId: string): Promise<Category[
       name: category.name,
       description: category.description || '',
       position: category.position || 0,
+      isActive: true // Add the required isActive property
     }));
   } catch (error) {
     console.error("Erreur lors de la récupération des catégories:", error);

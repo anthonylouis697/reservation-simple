@@ -2,6 +2,220 @@
 import { supabase } from '@/integrations/supabase/client';
 import { format, parse, addMinutes, isWithinInterval, isBefore, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { Json } from '@/integrations/supabase/types';
+
+// Type definitions
+export interface TimeSlot {
+  startTime: string;
+  endTime: string;
+}
+
+export interface DaySchedule {
+  isActive: boolean;
+  timeSlots: TimeSlot[];
+}
+
+export interface RegularSchedule {
+  lundi: DaySchedule;
+  mardi: DaySchedule;
+  mercredi: DaySchedule;
+  jeudi: DaySchedule;
+  vendredi: DaySchedule;
+  samedi: DaySchedule;
+  dimanche: DaySchedule;
+  [key: string]: DaySchedule;
+}
+
+export interface BlockedTime {
+  date: string;
+  startTime?: string;
+  endTime?: string;
+  reason?: string;
+  fullDay: boolean;
+}
+
+export interface SpecialDate {
+  date: string;
+  isActive: boolean;
+  startTime: string;
+  endTime: string;
+  timeSlots?: TimeSlot[];
+}
+
+export interface ScheduleSet {
+  id: string;
+  name: string;
+  isDefault: boolean;
+  regularSchedule: RegularSchedule;
+}
+
+export interface AvailabilitySettings {
+  id: string;
+  businessId: string;
+  minAdvanceHours: number;
+  advanceBookingDays: number;
+  bufferTimeMinutes: number;
+  regularSchedule: RegularSchedule;
+  blockedDates: BlockedTime[];
+  specialDates: SpecialDate[];
+  scheduleSets: ScheduleSet[];
+  activeScheduleId: string;
+}
+
+// Helper function to get the day name
+export const getDayName = (date: Date): string => {
+  return format(date, 'EEEE', { locale: fr }).toLowerCase();
+};
+
+// Fetch availability settings
+export const getAvailabilitySettings = async (businessId: string): Promise<AvailabilitySettings> => {
+  try {
+    const { data, error } = await supabase
+      .from('availability_settings')
+      .select('*')
+      .eq('business_id', businessId)
+      .maybeSingle();
+      
+    if (error) {
+      console.error('Error fetching availability settings:', error);
+      throw error;
+    }
+    
+    if (!data) {
+      // Return default settings if none exist
+      return createDefaultAvailabilitySettings(businessId);
+    }
+    
+    // Transform the data from DB format to our app format
+    return {
+      id: data.id,
+      businessId: data.business_id,
+      minAdvanceHours: data.min_advance_hours || 24,
+      advanceBookingDays: data.advance_booking_days || 30,
+      bufferTimeMinutes: data.buffer_time_minutes || 15,
+      blockedDates: parseJsonArray(data.blocked_dates) as BlockedTime[],
+      specialDates: parseJsonArray(data.special_dates) as SpecialDate[],
+      regularSchedule: parseRegularSchedule(data.regular_schedule),
+      scheduleSets: [], // Not implemented yet
+      activeScheduleId: 'default'
+    };
+  } catch (error) {
+    console.error('Error in getAvailabilitySettings:', error);
+    // Return default settings on error
+    return createDefaultAvailabilitySettings(businessId);
+  }
+};
+
+// Save availability settings
+export const saveAvailabilitySettings = async (settings: AvailabilitySettings): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('availability_settings')
+      .upsert({
+        id: settings.id,
+        business_id: settings.businessId,
+        min_advance_hours: settings.minAdvanceHours,
+        advance_booking_days: settings.advanceBookingDays,
+        buffer_time_minutes: settings.bufferTimeMinutes,
+        blocked_dates: settings.blockedDates,
+        special_dates: settings.specialDates,
+        regular_schedule: settings.regularSchedule
+      })
+      .select();
+      
+    if (error) {
+      console.error('Error saving availability settings:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in saveAvailabilitySettings:', error);
+    return false;
+  }
+};
+
+// Create default availability settings
+const createDefaultAvailabilitySettings = (businessId: string): AvailabilitySettings => {
+  const defaultSchedule: RegularSchedule = {
+    lundi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+    mardi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+    mercredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+    jeudi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+    vendredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+    samedi: { isActive: false, timeSlots: [] },
+    dimanche: { isActive: false, timeSlots: [] }
+  };
+  
+  return {
+    id: 'new',
+    businessId,
+    minAdvanceHours: 24,
+    advanceBookingDays: 30,
+    bufferTimeMinutes: 15,
+    blockedDates: [],
+    specialDates: [],
+    regularSchedule: defaultSchedule,
+    scheduleSets: [{
+      id: 'default',
+      name: 'Default Schedule',
+      isDefault: true,
+      regularSchedule: defaultSchedule
+    }],
+    activeScheduleId: 'default'
+  };
+};
+
+// Helper to safely parse JSON arrays
+const parseJsonArray = (jsonData: Json | null): any[] => {
+  if (!jsonData) return [];
+  
+  try {
+    if (Array.isArray(jsonData)) {
+      return jsonData;
+    }
+    if (typeof jsonData === 'string') {
+      return JSON.parse(jsonData);
+    }
+    return [];
+  } catch (e) {
+    console.error('Error parsing JSON array:', e);
+    return [];
+  }
+};
+
+// Parse regular schedule from database format
+const parseRegularSchedule = (scheduleData: Json | null): RegularSchedule => {
+  if (!scheduleData) {
+    return createDefaultSchedule();
+  }
+  
+  try {
+    if (typeof scheduleData === 'string') {
+      return JSON.parse(scheduleData) as RegularSchedule;
+    }
+    if (typeof scheduleData === 'object' && scheduleData !== null) {
+      return scheduleData as RegularSchedule;
+    }
+    return createDefaultSchedule();
+  } catch (e) {
+    console.error('Error parsing regular schedule:', e);
+    return createDefaultSchedule();
+  }
+};
+
+// Create default schedule
+const createDefaultSchedule = (): RegularSchedule => {
+  return {
+    lundi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+    mardi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+    mercredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+    jeudi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+    vendredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00' }] },
+    samedi: { isActive: false, timeSlots: [] },
+    dimanche: { isActive: false, timeSlots: [] }
+  };
+};
 
 // Vérifie si un créneau est disponible
 export const checkAvailability = async (
@@ -96,7 +310,10 @@ export const getAvailableTimeSlots = async (
         if (typeof blockedDate === 'string') {
           return blockedDate === dateStr;
         }
-        return blockedDate?.date === dateStr;
+        if (typeof blockedDate === 'object' && blockedDate !== null) {
+          return blockedDate.date === dateStr;
+        }
+        return false;
       });
       
       if (isBlocked) {
@@ -108,34 +325,55 @@ export const getAvailableTimeSlots = async (
         availabilitySettings.special_dates : [];
       
       const specialDate = specialDates.find((specialDate: any) => {
-        if (typeof specialDate === 'object') {
-          return specialDate?.date === dateStr;
+        if (typeof specialDate === 'object' && specialDate !== null) {
+          return specialDate.date === dateStr;
         }
         return false;
       });
       
-      if (specialDate) {
-        const slots = generateTimeSlots(
-          parseInt(specialDate.start_time?.split(':')[0] || '9'),
-          parseInt(specialDate.end_time?.split(':')[0] || '18'),
-          defaultInterval
-        );
+      if (specialDate && typeof specialDate === 'object' && specialDate !== null) {
+        let startTime = '09:00';
+        let endTime = '18:00';
+        
+        if (specialDate.start_time && typeof specialDate.start_time === 'string') {
+          startTime = specialDate.start_time;
+        }
+        
+        if (specialDate.end_time && typeof specialDate.end_time === 'string') {
+          endTime = specialDate.end_time;
+        }
+        
+        const startHour = parseInt(startTime.split(':')[0] || '9');
+        const endHour = parseInt(endTime.split(':')[0] || '18');
+        
+        const slots = generateTimeSlots(startHour, endHour, defaultInterval);
         return filterAvailableSlots(businessId, date, slots, duration);
       }
       
       // Utiliser l'horaire régulier pour le jour de la semaine
       const regularSchedule = availabilitySettings.regular_schedule || {};
-      const daySchedule = regularSchedule[dayOfWeek];
       
-      if (daySchedule && !daySchedule.is_closed) {
-        const startTime = daySchedule.start_time || '09:00';
-        const endTime = daySchedule.end_time || '18:00';
+      if (typeof regularSchedule === 'object' && regularSchedule !== null) {
+        const daySchedule = regularSchedule[dayOfWeek];
         
-        const startHour = parseInt(startTime.split(':')[0]);
-        const endHour = parseInt(endTime.split(':')[0]);
-        
-        const slots = generateTimeSlots(startHour, endHour, defaultInterval);
-        return filterAvailableSlots(businessId, date, slots, duration);
+        if (daySchedule && typeof daySchedule === 'object' && !daySchedule.is_closed) {
+          let startTime = '09:00';
+          let endTime = '18:00';
+          
+          if (daySchedule.start_time && typeof daySchedule.start_time === 'string') {
+            startTime = daySchedule.start_time;
+          }
+          
+          if (daySchedule.end_time && typeof daySchedule.end_time === 'string') {
+            endTime = daySchedule.end_time;
+          }
+          
+          const startHour = parseInt(startTime.split(':')[0]);
+          const endHour = parseInt(endTime.split(':')[0]);
+          
+          const slots = generateTimeSlots(startHour, endHour, defaultInterval);
+          return filterAvailableSlots(businessId, date, slots, duration);
+        }
       }
     }
     

@@ -13,7 +13,7 @@ interface DateSelectionProps {
   onSelectDate: (date: Date | undefined) => void;
   businessId: string;
   customTexts: BookingCustomTexts;
-  getButtonStyle: () => { className: string; style: { backgroundColor: string; borderColor: string } };
+  getButtonStyle: () => { className: string; style: { backgroundColor: string; borderColor: string; borderRadius: string; } };
 }
 
 // Export the component
