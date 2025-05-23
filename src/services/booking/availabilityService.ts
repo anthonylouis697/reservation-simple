@@ -9,8 +9,8 @@ export interface TimeSlot {
   startTime: string;
   endTime: string;
   // For backward compatibility with existing components using start/end
-  start?: string;
-  end?: string;
+  start: string;
+  end: string;
 }
 
 export interface DaySchedule {
@@ -19,6 +19,14 @@ export interface DaySchedule {
 }
 
 export interface RegularSchedule {
+  monday: DaySchedule;
+  tuesday: DaySchedule;
+  wednesday: DaySchedule;
+  thursday: DaySchedule;
+  friday: DaySchedule;
+  saturday: DaySchedule;
+  sunday: DaySchedule;
+  // Additional mappings for French day names
   lundi: DaySchedule;
   mardi: DaySchedule;
   mercredi: DaySchedule;
@@ -35,7 +43,7 @@ export interface BlockedTime {
   endTime?: string;
   reason?: string;
   fullDay: boolean;
-  timeSlots?: TimeSlot[]; // Added to support components using timeSlots
+  timeSlots: TimeSlot[]; // Use array of TimeSlot to be consistent
 }
 
 export interface SpecialDate {
@@ -44,7 +52,7 @@ export interface SpecialDate {
   startTime?: string;
   endTime?: string;
   timeSlots: TimeSlot[];
-  scheduleId?: string; // Added to support components using scheduleId
+  scheduleId: string; // Required to match component usage
 }
 
 export interface ScheduleSet {
@@ -70,6 +78,16 @@ export interface AvailabilitySettings {
 // Helper function to get the day name
 export const getDayName = (date: Date): string => {
   return format(date, 'EEEE', { locale: fr }).toLowerCase();
+};
+
+// Helper function to create a normalized TimeSlot
+export const createTimeSlot = (startTime: string, endTime: string): TimeSlot => {
+  return {
+    startTime,
+    endTime,
+    start: startTime,
+    end: endTime
+  };
 };
 
 // Fetch availability settings
@@ -98,39 +116,20 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
       minAdvanceHours: data.min_advance_hours || 24,
       advanceBookingDays: data.advance_booking_days || 30,
       bufferTimeMinutes: data.buffer_time_minutes || 15,
-      blockedDates: parseJsonArray(data.blocked_dates) as BlockedTime[],
-      specialDates: parseJsonArray(data.special_dates) as SpecialDate[],
+      blockedDates: parseJsonArray(data.blocked_dates).map(bd => normalizeBlockedDate(bd)),
+      specialDates: parseJsonArray(data.special_dates).map(sd => normalizeSpecialDate(sd)),
       regularSchedule: parseRegularSchedule(data.regular_schedule),
-      scheduleSets: [], // Not implemented yet
+      scheduleSets: [], // Will be set below
       activeScheduleId: 'default'
     };
     
-    // Ensure all time slots have both startTime/endTime and start/end properties for backward compatibility
+    // Setup schedule sets
     settings.scheduleSets = [{
       id: 'default',
       name: 'Default Schedule',
       isDefault: true,
       regularSchedule: settings.regularSchedule
     }];
-    
-    // Normalize time slots in blocked dates
-    settings.blockedDates.forEach(blockedDate => {
-      if (blockedDate.timeSlots) {
-        blockedDate.timeSlots = blockedDate.timeSlots.map(ts => normalizeTimeSlot(ts));
-      }
-    });
-    
-    // Normalize time slots in special dates
-    settings.specialDates.forEach(specialDate => {
-      if (specialDate.timeSlots) {
-        specialDate.timeSlots = specialDate.timeSlots.map(ts => normalizeTimeSlot(ts));
-      }
-    });
-    
-    // Normalize time slots in regular schedule
-    Object.keys(settings.regularSchedule).forEach(day => {
-      settings.regularSchedule[day].timeSlots = settings.regularSchedule[day].timeSlots.map(ts => normalizeTimeSlot(ts));
-    });
     
     return settings;
   } catch (error) {
@@ -140,18 +139,65 @@ export const getAvailabilitySettings = async (businessId: string): Promise<Avail
   }
 };
 
-// Helper function to normalize time slot properties
-const normalizeTimeSlot = (timeSlot: any): TimeSlot => {
-  const result: TimeSlot = {
-    startTime: timeSlot.startTime || timeSlot.start || '09:00',
-    endTime: timeSlot.endTime || timeSlot.end || '17:00',
+// Normalize a blocked date
+const normalizeBlockedDate = (blockedDate: any): BlockedTime => {
+  // Handle different property formats
+  const result: BlockedTime = {
+    date: blockedDate.date || '',
+    fullDay: blockedDate.fullDay !== false, // Default to true if not explicitly false
+    timeSlots: []
   };
   
-  // Add legacy properties for backward compatibility
-  result.start = result.startTime;
-  result.end = result.endTime;
+  // Handle timeSlots
+  if (blockedDate.timeSlots && Array.isArray(blockedDate.timeSlots)) {
+    result.timeSlots = blockedDate.timeSlots.map(normalizeTimeSlot);
+  } else {
+    result.timeSlots = [];
+  }
   
   return result;
+};
+
+// Normalize a special date
+const normalizeSpecialDate = (specialDate: any): SpecialDate => {
+  // Handle different property formats
+  const result: SpecialDate = {
+    date: specialDate.date || '',
+    isActive: specialDate.isActive !== false, // Default to true if not explicitly false
+    timeSlots: [],
+    scheduleId: specialDate.scheduleId || 'default'
+  };
+  
+  // Handle timeSlots
+  if (specialDate.timeSlots && Array.isArray(specialDate.timeSlots)) {
+    result.timeSlots = specialDate.timeSlots.map(normalizeTimeSlot);
+  } else {
+    result.timeSlots = [];
+  }
+  
+  return result;
+};
+
+// Helper function to normalize time slot properties
+export const normalizeTimeSlot = (timeSlot: any): TimeSlot => {
+  let startTime = '';
+  let endTime = '';
+  
+  // Handle both property naming conventions
+  if (typeof timeSlot === 'object' && timeSlot !== null) {
+    startTime = timeSlot.startTime || timeSlot.start || '09:00';
+    endTime = timeSlot.endTime || timeSlot.end || '17:00';
+  } else {
+    startTime = '09:00';
+    endTime = '17:00';
+  }
+  
+  return {
+    startTime: startTime,
+    endTime: endTime,
+    start: startTime,
+    end: endTime
+  };
 };
 
 // Save availability settings
@@ -185,12 +231,22 @@ export const saveAvailabilitySettings = async (settings: AvailabilitySettings): 
 
 // Create default availability settings
 const createDefaultAvailabilitySettings = (businessId: string): AvailabilitySettings => {
+  const defaultTimeSlot = createTimeSlot('09:00', '17:00');
+  
   const defaultSchedule: RegularSchedule = {
-    lundi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
-    mardi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
-    mercredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
-    jeudi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
-    vendredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
+    monday: { isActive: true, timeSlots: [defaultTimeSlot] },
+    tuesday: { isActive: true, timeSlots: [defaultTimeSlot] },
+    wednesday: { isActive: true, timeSlots: [defaultTimeSlot] },
+    thursday: { isActive: true, timeSlots: [defaultTimeSlot] },
+    friday: { isActive: true, timeSlots: [defaultTimeSlot] },
+    saturday: { isActive: false, timeSlots: [] },
+    sunday: { isActive: false, timeSlots: [] },
+    // Add French mappings
+    lundi: { isActive: true, timeSlots: [defaultTimeSlot] },
+    mardi: { isActive: true, timeSlots: [defaultTimeSlot] },
+    mercredi: { isActive: true, timeSlots: [defaultTimeSlot] },
+    jeudi: { isActive: true, timeSlots: [defaultTimeSlot] },
+    vendredi: { isActive: true, timeSlots: [defaultTimeSlot] },
     samedi: { isActive: false, timeSlots: [] },
     dimanche: { isActive: false, timeSlots: [] }
   };
@@ -248,11 +304,21 @@ const parseRegularSchedule = (scheduleData: Json | null): RegularSchedule => {
       return createDefaultSchedule();
     }
     
-    // Make sure all time slots have both startTime/endTime and start/end properties
-    Object.keys(schedule).forEach(day => {
-      if (schedule[day] && Array.isArray(schedule[day].timeSlots)) {
-        schedule[day].timeSlots = schedule[day].timeSlots.map(ts => normalizeTimeSlot(ts));
+    // Make sure all days have proper data structure
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday', 
+                 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+    
+    days.forEach(day => {
+      if (!schedule[day]) {
+        schedule[day] = { isActive: day.startsWith('s') ? false : true, timeSlots: [] };
       }
+      
+      if (!schedule[day].timeSlots) {
+        schedule[day].timeSlots = [];
+      }
+      
+      // Normalize all time slots
+      schedule[day].timeSlots = schedule[day].timeSlots.map(normalizeTimeSlot);
     });
     
     return schedule;
@@ -264,12 +330,22 @@ const parseRegularSchedule = (scheduleData: Json | null): RegularSchedule => {
 
 // Create default schedule
 const createDefaultSchedule = (): RegularSchedule => {
+  const defaultTimeSlot = createTimeSlot('09:00', '17:00');
+  
   return {
-    lundi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
-    mardi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
-    mercredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
-    jeudi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
-    vendredi: { isActive: true, timeSlots: [{ startTime: '09:00', endTime: '17:00', start: '09:00', end: '17:00' }] },
+    monday: { isActive: true, timeSlots: [defaultTimeSlot] },
+    tuesday: { isActive: true, timeSlots: [defaultTimeSlot] },
+    wednesday: { isActive: true, timeSlots: [defaultTimeSlot] },
+    thursday: { isActive: true, timeSlots: [defaultTimeSlot] },
+    friday: { isActive: true, timeSlots: [defaultTimeSlot] },
+    saturday: { isActive: false, timeSlots: [] },
+    sunday: { isActive: false, timeSlots: [] },
+    // Add French mappings
+    lundi: { isActive: true, timeSlots: [defaultTimeSlot] },
+    mardi: { isActive: true, timeSlots: [defaultTimeSlot] },
+    mercredi: { isActive: true, timeSlots: [defaultTimeSlot] },
+    jeudi: { isActive: true, timeSlots: [defaultTimeSlot] },
+    vendredi: { isActive: true, timeSlots: [defaultTimeSlot] },
     samedi: { isActive: false, timeSlots: [] },
     dimanche: { isActive: false, timeSlots: [] }
   };
@@ -338,100 +414,70 @@ export const getAvailableTimeSlots = async (
 ): Promise<string[]> => {
   try {
     // Récupération des paramètres de disponibilité
-    const { data: availabilitySettings, error: settingsError } = await supabase
-      .from('availability_settings')
-      .select('regular_schedule, blocked_dates, special_dates')
-      .eq('business_id', businessId)
-      .maybeSingle();
-    
-    if (settingsError) {
-      console.error('Erreur lors de la récupération des paramètres de disponibilité:', settingsError);
-      // Utiliser des valeurs par défaut en cas d'erreur
-      return generateTimeSlots(9, 18, 30);
-    }
+    const availabilitySettings = await getAvailabilitySettings(businessId);
     
     // Créneaux par défaut (9h à 18h)
-    let defaultStartHour = 9;
-    let defaultEndHour = 18;
-    let defaultInterval = 30; // minutes
+    const defaultStartHour = 9;
+    const defaultEndHour = 18;
+    const defaultInterval = 30; // minutes
     
     const dateStr = format(date, 'yyyy-MM-dd');
     const dayOfWeek = format(date, 'EEEE', { locale: fr }).toLowerCase();
     
-    // Si des paramètres de disponibilité existent
-    if (availabilitySettings) {
-      // Vérifier si la date est bloquée
-      const blockedDates = Array.isArray(availabilitySettings.blocked_dates) ? 
-        availabilitySettings.blocked_dates : [];
-      
-      const isBlocked = blockedDates.some((blockedDate: any) => {
-        if (typeof blockedDate === 'string') {
-          return blockedDate === dateStr;
-        }
-        if (typeof blockedDate === 'object' && blockedDate !== null) {
-          return blockedDate.date === dateStr;
-        }
-        return false;
-      });
-      
-      if (isBlocked) {
-        return []; // Aucun créneau disponible pour les dates bloquées
+    // Vérifier si la date est bloquée
+    const isBlocked = availabilitySettings.blockedDates.some(blockedDate => 
+      blockedDate.date === dateStr && blockedDate.fullDay
+    );
+    
+    if (isBlocked) {
+      return []; // Aucun créneau disponible pour les dates bloquées
+    }
+    
+    // Vérifier si la date a des horaires spéciaux
+    const specialDate = availabilitySettings.specialDates.find(sd => sd.date === dateStr);
+    
+    if (specialDate) {
+      if (!specialDate.isActive) {
+        return []; // Jour non disponible
       }
       
-      // Vérifier si la date a des horaires spéciaux
-      const specialDates = Array.isArray(availabilitySettings.special_dates) ? 
-        availabilitySettings.special_dates : [];
-      
-      const specialDate = specialDates.find((specialDate: any) => {
-        if (typeof specialDate === 'object' && specialDate !== null) {
-          return specialDate.date === dateStr;
-        }
-        return false;
-      });
-      
-      if (specialDate && typeof specialDate === 'object' && specialDate !== null) {
-        let startTime = '09:00';
-        let endTime = '18:00';
+      if (specialDate.timeSlots && specialDate.timeSlots.length > 0) {
+        // Générer des créneaux pour chaque plage horaire
+        let availableSlots: string[] = [];
         
-        if (specialDate.start_time && typeof specialDate.start_time === 'string') {
-          startTime = specialDate.start_time;
+        for (const slot of specialDate.timeSlots) {
+          const startHour = parseInt(slot.startTime.split(':')[0] || '9');
+          const endHour = parseInt(slot.endTime.split(':')[0] || '18');
+          
+          const slotsForRange = generateTimeSlots(startHour, endHour, defaultInterval);
+          availableSlots = [...availableSlots, ...slotsForRange];
         }
         
-        if (specialDate.end_time && typeof specialDate.end_time === 'string') {
-          endTime = specialDate.end_time;
-        }
-        
-        const startHour = parseInt(startTime.split(':')[0] || '9');
-        const endHour = parseInt(endTime.split(':')[0] || '18');
-        
-        const slots = generateTimeSlots(startHour, endHour, defaultInterval);
-        return filterAvailableSlots(businessId, date, slots, duration);
+        return filterAvailableSlots(businessId, date, availableSlots, duration);
+      }
+    }
+    
+    // Utiliser l'horaire régulier pour le jour de la semaine
+    const daySchedule = availabilitySettings.regularSchedule[dayOfWeek];
+    
+    if (daySchedule) {
+      if (!daySchedule.isActive) {
+        return []; // Jour non disponible
       }
       
-      // Utiliser l'horaire régulier pour le jour de la semaine
-      const regularSchedule = availabilitySettings.regular_schedule || {};
-      
-      if (typeof regularSchedule === 'object' && regularSchedule !== null) {
-        const daySchedule = regularSchedule[dayOfWeek];
+      if (daySchedule.timeSlots && daySchedule.timeSlots.length > 0) {
+        // Générer des créneaux pour chaque plage horaire
+        let availableSlots: string[] = [];
         
-        if (daySchedule && typeof daySchedule === 'object' && !daySchedule.is_closed) {
-          let startTime = '09:00';
-          let endTime = '18:00';
+        for (const slot of daySchedule.timeSlots) {
+          const startHour = parseInt(slot.startTime.split(':')[0] || '9');
+          const endHour = parseInt(slot.endTime.split(':')[0] || '18');
           
-          if (daySchedule.start_time && typeof daySchedule.start_time === 'string') {
-            startTime = daySchedule.start_time;
-          }
-          
-          if (daySchedule.end_time && typeof daySchedule.end_time === 'string') {
-            endTime = daySchedule.end_time;
-          }
-          
-          const startHour = parseInt(startTime.split(':')[0]);
-          const endHour = parseInt(endTime.split(':')[0]);
-          
-          const slots = generateTimeSlots(startHour, endHour, defaultInterval);
-          return filterAvailableSlots(businessId, date, slots, duration);
+          const slotsForRange = generateTimeSlots(startHour, endHour, defaultInterval);
+          availableSlots = [...availableSlots, ...slotsForRange];
         }
+        
+        return filterAvailableSlots(businessId, date, availableSlots, duration);
       }
     }
     

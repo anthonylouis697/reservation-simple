@@ -115,7 +115,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
       case 'time':
         return selectedTime !== null;
       case 'client_info':
-        return clientInfo.firstName && clientInfo.lastName && clientInfo.email;
+        return Boolean(clientInfo.firstName) && Boolean(clientInfo.lastName) && Boolean(clientInfo.email);
       default:
         return true;
     }

@@ -23,7 +23,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { AvailabilitySettings, SpecialDate, TimeSlot } from '@/services/booking/availabilityService';
+import { 
+  AvailabilitySettings, 
+  SpecialDate, 
+  TimeSlot, 
+  createTimeSlot 
+} from '@/services/booking/availabilityService';
 
 interface SpecialDatesProps {
   settings: AvailabilitySettings;
@@ -34,7 +39,7 @@ const SpecialDates: React.FC<SpecialDatesProps> = ({ settings, onSettingsChange 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [specialDateDialog, setSpecialDateDialog] = useState(false);
   const [specialDateIsActive, setSpecialDateIsActive] = useState(true);
-  const [specialDateTimeSlots, setSpecialDateTimeSlots] = useState<TimeSlot[]>([{ start: "09:00", end: "17:00" }]);
+  const [specialDateTimeSlots, setSpecialDateTimeSlots] = useState<TimeSlot[]>([createTimeSlot("09:00", "17:00")]);
   
   // Format date as YYYY-MM-DD
   const formatDate = (date: Date): string => {
@@ -83,7 +88,7 @@ const SpecialDates: React.FC<SpecialDatesProps> = ({ settings, onSettingsChange 
   };
   
   const handleSpecialTimeSlotAdd = () => {
-    setSpecialDateTimeSlots(prev => [...prev, { start: "09:00", end: "17:00" }]);
+    setSpecialDateTimeSlots(prev => [...prev, createTimeSlot("09:00", "17:00")]);
   };
   
   const handleSpecialTimeSlotRemove = (index: number) => {
@@ -93,7 +98,19 @@ const SpecialDates: React.FC<SpecialDatesProps> = ({ settings, onSettingsChange 
   const handleSpecialTimeSlotChange = (index: number, field: "start" | "end", value: string) => {
     setSpecialDateTimeSlots(prev => {
       const newSlots = [...prev];
-      newSlots[index] = { ...newSlots[index], [field]: value };
+      if (field === "start") {
+        newSlots[index] = {
+          ...newSlots[index],
+          start: value,
+          startTime: value
+        };
+      } else {
+        newSlots[index] = {
+          ...newSlots[index],
+          end: value,
+          endTime: value
+        };
+      }
       return newSlots;
     });
   };
@@ -106,13 +123,14 @@ const SpecialDates: React.FC<SpecialDatesProps> = ({ settings, onSettingsChange 
       
       if (existingSpecial) {
         setSpecialDateIsActive(existingSpecial.isActive);
-        setSpecialDateTimeSlots(existingSpecial.isActive && existingSpecial.timeSlots.length > 0 
-          ? [...existingSpecial.timeSlots] 
-          : [{ start: "09:00", end: "17:00" }]
-        );
+        if (existingSpecial.isActive && existingSpecial.timeSlots.length > 0) {
+          setSpecialDateTimeSlots([...existingSpecial.timeSlots]);
+        } else {
+          setSpecialDateTimeSlots([createTimeSlot("09:00", "17:00")]);
+        }
       } else {
         setSpecialDateIsActive(true);
-        setSpecialDateTimeSlots([{ start: "09:00", end: "17:00" }]);
+        setSpecialDateTimeSlots([createTimeSlot("09:00", "17:00")]);
       }
     }
   }, [selectedDate, settings.specialDates]);

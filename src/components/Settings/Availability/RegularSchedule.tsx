@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Clock, Plus, X } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AvailabilitySettings, TimeSlot } from '@/services/booking/availabilityService';
+import { AvailabilitySettings, TimeSlot, createTimeSlot } from '@/services/booking/availabilityService';
 
 type WeekDay = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday";
 
@@ -54,7 +54,7 @@ const RegularSchedule: React.FC<RegularScheduleProps> = ({ settings, onSettingsC
         ...schedule.regularSchedule[day],
         timeSlots: [
           ...schedule.regularSchedule[day].timeSlots,
-          { start: "09:00", end: "17:00" }
+          createTimeSlot("09:00", "17:00")
         ]
       };
       
@@ -82,10 +82,19 @@ const RegularSchedule: React.FC<RegularScheduleProps> = ({ settings, onSettingsC
     
     if (schedule) {
       const updatedTimeSlots = [...schedule.regularSchedule[day].timeSlots];
-      updatedTimeSlots[index] = { 
-        ...updatedTimeSlots[index], 
-        [field]: value 
-      };
+      if (field === "start") {
+        updatedTimeSlots[index] = { 
+          ...updatedTimeSlots[index], 
+          start: value,
+          startTime: value
+        };
+      } else {
+        updatedTimeSlots[index] = { 
+          ...updatedTimeSlots[index], 
+          end: value,
+          endTime: value
+        };
+      }
       
       schedule.regularSchedule[day] = {
         ...schedule.regularSchedule[day],

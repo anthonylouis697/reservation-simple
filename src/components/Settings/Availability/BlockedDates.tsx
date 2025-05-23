@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { AvailabilitySettings, BlockedTime, TimeSlot } from '@/services/booking/availabilityService';
+import { 
+  AvailabilitySettings, 
+  BlockedTime, 
+  TimeSlot, 
+  createTimeSlot, 
+  normalizeTimeSlot 
+} from '@/services/booking/availabilityService';
 import { toast } from 'sonner';
 import { Plus } from 'lucide-react';
 
@@ -35,7 +41,7 @@ const BlockedDates: React.FC<BlockedDatesProps> = ({ settings, onSettingsChange 
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [blockDateDialog, setBlockDateDialog] = useState(false);
   const [blockingFullDay, setBlockingFullDay] = useState(true);
-  const [blockTimeSlots, setBlockTimeSlots] = useState<TimeSlot[]>([{ start: "09:00", end: "17:00" }]);
+  const [blockTimeSlots, setBlockTimeSlots] = useState<TimeSlot[]>([createTimeSlot("09:00", "17:00")]);
   
   // Format date as YYYY-MM-DD
   const formatDate = (date: Date): string => {
@@ -55,7 +61,7 @@ const BlockedDates: React.FC<BlockedDatesProps> = ({ settings, onSettingsChange 
     const newBlockedDate: BlockedTime = {
       date: dateString,
       fullDay: blockingFullDay,
-      timeSlots: blockingFullDay ? [] : JSON.parse(JSON.stringify(blockTimeSlots))
+      timeSlots: blockingFullDay ? [] : [...blockTimeSlots]
     };
     
     // Remove any existing blocked date for the same date
@@ -83,7 +89,7 @@ const BlockedDates: React.FC<BlockedDatesProps> = ({ settings, onSettingsChange 
   };
   
   const handleBlockTimeSlotAdd = () => {
-    setBlockTimeSlots(prev => [...prev, { start: "09:00", end: "17:00" }]);
+    setBlockTimeSlots(prev => [...prev, createTimeSlot("09:00", "17:00")]);
   };
   
   const handleBlockTimeSlotRemove = (index: number) => {
@@ -93,23 +99,39 @@ const BlockedDates: React.FC<BlockedDatesProps> = ({ settings, onSettingsChange 
   const handleBlockTimeSlotChange = (index: number, field: "start" | "end", value: string) => {
     setBlockTimeSlots(prev => {
       const newSlots = [...prev];
-      newSlots[index] = { ...newSlots[index], [field]: value };
+      if (field === "start") {
+        newSlots[index] = {
+          ...newSlots[index],
+          start: value,
+          startTime: value
+        };
+      } else {
+        newSlots[index] = {
+          ...newSlots[index],
+          end: value,
+          endTime: value
+        };
+      }
       return newSlots;
     });
   };
   
   // When selected date changes, reset dialog values or load existing values
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedDate) {
       const dateString = formatDate(selectedDate);
       const existingBlock = settings.blockedDates.find(bd => bd.date === dateString);
       
       if (existingBlock) {
         setBlockingFullDay(existingBlock.fullDay);
-        setBlockTimeSlots(existingBlock.fullDay ? [{ start: "09:00", end: "17:00" }] : [...existingBlock.timeSlots]);
+        if (existingBlock.fullDay || !existingBlock.timeSlots || existingBlock.timeSlots.length === 0) {
+          setBlockTimeSlots([createTimeSlot("09:00", "17:00")]);
+        } else {
+          setBlockTimeSlots([...existingBlock.timeSlots]);
+        }
       } else {
         setBlockingFullDay(true);
-        setBlockTimeSlots([{ start: "09:00", end: "17:00" }]);
+        setBlockTimeSlots([createTimeSlot("09:00", "17:00")]);
       }
     }
   }, [selectedDate, settings.blockedDates]);

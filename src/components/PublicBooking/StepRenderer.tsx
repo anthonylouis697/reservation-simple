@@ -9,6 +9,7 @@ import TimeSelection from './TimeSelection';
 import ClientInfoForm from './ClientInfoForm';
 import BookingConfirmation from './BookingConfirmation';
 import { Steps } from '@/components/Visibility/BookingPage/types';
+import { CSSProperties } from 'react';
 
 interface StepRendererProps {
   currentStep: BookingStep;
