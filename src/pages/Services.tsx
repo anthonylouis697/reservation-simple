@@ -52,6 +52,7 @@ const initialServices: Service[] = [
     bufferTimeBefore: 5,
     bufferTimeAfter: 5,
     isActive: true,
+    variableDurationOptions: [],
   },
   {
     id: "2",
@@ -64,6 +65,7 @@ const initialServices: Service[] = [
     bufferTimeBefore: 10,
     bufferTimeAfter: 10,
     isActive: true,
+    variableDurationOptions: [],
   },
   {
     id: "3",
@@ -76,6 +78,7 @@ const initialServices: Service[] = [
     bufferTimeBefore: 15,
     bufferTimeAfter: 15,
     isActive: true,
+    variableDurationOptions: [],
   },
   {
     id: "4",
@@ -105,6 +108,7 @@ const initialServices: Service[] = [
     bufferTimeBefore: 5,
     bufferTimeAfter: 5,
     isActive: false,
+    variableDurationOptions: [],
   }
 ];
 
@@ -205,8 +209,7 @@ const OffersTab = ({
   const filteredServices = services.filter((service) =>
     service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     service.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    getCategoryNameById(service.categoryId).toLowerCase().includes(searchTerm.toLowerCase()) ||
-    service.category.toLowerCase().includes(searchTerm.toLowerCase())
+    getCategoryNameById(service.categoryId).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -232,6 +235,9 @@ const OffersTab = ({
             ? getCategoryColorById(service.categoryId) 
             : "";
           
+          // Vérification sécurisée pour variableDurationOptions
+          const hasVariableOptions = service.variableDurationOptions && service.variableDurationOptions.length > 0;
+          
           return (
             <Card 
               key={service.id}
@@ -248,11 +254,6 @@ const OffersTab = ({
                           Inactif
                         </Badge>
                       )}
-                      {service.isRecurring && (
-                        <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-                          Récurrent
-                        </Badge>
-                      )}
                     </div>
                     <div className="flex gap-1 flex-wrap">
                       {service.categoryId && (
@@ -266,12 +267,9 @@ const OffersTab = ({
                           {getCategoryNameById(service.categoryId)}
                         </Badge>
                       )}
-                      <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200 border-none">
-                        {service.category}
-                      </Badge>
                     </div>
                   </div>
-                  {!service.variableDurationOptions?.length && (
+                  {!hasVariableOptions && (
                     <div className="text-2xl font-semibold text-right">
                       {service.price} €
                     </div>
@@ -287,39 +285,20 @@ const OffersTab = ({
                 <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Clock className="h-3.5 w-3.5" />
-                    {!service.variableDurationOptions?.length ? (
+                    {!hasVariableOptions ? (
                       <span>{service.duration} min</span>
                     ) : (
                       <span>Variable</span>
                     )}
                   </div>
                   <div className="flex items-center gap-1">
-                    <MapPin className="h-3.5 w-3.5" />
-                    <span className="truncate">{service.location}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
                     <Users className="h-3.5 w-3.5" />
                     <span>Max: {service.capacity === 0 ? '∞' : service.capacity}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Tag className="h-3.5 w-3.5" />
-                    <span>{service.assignedEmployees.length} employé(s)</span>
-                  </div>
-                  {service.variableDurationOptions?.length ? (
+                  {hasVariableOptions && (
                     <div className="flex items-center gap-1 col-span-2">
                       <DollarSign className="h-3.5 w-3.5" />
                       <span>{service.variableDurationOptions.length} options de prix</span>
-                    </div>
-                  ) : null}
-                  {service.isRecurring && (
-                    <div className="flex items-center gap-1 col-span-2">
-                      <CalendarClock className="h-3.5 w-3.5" />
-                      <span>
-                        {service.recurringFrequency === 'daily' && 'Quotidien'}
-                        {service.recurringFrequency === 'weekly' && 'Hebdomadaire'}
-                        {service.recurringFrequency === 'monthly' && 'Mensuel'}
-                        {service.recurringFrequency === 'yearly' && 'Annuel'}
-                      </span>
                     </div>
                   )}
                 </div>
@@ -423,22 +402,19 @@ export default function Services() {
 
         if (servicesError) throw servicesError;
 
-        // Convertir les données Supabase en format de l'application
+        // Convertir les données Supabase en format de l'application avec vérifications sécurisées
         const formattedServices = servicesData.map(svc => ({
           id: svc.id,
           name: svc.name,
           description: svc.description || '',
-          duration: svc.duration || 60, // Make sure to include required Service properties
-          price: svc.price || 0, // Make sure to include required Service properties
+          duration: svc.duration || 60,
+          price: svc.price || 0,
           isActive: svc.is_active,
           categoryId: svc.category_id,
-          category: categoriesData.find(c => c.id === svc.category_id)?.name || 'Sans catégorie',
-          location: 'Cabinet principal', // Default value
           capacity: 1, // Default value
           bufferTimeBefore: 5, // Default value
           bufferTimeAfter: 5, // Default value
-          assignedEmployees: [], // Default value
-          isRecurring: false // Default value
+          variableDurationOptions: [] // Toujours initialiser comme un tableau vide
         }));
 
         setServices(formattedServices);
@@ -736,7 +712,7 @@ export default function Services() {
         // Mettre à jour les services localement
         setServices(prev => prev.map(service => 
           service.categoryId === categoryId 
-            ? { ...service, categoryId: undefined, category: 'Sans catégorie' } 
+            ? { ...service, categoryId: undefined } 
             : service
         ));
       }
