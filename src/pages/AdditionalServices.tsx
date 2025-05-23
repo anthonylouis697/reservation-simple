@@ -4,12 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Toggle } from "@/components/ui/toggle";
 import { Helmet } from "react-helmet";
-import { ArrowLeft, Heart, CalendarDays, Ticket, CreditCard, Users, Crown, Star, Zap, CheckCircle, Info, MessageCircle, Bell, MapPin, Camera, FileText, BarChart3, Gift, ShoppingCart, Calendar, Clock, Phone, Mail, Palette, Globe, Shield, Archive, Headphones, Smartphone, QrCode, Webhook, Bot, TrendingUp, UserCheck, Wifi, Package, DollarSign, Percent } from "lucide-react";
+import { ArrowLeft, Heart, CalendarDays, Ticket, CreditCard, Users, Crown, Star, Zap, CheckCircle, Info, MessageCircle, Bell, MapPin, Camera, FileText, BarChart3, Gift, ShoppingCart, Calendar, Clock, Phone, Mail, Palette, Globe, Shield, Archive, Headphones, Smartphone, QrCode, Webhook, Bot, TrendingUp, UserCheck, Wifi, Package, DollarSign, Percent, Filter, SortAsc, SortDesc, Grid2X2, List, Search, ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Types pour les modules
 interface AdditionalModule {
@@ -538,28 +542,66 @@ const modules: AdditionalModule[] = [
 ];
 
 const categories = [
-  { id: 'all', name: 'Tous les modules', count: modules.length },
-  { id: 'customer', name: 'Gestion Client', count: modules.filter(m => m.category === 'customer').length },
-  { id: 'events', name: 'Événements', count: modules.filter(m => m.category === 'events').length },
-  { id: 'payments', name: 'Paiements', count: modules.filter(m => m.category === 'payments').length },
-  { id: 'communication', name: 'Communication', count: modules.filter(m => m.category === 'communication').length },
-  { id: 'marketing', name: 'Marketing', count: modules.filter(m => m.category === 'marketing').length },
-  { id: 'automation', name: 'Automatisation', count: modules.filter(m => m.category === 'automation').length },
-  { id: 'analytics', name: 'Analytics', count: modules.filter(m => m.category === 'analytics').length },
-  { id: 'integrations', name: 'Intégrations', count: modules.filter(m => m.category === 'integrations').length }
+  { id: 'customer', name: 'Clients', icon: <Users className="h-4 w-4" />, color: 'bg-blue-100 text-blue-800 border-blue-300' },
+  { id: 'events', name: 'Événements', icon: <CalendarDays className="h-4 w-4" />, color: 'bg-green-100 text-green-800 border-green-300' },
+  { id: 'payments', name: 'Paiements', icon: <CreditCard className="h-4 w-4" />, color: 'bg-purple-100 text-purple-800 border-purple-300' },
+  { id: 'communication', name: 'Communication', icon: <MessageCircle className="h-4 w-4" />, color: 'bg-orange-100 text-orange-800 border-orange-300' },
+  { id: 'marketing', name: 'Marketing', icon: <Gift className="h-4 w-4" />, color: 'bg-pink-100 text-pink-800 border-pink-300' },
+  { id: 'automation', name: 'Automatisation', icon: <Bot className="h-4 w-4" />, color: 'bg-indigo-100 text-indigo-800 border-indigo-300' },
+  { id: 'analytics', name: 'Analytics', icon: <BarChart3 className="h-4 w-4" />, color: 'bg-cyan-100 text-cyan-800 border-cyan-300' },
+  { id: 'integrations', name: 'Intégrations', icon: <Webhook className="h-4 w-4" />, color: 'bg-teal-100 text-teal-800 border-teal-300' }
 ];
 
 export default function AdditionalServices() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('all');
+  const isMobile = useIsMobile();
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedModule, setSelectedModule] = useState<AdditionalModule | null>(null);
   const [moduleStates, setModuleStates] = useState<Record<string, boolean>>(
     modules.reduce((acc, module) => ({ ...acc, [module.id]: module.isActive }), {})
   );
 
-  const filteredModules = activeTab === 'all' 
-    ? modules 
-    : modules.filter(module => module.category === activeTab);
+  const filteredAndSortedModules = modules
+    .filter(module => {
+      if (selectedCategory !== 'all' && module.category !== selectedCategory) return false;
+      if (selectedStatus !== 'all' && module.status !== selectedStatus) return false;
+      if (searchQuery && !module.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+          !module.description.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      let aValue: string | number;
+      let bValue: string | number;
+      
+      switch (sortBy) {
+        case 'name':
+          aValue = a.name;
+          bValue = b.name;
+          break;
+        case 'price':
+          aValue = a.price === 'Gratuit' ? 0 : parseFloat(a.price?.replace(/[^\d,]/g, '').replace(',', '.') || '0');
+          bValue = b.price === 'Gratuit' ? 0 : parseFloat(b.price?.replace(/[^\d,]/g, '').replace(',', '.') || '0');
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        default:
+          aValue = a.name;
+          bValue = b.name;
+      }
+      
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
 
   const handleToggleModule = (moduleId: string, enabled: boolean) => {
     setModuleStates(prev => ({ ...prev, [moduleId]: enabled }));
@@ -600,6 +642,9 @@ export default function AdditionalServices() {
     return 'hover:border-purple-100 hover:shadow-lg';
   };
 
+  const activatedCount = Object.values(moduleStates).filter(Boolean).length;
+  const freeCount = modules.filter(m => m.status === 'free').length;
+
   return (
     <AppLayout>
       <Helmet>
@@ -607,7 +652,8 @@ export default function AdditionalServices() {
       </Helmet>
       
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -618,56 +664,156 @@ export default function AdditionalServices() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl lg:text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                 Modules complémentaires
               </h1>
-              <p className="text-muted-foreground mt-1">
+              <p className="text-muted-foreground mt-1 text-sm lg:text-base">
                 Enrichissez votre plateforme avec des fonctionnalités avancées
               </p>
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 bg-gradient-to-r from-purple-50 to-indigo-50 p-3 rounded-lg border">
-              <Star className="h-5 w-5 text-purple-600" />
-              <span className="text-sm font-medium text-purple-900">
-                {Object.values(moduleStates).filter(Boolean).length} modules activés
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex items-center gap-2 bg-gradient-to-r from-purple-50 to-indigo-50 p-2 lg:p-3 rounded-lg border text-sm">
+              <Star className="h-4 w-4 text-purple-600" />
+              <span className="font-medium text-purple-900">
+                {activatedCount} modules activés
               </span>
             </div>
-            <div className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 p-3 rounded-lg border">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <span className="text-sm font-medium text-green-900">
-                {modules.filter(m => m.status === 'free').length} modules gratuits
+            <div className="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 p-2 lg:p-3 rounded-lg border text-sm">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <span className="font-medium text-green-900">
+                {freeCount} modules gratuits
               </span>
             </div>
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="overflow-x-auto">
-            <TabsList className="grid w-full grid-cols-9 lg:w-auto">
-              {categories.map(category => (
-                <TabsTrigger 
-                  key={category.id} 
-                  value={category.id}
-                  className="text-xs lg:text-sm whitespace-nowrap"
-                >
-                  {category.name}
-                  <Badge variant="secondary" className="ml-2 text-xs">
-                    {category.count}
-                  </Badge>
-                </TabsTrigger>
-              ))}
-            </TabsList>
+        {/* Improved Filters & Controls */}
+        <div className="bg-white border rounded-lg p-4 space-y-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Rechercher un module..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
           </div>
-          
-          <TabsContent value={activeTab} className="mt-6">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredModules.map((module) => (
-                <Card 
-                  key={module.id} 
-                  className={`group hover:shadow-xl transition-all duration-300 ${getModuleCardStyle(module)}`}
-                >
+
+          {/* Categories Pills */}
+          <div className="flex flex-wrap gap-2">
+            <Toggle
+              pressed={selectedCategory === 'all'}
+              onPressedChange={() => setSelectedCategory('all')}
+              className="data-[state=on]:bg-purple-100 data-[state=on]:text-purple-800"
+            >
+              Tous ({modules.length})
+            </Toggle>
+            {categories.map(category => (
+              <Toggle
+                key={category.id}
+                pressed={selectedCategory === category.id}
+                onPressedChange={() => setSelectedCategory(category.id)}
+                className={`data-[state=on]:${category.color} flex items-center gap-1`}
+              >
+                {category.icon}
+                <span className="hidden sm:inline">{category.name}</span>
+                <span className="sm:hidden">{category.name.slice(0, 3)}</span>
+                ({modules.filter(m => m.category === category.id).length})
+              </Toggle>
+            ))}
+          </div>
+
+          {/* Advanced Filters & Controls */}
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+            <div className="flex flex-wrap gap-3">
+              {/* Status Filter */}
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
+                  <SelectItem value="free">Gratuit</SelectItem>
+                  <SelectItem value="available">Disponible</SelectItem>
+                  <SelectItem value="premium">Premium</SelectItem>
+                  <SelectItem value="coming_soon">Bientôt</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Sort Options */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    {sortOrder === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
+                    Trier
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => {setSortBy('name'); setSortOrder('asc')}}>
+                    Nom (A-Z)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {setSortBy('name'); setSortOrder('desc')}}>
+                    Nom (Z-A)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {setSortBy('price'); setSortOrder('asc')}}>
+                    Prix (croissant)
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {setSortBy('price'); setSortOrder('desc')}}>
+                    Prix (décroissant)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-1 bg-gray-100 rounded-md p-1">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+                className="h-8 w-8 p-0"
+              >
+                <Grid2X2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="h-8 w-8 p-0"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Results Summary */}
+          <div className="text-sm text-gray-600">
+            {filteredAndSortedModules.length} module(s) trouvé(s)
+            {searchQuery && ` pour "${searchQuery}"`}
+            {selectedCategory !== 'all' && ` dans ${categories.find(c => c.id === selectedCategory)?.name}`}
+          </div>
+        </div>
+
+        {/* Modules Grid/List */}
+        <div className={
+          viewMode === 'grid' 
+            ? "grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3" 
+            : "space-y-4"
+        }>
+          {filteredAndSortedModules.map((module) => (
+            <Card 
+              key={module.id} 
+              className={`group hover:shadow-xl transition-all duration-300 ${getModuleCardStyle(module)} ${
+                viewMode === 'list' ? 'flex flex-row items-center p-4' : ''
+              }`}
+            >
+              {viewMode === 'grid' ? (
+                <>
                   <CardHeader className="pb-4">
                     <div className="flex items-start justify-between">
                       <div className={`p-3 rounded-xl ${
@@ -691,10 +837,10 @@ export default function AdditionalServices() {
                     </div>
                     
                     <div className="space-y-2">
-                      <CardTitle className="text-lg group-hover:text-purple-600 transition-colors">
+                      <CardTitle className="text-lg group-hover:text-purple-600 transition-colors flex items-center gap-2">
                         {module.name}
                         {module.popular && (
-                          <Badge variant="outline" className="ml-2 bg-orange-100 text-orange-800 border-orange-300">
+                          <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300 text-xs">
                             Populaire
                           </Badge>
                         )}
@@ -739,11 +885,89 @@ export default function AdditionalServices() {
                       </div>
                     )}
                   </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+                </>
+              ) : (
+                /* List View */
+                <div className="flex items-center gap-4 w-full">
+                  <div className={`p-3 rounded-xl ${
+                    moduleStates[module.id] 
+                      ? 'bg-purple-100 text-purple-600' 
+                      : module.popular
+                      ? 'bg-orange-100 text-orange-600'
+                      : 'bg-gray-100 text-gray-600'
+                  } transition-colors`}>
+                    {module.icon}
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-lg truncate">{module.name}</h3>
+                      {module.popular && (
+                        <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-300 text-xs">
+                          Populaire
+                        </Badge>
+                      )}
+                      {getStatusBadge(module.status)}
+                    </div>
+                    <p className="text-sm text-gray-600 line-clamp-1">{module.description}</p>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <div className={`text-lg font-bold ${
+                        module.status === 'free' ? 'text-green-600' :
+                        module.status === 'premium' ? 'text-purple-600' :
+                        'text-blue-600'
+                      }`}>
+                        {module.price}
+                      </div>
+                      {moduleStates[module.id] && (
+                        <div className="text-xs text-green-600 font-medium">Activé</div>
+                      )}
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedModule(module)}
+                        className="text-xs"
+                      >
+                        <Info className="h-3 w-3 mr-1" />
+                        Voir
+                      </Button>
+                      {(module.status === 'available' || module.status === 'free') && (
+                        <Switch
+                          checked={moduleStates[module.id]}
+                          onCheckedChange={(checked) => handleToggleModule(module.id, checked)}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </Card>
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {filteredAndSortedModules.length === 0 && (
+          <div className="text-center py-12">
+            <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Aucun module trouvé</h3>
+            <p className="text-gray-600 mb-4">Essayez de modifier vos critères de recherche</p>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('all');
+                setSelectedStatus('all');
+              }}
+            >
+              Réinitialiser les filtres
+            </Button>
+          </div>
+        )}
 
         {/* Module Details Dialog */}
         <Dialog open={!!selectedModule} onOpenChange={() => setSelectedModule(null)}>
