@@ -203,6 +203,7 @@ export const normalizeTimeSlot = (timeSlot: any): TimeSlot => {
 // Save availability settings
 export const saveAvailabilitySettings = async (settings: AvailabilitySettings): Promise<boolean> => {
   try {
+    // Fix: we need to pass an object, not an array, to the upsert method
     const { error } = await supabase
       .from('availability_settings')
       .upsert({

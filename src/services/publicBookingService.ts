@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Service } from '@/types/service';
 import { Category } from '@/types/service';
@@ -91,10 +92,10 @@ export const getPublicServices = async (businessId: string): Promise<Service[]> 
       category: null,
       bufferTimeBefore: 0,
       bufferTimeAfter: 0,
-      assignedEmployees: [], // Add this missing property
+      assignedEmployees: [], // Explicit empty array to fix the type error
       notes: '',
       color: '',
-      isRecurring: false // Add this missing property
+      isRecurring: false
     }));
   } catch (error) {
     console.error('Error in getPublicServices:', error);
