@@ -1,4 +1,3 @@
-
 import { LucideIcon } from 'lucide-react';
 
 export interface BookingStep {
@@ -78,23 +77,24 @@ export enum Steps {
 }
 
 export interface BookingCustomTexts {
-  selectServiceLabel?: string;
-  selectDateLabel?: string;
-  selectTimeLabel?: string;
-  clientInfoLabel?: string;
+  selectServiceLabel: string;
+  selectDateLabel: string;
+  selectTimeLabel: string;
+  clientInfoLabel: string;
+  serviceSelectionTitle: string;
+  serviceSelectionDescription: string;
+  dateSelectionTitle: string;
+  dateSelectionDescription: string;
+  timeSelectionTitle: string;
+  timeSelectionDescription: string;
+  noAvailableTimesMessage: string;
+  clientInfoTitle: string;
+  clientInfoDescription: string;
+  confirmationTitle: string;
+  confirmationMessage: string;
+  previousButtonText: string;
+  nextButtonText: string;
   paymentMethodLabel?: string;
-  serviceSelectionTitle?: string;
-  serviceSelectionDescription?: string;
-  dateSelectionTitle?: string;
-  dateSelectionDescription?: string;
-  clientInfoTitle?: string;
-  clientInfoDescription?: string;
-  confirmationTitle?: string;
-  confirmationMessage?: string;
-  // Adding missing text properties
-  timeSelectionTitle?: string;
-  timeSelectionDescription?: string;
-  noAvailableTimesMessage?: string;
 }
 
 export interface BookingPageContextType {

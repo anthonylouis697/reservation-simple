@@ -16,7 +16,9 @@ export const defaultCustomTexts: BookingCustomTexts = {
   clientInfoTitle: "Vos informations",
   clientInfoDescription: "Merci de remplir tous les champs obligatoires",
   confirmationTitle: "Réservation confirmée",
-  confirmationMessage: "Votre réservation a bien été enregistrée. Merci!"
+  confirmationMessage: "Votre réservation a bien été enregistrée. Merci!",
+  previousButtonText: "Précédent",
+  nextButtonText: "Suivant"
 };
 
 export const defaultBookingSteps: BookingStep[] = [

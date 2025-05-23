@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useBookingPage } from '@/components/Visibility/BookingPage/BookingPageContext';
 import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
@@ -136,7 +135,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
       <div className="py-10">
         <div className="max-w-3xl mx-auto px-4">
           <BusinessHeader 
-            businessName={businessName ?? ""}
+            businessName={businessName || ""}
             primaryColor={primaryColor} 
             logo={logo}
             welcomeMessage={welcomeMessage}
@@ -154,12 +153,12 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
       <div className="py-10">
         <div className="max-w-3xl mx-auto px-4">
           <BusinessHeader 
-            businessName={businessName ?? ""}
+            businessName={businessName || ""}
             primaryColor={primaryColor} 
             logo={logo}
             welcomeMessage={welcomeMessage}
           />
-          <EmptyServicesState businessName={businessName ?? ""} />
+          <EmptyServicesState businessName={businessName || ""} />
         </div>
       </div>
     );
@@ -172,7 +171,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     <div className="py-10">
       <div className="max-w-3xl mx-auto px-4">
         <BusinessHeader 
-          businessName={businessName ?? ""}
+          businessName={businessName || ""}
           primaryColor={primaryColor} 
           logo={logo}
           welcomeMessage={welcomeMessage}
