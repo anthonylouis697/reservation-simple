@@ -1,4 +1,5 @@
 
+
 import { supabase } from '@/integrations/supabase/client';
 import { format, parse, addMinutes, isWithinInterval, isBefore, isAfter } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -203,19 +204,19 @@ export const normalizeTimeSlot = (timeSlot: any): TimeSlot => {
 // Save availability settings
 export const saveAvailabilitySettings = async (settings: AvailabilitySettings): Promise<boolean> => {
   try {
-    // Fix: Pass settings as array for upsert method
+    // Fix: Ensure we're calling upsert with a single object, not an array
     const { error } = await supabase
       .from('availability_settings')
-      .upsert([{
+      .upsert({
         business_id: settings.businessId,
         min_advance_hours: settings.minAdvanceHours,
         advance_booking_days: settings.advanceBookingDays,
         buffer_time_minutes: settings.bufferTimeMinutes,
-        blocked_dates: settings.blockedDates,
-        special_dates: settings.specialDates,
-        regular_schedule: settings.regularSchedule,
+        blocked_dates: settings.blockedDates as unknown as Json[],
+        special_dates: settings.specialDates as unknown as Json[],
+        regular_schedule: settings.regularSchedule as unknown as Json,
         id: settings.id === 'new' ? undefined : settings.id
-      }]);
+      });
       
     if (error) {
       console.error('Error saving availability settings:', error);

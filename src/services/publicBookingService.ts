@@ -92,8 +92,8 @@ export const getPublicServices = async (businessId: string): Promise<Service[]> 
       category: null,
       bufferTimeBefore: 0,
       bufferTimeAfter: 0,
-      // Fix: Ensure this is properly initialized as a string array
-      assignedEmployees: ([] as string[]),
+      // Fix: Ensure assignedEmployees is properly initialized as a string array
+      assignedEmployees: [] as string[],
       notes: '',
       color: '',
       isRecurring: false
