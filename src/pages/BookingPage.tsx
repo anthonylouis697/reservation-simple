@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { AppLayout } from "@/components/AppLayout";
-import { VisibilityNavigation, useVisibilityNavigation } from "@/components/Visibility/VisibilityNavigation";
 import { BookingPageCustomization } from "@/components/Visibility/BookingPage/BookingPageCustomization";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
@@ -15,7 +14,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useBusiness } from "@/contexts/BusinessContext";
 
 export default function BookingPage() {
-  const { currentTab } = useVisibilityNavigation();
   const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -28,9 +26,7 @@ export default function BookingPage() {
       customUrl = "", 
       saveBookingPageSettings, 
       primaryColor = "#9b87f5", 
-      selectedTemplate = "standard", 
       buttonCorners = "rounded", 
-      layoutType = "stepped", 
       businessName = "Votre entreprise"
     } = useBookingPage();
     
@@ -117,8 +113,6 @@ export default function BookingPage() {
             </Button>
           </div>
         </div>
-
-        <VisibilityNavigation currentTab={currentTab} />
         
         <BookingPageCustomization />
 

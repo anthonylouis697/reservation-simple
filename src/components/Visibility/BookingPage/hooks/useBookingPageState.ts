@@ -83,6 +83,7 @@ export const useBookingPageState = () => {
   const saveBookingPageSettings = useCallback(async (): Promise<void> => {
     return new Promise((resolve, reject) => {
       try {
+        // On capture l'état actuel pour la sauvegarde
         const settings: BookingPageSettings = {
           businessId: savedSettings?.businessId || 'default-business-id',
           selectedTemplate,
@@ -101,12 +102,14 @@ export const useBookingPageState = () => {
           customTexts,
         };
         
+        console.log("Saving settings:", settings);
+        
         localStorage.setItem('bookingPageSettings', JSON.stringify(settings));
         
         // Simuler un délai de sauvegarde pour montrer le feedback à l'utilisateur
         setTimeout(() => {
           resolve();
-        }, 1000);
+        }, 300);
       } catch (error) {
         console.error('Error saving booking page settings:', error);
         reject(error);

@@ -14,19 +14,9 @@ interface VisibilityNavigationProps {
 
 export const visibilityTabs: VisibilityTab[] = [
   {
-    id: "main",
-    title: "Vue d'ensemble",
-    href: "/visibility"
-  },
-  {
     id: "booking-page",
     title: "Personnalisation",
-    href: "/visibility/booking-page"
-  },
-  {
-    id: "additional-services",
-    title: "Boost de visibilité",
-    href: "/visibility/additional-services"
+    href: "/booking-page"
   }
 ];
 
@@ -57,10 +47,8 @@ export function useVisibilityNavigation() {
   const location = useLocation();
   
   const getCurrentTab = () => {
-    if (location.pathname === "/visibility") return "main";
     if (location.pathname.includes("/booking-page")) return "booking-page";
-    if (location.pathname.includes("/additional-services")) return "additional-services";
-    return "main";
+    return "booking-page";
   };
 
   return { currentTab: getCurrentTab() };

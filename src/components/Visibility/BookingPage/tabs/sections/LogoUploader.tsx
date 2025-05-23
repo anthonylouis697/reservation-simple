@@ -11,10 +11,11 @@ export function LogoUploader() {
   const { 
     logo,
     setLogo,
+    saveBookingPageSettings
   } = useBookingPage();
   
   // Handle logo upload
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
@@ -24,17 +25,32 @@ export function LogoUploader() {
     }
     
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       setLogo(reader.result as string);
       toast.success('Logo téléchargé avec succès');
+      
+      // Enregistrer les changements
+      try {
+        await saveBookingPageSettings();
+        toast.success('Logo enregistré avec succès');
+      } catch (error) {
+        console.error("Erreur lors de l'enregistrement du logo", error);
+      }
     };
     reader.readAsDataURL(file);
   };
   
   // Reset logo
-  const handleResetLogo = () => {
+  const handleResetLogo = async () => {
     setLogo(null);
-    toast.success('Logo réinitialisé');
+    
+    // Enregistrer les changements
+    try {
+      await saveBookingPageSettings();
+      toast.success('Logo supprimé avec succès');
+    } catch (error) {
+      console.error("Erreur lors de la suppression du logo", error);
+    }
   };
 
   return (

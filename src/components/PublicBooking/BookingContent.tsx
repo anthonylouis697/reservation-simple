@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useBookingPage } from '@/components/Visibility/BookingPage/BookingPageContext';
 import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
@@ -18,8 +17,18 @@ interface BookingContentProps {
 }
 
 const BookingContent = ({ businessId }: BookingContentProps) => {
-  const { services, isLoading, error, hasServices } = usePublicBookingData();
-  const { steps, customTexts, primaryColor, buttonCorners, businessName } = useBookingPage();
+  const { 
+    services, 
+    isLoading, 
+    hasServices, 
+    steps, 
+    customTexts, 
+    primaryColor, 
+    buttonCorners, 
+    businessName,
+    welcomeMessage,
+    logo 
+  } = useBookingPage();
   
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -177,6 +186,8 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
           <BusinessHeader 
             businessName={businessName ?? ""}
             primaryColor={primaryColor} 
+            logo={logo}
+            welcomeMessage={welcomeMessage}
           />
           <div className="mt-10 flex justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-800"></div>
@@ -192,7 +203,9 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
         <div className="max-w-3xl mx-auto px-4">
           <BusinessHeader 
             businessName={businessName ?? ""}
-            primaryColor={primaryColor} 
+            primaryColor={primaryColor}
+            logo={logo}
+            welcomeMessage={welcomeMessage}
           />
           <EmptyServicesState businessName={businessName ?? ""} />
         </div>
@@ -207,7 +220,9 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
         <div className="max-w-3xl mx-auto px-4">
           <BusinessHeader 
             businessName={businessName ?? ""}
-            primaryColor={primaryColor} 
+            primaryColor={primaryColor}
+            logo={logo}
+            welcomeMessage={welcomeMessage}
           />
           <BookingConfirmation 
             booking={booking}
@@ -225,7 +240,9 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
       <div className="max-w-3xl mx-auto px-4">
         <BusinessHeader 
           businessName={businessName ?? ""}
-          primaryColor={primaryColor} 
+          primaryColor={primaryColor}
+          logo={logo}
+          welcomeMessage={welcomeMessage}
         />
         
         <div className="mt-6">

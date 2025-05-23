@@ -18,6 +18,7 @@ export function ColorAndButtonStyles() {
     setPrimaryColor,
     buttonCorners,
     setButtonCorners,
+    saveBookingPageSettings
   } = useBookingPage();
   
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -27,6 +28,29 @@ export function ColorAndButtonStyles() {
   useEffect(() => {
     setTempColor(primaryColor);
   }, [primaryColor]);
+
+  // Fonction pour enregistrer la couleur
+  const handleColorChange = async (color: string) => {
+    setPrimaryColor(color);
+    setShowColorPicker(false);
+    toast.success("Couleur principale mise à jour");
+    try {
+      await saveBookingPageSettings();
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement de la couleur", error);
+    }
+  };
+
+  // Fonction pour enregistrer le style des boutons
+  const handleButtonStyleChange = async (value: 'squared' | 'rounded' | 'pill') => {
+    setButtonCorners(value);
+    toast.success(`Style de bouton "${value}" appliqué`);
+    try {
+      await saveBookingPageSettings();
+    } catch (error) {
+      console.error("Erreur lors de l'enregistrement du style de bouton", error);
+    }
+  };
 
   return (
     <Card>
@@ -64,11 +88,7 @@ export function ColorAndButtonStyles() {
                   />
                   <Button
                     size="sm"
-                    onClick={() => {
-                      setPrimaryColor(tempColor);
-                      setShowColorPicker(false);
-                      toast.success("Couleur principale mise à jour");
-                    }}
+                    onClick={() => handleColorChange(tempColor)}
                     className="h-8"
                   >
                     <Check className="h-4 w-4" />
@@ -82,10 +102,7 @@ export function ColorAndButtonStyles() {
             <Label className="text-base font-medium">Style des boutons</Label>
             <RadioGroup 
               value={buttonCorners} 
-              onValueChange={(value) => {
-                setButtonCorners(value as 'squared' | 'rounded' | 'pill');
-                toast.success(`Style de bouton "${value}" appliqué`);
-              }}
+              onValueChange={(value) => handleButtonStyleChange(value as 'squared' | 'rounded' | 'pill')}
               className="flex gap-2"
             >
               <div className="flex flex-col items-center gap-1.5 flex-1">
