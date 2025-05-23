@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { NotificationTemplate, NotificationChannel, Service } from "@/types/service";
 import { Button } from "@/components/ui/button";
@@ -106,32 +105,24 @@ const sampleTemplates: NotificationTemplate[] = [
 const sampleServices: Service[] = [
   {
     id: "1",
-    name: "Consultation standard",
-    description: "Consultation de 30 minutes",
+    name: "Consultation",
+    description: "Consultation initiale",
     duration: 30,
     price: 50,
-    location: "Cabinet principal",
     capacity: 1,
-    category: "Consultations",
-    bufferTimeBefore: 0,
-    bufferTimeAfter: 10,
-    assignedEmployees: [],
-    isRecurring: false,
+    bufferTimeBefore: 5,
+    bufferTimeAfter: 5,
     isActive: true,
   },
   {
     id: "2",
-    name: "Pack Sérénité",
-    description: "Pack de 5 séances",
+    name: "Traitement",
+    description: "Traitement complet",
     duration: 60,
-    price: 200,
-    location: "Cabinet principal",
+    price: 100,
     capacity: 1,
-    category: "Packs & Abonnements",
-    bufferTimeBefore: 5,
-    bufferTimeAfter: 5,
-    assignedEmployees: [],
-    isRecurring: false,
+    bufferTimeBefore: 10,
+    bufferTimeAfter: 10,
     isActive: true,
   },
 ];
