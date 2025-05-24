@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { useBookingPageData } from '@/components/Visibility/BookingPage/PublicBookingData';
+import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
+import { useBookingPage } from '@/components/Visibility/BookingPage/BookingPageContext';
 import StepRenderer from './StepRenderer';
 import BookingProgress from './BookingProgress';
 import BookingForm from './BookingForm';
@@ -15,12 +16,15 @@ interface BookingContentProps {
 }
 
 const BookingContent = ({ businessId }: BookingContentProps) => {
+  // Utiliser les bons hooks
+  const { services: bookingServices = [], isLoading } = usePublicBookingData();
   const { 
-    bookingPageSettings, 
-    businessSettings, 
-    services: bookingServices = [],
+    businessName,
+    primaryColor = '#9b87f5',
+    buttonCorners = 'rounded',
+    customTexts = {},
     steps = []
-  } = useBookingPageData(businessId);
+  } = useBookingPage();
 
   // États pour le processus de réservation
   const [currentStep, setCurrentStep] = useState(0);
@@ -30,6 +34,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [isLoadingTimes, setIsLoadingTimes] = useState(false);
   const [bookingComplete, setBookingComplete] = useState(false);
+  const [businessSettings, setBusinessSettings] = useState<any>(null);
   
   // Informations du client
   const [clientInfo, setClientInfo] = useState({
@@ -43,14 +48,37 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
   console.log('BookingContent - Services reçus:', bookingServices?.length || 0);
   console.log('BookingContent - Steps:', steps);
 
+  // Charger les paramètres de l'entreprise
+  useEffect(() => {
+    const loadBusinessSettings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('businesses')
+          .select('*')
+          .eq('id', businessId)
+          .single();
+
+        if (error) {
+          console.error('Erreur lors du chargement des paramètres:', error);
+          return;
+        }
+
+        setBusinessSettings(data);
+      } catch (error) {
+        console.error('Erreur:', error);
+      }
+    };
+
+    if (businessId) {
+      loadBusinessSettings();
+    }
+  }, [businessId]);
+
   // Filtrer les étapes actives
   const activeSteps = steps.filter(step => step.enabled);
 
   // Fonction pour obtenir le style des boutons
   const getButtonStyle = () => {
-    const primaryColor = bookingPageSettings?.primary_color || '#9b87f5';
-    const buttonCorners = bookingPageSettings?.button_corners || 'rounded';
-    
     return {
       className: "px-6 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors",
       style: {
@@ -132,6 +160,17 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     toast.success('Votre réservation a été confirmée !');
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (bookingComplete) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -161,7 +200,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Helmet>
-        <title>{businessSettings?.name || 'Réservation'} - Réservation en ligne</title>
+        <title>{businessSettings?.name || businessName || 'Réservation'} - Réservation en ligne</title>
       </Helmet>
       
       <div className="max-w-4xl mx-auto px-4 py-8">
@@ -175,10 +214,10 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
             />
           )}
           <h1 className="text-3xl font-bold text-gray-900">
-            {businessSettings?.name || 'Réservation en ligne'}
+            {businessSettings?.name || businessName || 'Réservation en ligne'}
           </h1>
           <p className="text-gray-600 mt-2">
-            {bookingPageSettings?.welcome_message || 'Bienvenue sur notre page de réservation'}
+            Bienvenue sur notre page de réservation
           </p>
         </div>
 
@@ -205,9 +244,9 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
               setClientInfo={setClientInfo}
               availableTimes={availableTimes}
               isLoadingTimes={isLoadingTimes}
-              customTexts={bookingPageSettings?.custom_texts || {}}
+              customTexts={customTexts}
               getButtonStyle={getButtonStyle}
-              primaryColor={bookingPageSettings?.primary_color || '#9b87f5'}
+              primaryColor={primaryColor}
               businessId={businessId}
             />
           )}
@@ -224,8 +263,8 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
           selectedTime={selectedTime}
           clientInfo={clientInfo}
           businessId={businessId}
-          buttonCorners={bookingPageSettings?.button_corners || 'rounded'}
-          primaryColor={bookingPageSettings?.primary_color || '#9b87f5'}
+          buttonCorners={buttonCorners}
+          primaryColor={primaryColor}
           steps={activeSteps}
           onBookingSuccess={handleBookingSuccess}
         />
