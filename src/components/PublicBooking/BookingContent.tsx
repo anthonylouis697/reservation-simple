@@ -10,6 +10,7 @@ import { Service } from '@/types/service';
 import { BookingResult } from '@/services/booking/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
 
 interface BookingContentProps {
   businessId: string;
@@ -22,7 +23,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     businessName,
     primaryColor = '#9b87f5',
     buttonCorners = 'rounded',
-    customTexts = {},
+    customTexts = defaultCustomTexts,
     steps = []
   } = useBookingPage();
 
