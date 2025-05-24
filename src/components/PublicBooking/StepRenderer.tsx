@@ -3,13 +3,12 @@ import { BookingStep } from '@/components/Visibility/BookingPage/types';
 import { Service } from '@/types/service';
 import { BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
 import { defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
-import ServiceSelection from './ServiceSelection';
+import EnhancedServiceSelection from './EnhancedServiceSelection';
 import DateSelection from './DateSelection';
 import TimeSelection from './TimeSelection';
 import ClientInfoForm from './ClientInfoForm';
 import BookingConfirmation from './BookingConfirmation';
 import { Steps } from '@/components/Visibility/BookingPage/types';
-import { CSSProperties } from 'react';
 
 interface StepRendererProps {
   currentStep: BookingStep;
@@ -98,7 +97,7 @@ const StepRenderer = ({
     case 'service':
     case Steps.SERVICE.toLowerCase():
       return (
-        <ServiceSelection
+        <EnhancedServiceSelection
           customTexts={safeCustomTexts}
           services={services}
           selectedService={selectedService}

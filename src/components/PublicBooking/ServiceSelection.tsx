@@ -3,7 +3,7 @@ import React from 'react';
 import { BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
 import { defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
 import { Service } from '@/types/service';
-import { CheckCircle, Clock, PiggyBank, Star, Sparkles } from 'lucide-react';
+import { CheckCircle, Clock, PiggyBank, Star, Sparkles, ImageIcon } from 'lucide-react';
 
 export interface ServiceSelectionProps {
   customTexts: BookingCustomTexts;
@@ -49,19 +49,38 @@ const ServiceSelection = ({
                 ? 'shadow-2xl ring-4 ring-opacity-50' 
                 : 'shadow-lg hover:shadow-xl border border-gray-100'
               }
-              bg-gradient-to-br from-white to-gray-50
+              bg-gradient-to-br from-white to-gray-50 overflow-hidden
             `}
             style={{ 
               borderColor: selectedService?.id === service.id ? primaryColor : '#e5e7eb',
-              ringColor: selectedService?.id === service.id ? primaryColor : 'transparent',
+              '--ring-color': selectedService?.id === service.id ? primaryColor : 'transparent',
               animationDelay: `${index * 100}ms`
-            }}
+            } as React.CSSProperties}
           >
             {selectedService?.id === service.id && (
               <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl opacity-20 animate-pulse"></div>
             )}
             
             <div className="relative flex items-start justify-between">
+              {/* Section image */}
+              <div className="flex-shrink-0 mr-6">
+                {service.imageUrl ? (
+                  <div className="relative w-24 h-24 rounded-2xl overflow-hidden shadow-lg">
+                    <img 
+                      src={service.imageUrl} 
+                      alt={service.name}
+                      className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                  </div>
+                ) : (
+                  <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl flex items-center justify-center shadow-lg">
+                    <ImageIcon className="w-10 h-10 text-blue-600" />
+                  </div>
+                )}
+              </div>
+
+              {/* Section contenu */}
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"></div>
@@ -74,7 +93,7 @@ const ServiceSelection = ({
                 </div>
                 
                 {service.description && (
-                  <p className="text-gray-600 text-sm mt-2 leading-relaxed">{service.description}</p>
+                  <p className="text-gray-600 text-sm mt-2 leading-relaxed line-clamp-2">{service.description}</p>
                 )}
                 
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mt-4">
@@ -104,6 +123,7 @@ const ServiceSelection = ({
                 </div>
               </div>
               
+              {/* Section sélection */}
               <div className="ml-6 flex flex-col items-center">
                 {selectedService?.id === service.id ? (
                   <div className="relative">
@@ -114,7 +134,10 @@ const ServiceSelection = ({
                     <div className="absolute -inset-1 bg-current rounded-full opacity-20 animate-ping"></div>
                   </div>
                 ) : (
-                  <div className="h-8 w-8 rounded-full border-3 border-gray-300 hover:border-gray-400 transition-colors"></div>
+                  <div 
+                    className="h-8 w-8 rounded-full border-3 border-gray-300 hover:border-gray-400 transition-colors"
+                    style={{ borderWidth: '3px' }}
+                  ></div>
                 )}
               </div>
             </div>

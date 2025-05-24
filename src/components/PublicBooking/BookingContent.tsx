@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
@@ -305,7 +304,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
       </div>
 
       {/* Styles CSS personnalisés pour les animations */}
-      <style jsx>{`
+      <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0px) rotate(0deg); }
           25% { transform: translateY(-10px) rotate(2deg); }
