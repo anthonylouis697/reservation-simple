@@ -5,6 +5,7 @@ import { BookingData, BookingResult } from '@/services/booking/types';
 import { createBooking } from '@/services/booking';
 import { toast } from 'sonner';
 import { BookingStep } from '@/components/Visibility/BookingPage/types';
+import { ArrowLeft, ArrowRight, Sparkles, Calendar } from 'lucide-react';
 
 interface BookingFormProps {
   currentStep: number;
@@ -45,7 +46,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Fonction pour soumettre une réservation
   const handleSubmit = async () => {
     if (!selectedService || !selectedDate || !selectedTime) {
       toast.error("Veuillez compléter toutes les étapes");
@@ -55,7 +55,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
     setIsSubmitting(true);
     
     try {
-      // Création des données de réservation
       const bookingData: BookingData = {
         serviceId: selectedService.id,
         serviceName: selectedService.name,
@@ -74,7 +73,6 @@ const BookingForm: React.FC<BookingFormProps> = ({
       
       console.log("Création de la réservation avec les données:", bookingData);
       
-      // Création de la réservation via le service booking
       const result = await createBooking(bookingData);
       
       console.log("Résultat de la réservation:", result);
@@ -93,41 +91,78 @@ const BookingForm: React.FC<BookingFormProps> = ({
   };
 
   const buttonStyle = {
-    backgroundColor: primaryColor,
     borderRadius: buttonCorners === 'pill' ? '9999px' : 
-                 buttonCorners === 'squared' ? '0px' : '6px'
+                 buttonCorners === 'squared' ? '0px' : '16px'
   };
 
+  const isLastStep = currentStep >= steps.length - 1;
+
   return (
-    <div className="mt-10 flex justify-between">
+    <div className="mt-12 flex justify-between items-center">
       {currentStep > 0 ? (
         <button
           onClick={handlePrevStep}
-          className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+          className="group flex items-center px-6 py-3 bg-white border-2 border-gray-200 rounded-2xl hover:border-gray-300 hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+          style={buttonStyle}
         >
-          Précédent
+          <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
+          <span className="font-medium text-gray-700">Précédent</span>
         </button>
       ) : (
-        <div></div> // Spacer
+        <div></div>
       )}
       
-      {currentStep < steps.length - 1 ? (
+      {!isLastStep ? (
         <button
           onClick={handleNextStep}
           disabled={!isCurrentStepComplete}
-          className="px-6 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-          style={buttonStyle}
+          className={`
+            group flex items-center px-8 py-3 text-white font-semibold shadow-lg
+            disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+            transition-all duration-300 transform hover:scale-105 hover:shadow-xl
+            ${isCurrentStepComplete ? 'hover:shadow-2xl' : ''}
+          `}
+          style={{
+            ...buttonStyle,
+            backgroundColor: primaryColor,
+            boxShadow: isCurrentStepComplete ? `0 8px 25px ${primaryColor}40` : '0 4px 15px rgba(0,0,0,0.1)'
+          }}
         >
-          Suivant
+          <span>Suivant</span>
+          <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
         </button>
       ) : (
         <button
           onClick={handleSubmit}
           disabled={!isCurrentStepComplete || isSubmitting}
-          className="px-6 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-          style={buttonStyle}
+          className={`
+            group flex items-center px-8 py-4 text-white font-bold shadow-xl
+            disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
+            transition-all duration-300 transform hover:scale-105 hover:shadow-2xl
+            ${isCurrentStepComplete && !isSubmitting ? 'animate-pulse' : ''}
+          `}
+          style={{
+            ...buttonStyle,
+            background: isCurrentStepComplete && !isSubmitting 
+              ? `linear-gradient(135deg, ${primaryColor}, #8b5cf6)` 
+              : primaryColor,
+            boxShadow: isCurrentStepComplete 
+              ? `0 12px 35px ${primaryColor}50` 
+              : '0 4px 15px rgba(0,0,0,0.1)'
+          }}
         >
-          {isSubmitting ? "Traitement en cours..." : "Réserver"}
+          {isSubmitting ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-3"></div>
+              Traitement en cours...
+            </>
+          ) : (
+            <>
+              <Calendar className="w-5 h-5 mr-2" />
+              Confirmer ma réservation
+              <Sparkles className="w-5 h-5 ml-2 group-hover:rotate-12 transition-transform" />
+            </>
+          )}
         </button>
       )}
     </div>
