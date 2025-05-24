@@ -384,10 +384,10 @@ export default function Services() {
           id: cat.id,
           name: cat.name,
           description: cat.description || '',
-          isActive: true, // Default value since is_active doesn't exist in the database
+          isActive: true,
           order: cat.position,
-          parentId: undefined, // Default value since parent_id doesn't exist in the database
-          color: '#' + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0'), // Generate random color
+          parentId: undefined,
+          color: '#' + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, '0'),
           imageUrl: undefined
         }));
 
@@ -402,7 +402,7 @@ export default function Services() {
 
         if (servicesError) throw servicesError;
 
-        // Convertir les données Supabase en format de l'application avec vérifications sécurisées
+        // Convertir les données Supabase en format de l'application
         const formattedServices = servicesData.map(svc => ({
           id: svc.id,
           name: svc.name,
@@ -411,10 +411,11 @@ export default function Services() {
           price: svc.price || 0,
           isActive: svc.is_active,
           categoryId: svc.category_id,
-          capacity: 1, // Default value
-          bufferTimeBefore: 5, // Default value
-          bufferTimeAfter: 5, // Default value
-          variableDurationOptions: [] // Toujours initialiser comme un tableau vide
+          capacity: 1,
+          bufferTimeBefore: 5,
+          bufferTimeAfter: 5,
+          variableDurationOptions: [],
+          imageUrl: svc.image_url
         }));
 
         setServices(formattedServices);
@@ -494,7 +495,8 @@ export default function Services() {
             duration: serviceData.duration,
             price: serviceData.price,
             is_active: serviceData.isActive,
-            category_id: serviceData.categoryId || null
+            category_id: serviceData.categoryId || null,
+            image_url: serviceData.imageUrl || null
           })
           .eq('id', serviceData.id);
 
@@ -521,7 +523,8 @@ export default function Services() {
             price: serviceData.price,
             is_active: serviceData.isActive,
             category_id: serviceData.categoryId || null,
-            position: services.length // Ajout à la fin de la liste
+            image_url: serviceData.imageUrl || null,
+            position: services.length
           })
           .select()
           .single();

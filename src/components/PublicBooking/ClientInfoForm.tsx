@@ -1,185 +1,135 @@
 
 import React from 'react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { Service } from '@/types/service';
 import { BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
 import { defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
+import { Service } from '@/types/service';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 interface ClientInfoFormProps {
   customTexts: BookingCustomTexts;
-  clientName?: string;
-  setClientName?: (name: string) => void;
-  clientEmail?: string;
-  setClientEmail?: (email: string) => void;
-  clientPhone?: string;
-  setClientPhone?: (phone: string) => void;
-  clientNotes?: string;
-  setClientNotes?: (notes: string) => void;
-  selectedService: Service | null;
-  selectedDate: Date | undefined;
-  selectedTime: string | null;
-  // Add these properties to fix the type errors
-  clientInfo?: {
+  clientInfo: {
     firstName: string;
     lastName: string;
     email: string;
     phone: string;
     notes: string;
   };
-  setClientInfo?: (clientInfo: any) => void;
+  setClientInfo: (clientInfo: any) => void;
+  selectedService: Service | null;
+  selectedDate: Date | undefined;
+  selectedTime: string | null;
 }
 
 const ClientInfoForm = ({
-  customTexts,
-  clientName = '',
-  setClientName = () => {},
-  clientEmail = '',
-  setClientEmail = () => {},
-  clientPhone = '',
-  setClientPhone = () => {},
-  clientNotes = '',
-  setClientNotes = () => {},
+  customTexts = defaultCustomTexts,
+  clientInfo,
+  setClientInfo,
   selectedService,
   selectedDate,
-  selectedTime,
-  // Add support for the new props
-  clientInfo,
-  setClientInfo = () => {}
+  selectedTime
 }: ClientInfoFormProps) => {
   // Ensure customTexts is never undefined
   const safeCustomTexts = customTexts || defaultCustomTexts;
   
-  // Handle the new clientInfo prop approach
-  const handleInputChange = (field: string, value: string) => {
-    if (clientInfo && setClientInfo) {
-      setClientInfo({ ...clientInfo, [field]: value });
-    } else {
-      // Fall back to individual setters
-      switch (field) {
-        case 'firstName':
-          setClientName(value);
-          break;
-        case 'email':
-          setClientEmail(value);
-          break;
-        case 'phone':
-          setClientPhone(value);
-          break;
-        case 'notes':
-          setClientNotes(value);
-          break;
-      }
-    }
+  const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setClientInfo({
+      ...clientInfo,
+      [field]: e.target.value
+    });
   };
-  
-  // Get values from either approach
-  const firstName = clientInfo?.firstName || clientName;
-  const lastName = clientInfo?.lastName || '';
-  const email = clientInfo?.email || clientEmail;
-  const phone = clientInfo?.phone || clientPhone;
-  const notes = clientInfo?.notes || clientNotes;
-  
+
   return (
     <div className="space-y-6">
-      <div className="text-center mb-8">
+      <div className="text-center">
         <h2 className="text-2xl font-bold">
           {safeCustomTexts.clientInfoTitle || "Vos informations"}
         </h2>
         <p className="text-gray-600 mt-2">
-          {safeCustomTexts.clientInfoDescription || "Veuillez fournir vos coordonnées"}
+          {safeCustomTexts.clientInfoDescription || "Complétez vos informations pour finaliser la réservation"}
         </p>
-        
-        {selectedService && selectedDate && selectedTime && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-md inline-block">
-            <p className="font-medium">{selectedService.name}</p>
-            <p className="text-sm text-gray-500">
-              {format(selectedDate, 'EEEE d MMMM yyyy', { locale: fr })} à {selectedTime}
-            </p>
-            <p className="text-sm text-gray-500">
-              {selectedService.duration} min - {new Intl.NumberFormat("fr-FR", {
-                style: "currency",
-                currency: "EUR",
-              }).format(selectedService.price)}
-            </p>
-          </div>
-        )}
       </div>
       
-      <form className="space-y-4 max-w-md mx-auto">
-        <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
-            Prénom *
-          </label>
-          <input
+      {/* Récapitulatif de la réservation */}
+      {selectedService && selectedDate && selectedTime && (
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <h3 className="font-medium mb-2">Récapitulatif de votre réservation</h3>
+          <div className="text-sm text-gray-600 space-y-1">
+            <p><span className="font-medium">Service:</span> {selectedService.name}</p>
+            <p><span className="font-medium">Date:</span> {selectedDate.toLocaleDateString('fr-FR', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}</p>
+            <p><span className="font-medium">Heure:</span> {selectedTime}</p>
+            <p><span className="font-medium">Durée:</span> {selectedService.duration} minutes</p>
+            <p><span className="font-medium">Prix:</span> {selectedService.price}€</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Formulaire d'informations client */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="firstName">Prénom *</Label>
+          <Input
             id="firstName"
             type="text"
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            value={firstName}
-            onChange={(e) => handleInputChange('firstName', e.target.value)}
+            value={clientInfo.firstName}
+            onChange={handleInputChange('firstName')}
             placeholder="Votre prénom"
+            required
           />
         </div>
         
-        <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
-            Nom *
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="lastName">Nom *</Label>
+          <Input
             id="lastName"
             type="text"
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            value={lastName}
-            onChange={(e) => handleInputChange('lastName', e.target.value)}
+            value={clientInfo.lastName}
+            onChange={handleInputChange('lastName')}
             placeholder="Votre nom"
+            required
           />
         </div>
         
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Email *
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="email">Email *</Label>
+          <Input
             id="email"
             type="email"
+            value={clientInfo.email}
+            onChange={handleInputChange('email')}
+            placeholder="votre@email.com"
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            value={email}
-            onChange={(e) => handleInputChange('email', e.target.value)}
-            placeholder="votre.email@exemple.com"
           />
         </div>
         
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-            Téléphone
-          </label>
-          <input
+        <div className="space-y-2">
+          <Label htmlFor="phone">Téléphone</Label>
+          <Input
             id="phone"
             type="tel"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            value={phone}
-            onChange={(e) => handleInputChange('phone', e.target.value)}
-            placeholder="06 XX XX XX XX"
+            value={clientInfo.phone}
+            onChange={handleInputChange('phone')}
+            placeholder="06 12 34 56 78"
           />
         </div>
-        
-        <div>
-          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
-            Notes additionnelles
-          </label>
-          <textarea
-            id="notes"
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            value={notes}
-            onChange={(e) => handleInputChange('notes', e.target.value)}
-            placeholder="Informations supplémentaires à nous communiquer..."
-          />
-        </div>
-      </form>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="notes">Notes complémentaires</Label>
+        <Textarea
+          id="notes"
+          value={clientInfo.notes}
+          onChange={handleInputChange('notes')}
+          placeholder="Ajoutez des informations complémentaires si nécessaire..."
+          rows={3}
+        />
+      </div>
     </div>
   );
 };

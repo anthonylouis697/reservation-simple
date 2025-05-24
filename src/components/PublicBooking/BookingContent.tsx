@@ -1,43 +1,37 @@
+
 import { useState, useEffect } from 'react';
-import { useBookingPage } from '@/components/Visibility/BookingPage/BookingPageContext';
-import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
-import { Service } from '@/types/service';
-import StepNavigation from './StepNavigation';
+import { Helmet } from 'react-helmet';
+import { useBookingPageData } from '@/components/Visibility/BookingPage/PublicBookingData';
 import StepRenderer from './StepRenderer';
-import BusinessHeader from './BusinessHeader';
-import { toast } from 'sonner';
-import EmptyServicesState from './EmptyServicesState';
-import { getAvailableTimeSlots } from '@/services/booking/availabilityService';
-import { useButtonStyle } from '@/hooks/useButtonStyle';
-import BookingConfirmation from './BookingConfirmation';
+import BookingProgress from './BookingProgress';
+import BookingForm from './BookingForm';
+import { Service } from '@/types/service';
 import { BookingResult } from '@/services/booking/types';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface BookingContentProps {
   businessId: string;
 }
 
 const BookingContent = ({ businessId }: BookingContentProps) => {
-  // Use both contexts to get the required data
   const { 
-    steps, 
-    customTexts, 
-    primaryColor, 
-    buttonCorners, 
-    businessName,
-    welcomeMessage,
-    logo 
-  } = useBookingPage();
-  
-  // Use PublicBookingData for service-related information
-  const { services, isLoading, hasServices } = usePublicBookingData();
-  
-  // Get button style using our custom hook
-  const { getButtonStyle } = useButtonStyle({ buttonCorners, primaryColor });
-  
+    bookingPageSettings, 
+    businessSettings, 
+    services: bookingServices = [],
+    steps = []
+  } = useBookingPageData(businessId);
+
+  // États pour le processus de réservation
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [isLoadingTimes, setIsLoadingTimes] = useState(false);
+  const [bookingComplete, setBookingComplete] = useState(false);
+  
+  // Informations du client
   const [clientInfo, setClientInfo] = useState({
     firstName: '',
     lastName: '',
@@ -45,197 +39,196 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     phone: '',
     notes: ''
   });
-  const [booking, setBooking] = useState<BookingResult | null>(null);
-  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
-  const [isLoadingTimes, setIsLoadingTimes] = useState(false);
-  
-  // Reset selected time when date or service changes
-  useEffect(() => {
-    if (selectedDate && selectedService) {
-      setSelectedTime(null);
-      setIsLoadingTimes(true);
-      
-      console.log(`Fetching time slots for date: ${selectedDate.toISOString()} and service: ${selectedService.name} (duration: ${selectedService.duration}min)`);
-      
-      // Fetch available times based on availability settings
-      const fetchAvailableTimes = async () => {
-        try {
-          if (!businessId || !selectedService) {
-            console.log("Missing business ID or service, cannot fetch time slots");
-            setAvailableTimes([]);
-            return;
-          }
-          
-          const times = await getAvailableTimeSlots(
-            businessId,
-            selectedDate,
-            selectedService.duration
-          );
-          
-          console.log(`Available times fetched: ${times.length} slots found`, times);
-          setAvailableTimes(times);
-        } catch (error) {
-          console.error("Error fetching available times:", error);
-          setAvailableTimes([]);
-          toast.error("Erreur lors du chargement des créneaux disponibles");
-        } finally {
-          setIsLoadingTimes(false);
-        }
-      };
-      
-      fetchAvailableTimes();
-    }
-  }, [selectedDate, selectedService, businessId]);
 
-  // Handle step change
-  const handleNextStep = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
+  console.log('BookingContent - Services reçus:', bookingServices?.length || 0);
+  console.log('BookingContent - Steps:', steps);
+
+  // Filtrer les étapes actives
+  const activeSteps = steps.filter(step => step.enabled);
+
+  // Fonction pour obtenir le style des boutons
+  const getButtonStyle = () => {
+    const primaryColor = bookingPageSettings?.primary_color || '#9b87f5';
+    const buttonCorners = bookingPageSettings?.button_corners || 'rounded';
+    
+    return {
+      className: "px-6 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors",
+      style: {
+        backgroundColor: primaryColor,
+        borderColor: primaryColor,
+        borderRadius: buttonCorners === 'pill' ? '9999px' : 
+                    buttonCorners === 'squared' ? '0px' : '6px'
+      }
+    };
   };
 
+  // Générer les créneaux horaires disponibles
+  useEffect(() => {
+    const generateTimeSlots = async () => {
+      if (!selectedDate || !selectedService) {
+        setAvailableTimes([]);
+        return;
+      }
+      
+      setIsLoadingTimes(true);
+      
+      try {
+        // Simuler un délai de chargement
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Générer des créneaux toutes les 30 minutes de 8h à 18h
+        const times = [];
+        const startHour = 8;
+        const endHour = 18;
+        
+        for (let hour = startHour; hour < endHour; hour++) {
+          times.push(`${hour.toString().padStart(2, '0')}:00`);
+          times.push(`${hour.toString().padStart(2, '0')}:30`);
+        }
+        
+        setAvailableTimes(times);
+      } catch (error) {
+        console.error('Erreur lors de la génération des créneaux:', error);
+        setAvailableTimes([]);
+      } finally {
+        setIsLoadingTimes(false);
+      }
+    };
+    
+    generateTimeSlots();
+  }, [selectedDate, selectedService]);
+
+  // Réinitialiser la sélection d'heure lorsque la date change
+  useEffect(() => {
+    setSelectedTime(null);
+  }, [selectedDate]);
+
+  // Vérifier si l'étape actuelle est complète
+  const isCurrentStepComplete = () => {
+    if (currentStep === 0) return selectedService !== null;
+    if (currentStep === 1) return selectedDate !== undefined;
+    if (currentStep === 2) return selectedTime !== null;
+    if (currentStep === 3) return clientInfo.firstName && clientInfo.lastName && clientInfo.email;
+    return false;
+  };
+
+  // Navigation entre les étapes
   const handlePrevStep = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
-  
-  // Helper to determine if current step is complete
-  const isCurrentStepComplete = () => {
-    if (!steps[currentStep]) {
-      return false;
-    }
-    
-    const currentStepType = steps[currentStep].type;
-    
-    switch (currentStepType.toLowerCase()) {
-      case 'service':
-        return selectedService !== null;
-      case 'date':
-        return selectedDate !== undefined;
-      case 'time':
-        return selectedTime !== null;
-      case 'client_info':
-        // Ensure these checks return boolean values
-        return Boolean(clientInfo.firstName) && Boolean(clientInfo.lastName) && Boolean(clientInfo.email);
-      default:
-        return true;
+
+  const handleNextStep = () => {
+    if (currentStep < activeSteps.length - 1 && isCurrentStepComplete()) {
+      setCurrentStep(currentStep + 1);
     }
   };
-  
-  // Handle booking success
+
+  // Fonction pour gérer la réservation
   const handleBookingSuccess = (bookingResult: BookingResult) => {
-    setBooking(bookingResult);
-    setCurrentStep(steps.length); // Move to confirmation step (beyond normal steps)
-    toast.success("Réservation confirmée !");
+    console.log('Réservation réussie:', bookingResult);
+    setBookingComplete(true);
+    toast.success('Votre réservation a été confirmée !');
   };
-  
-  if (isLoading) {
+
+  if (bookingComplete) {
     return (
-      <div className="py-10">
-        <div className="max-w-3xl mx-auto px-4">
-          <BusinessHeader 
-            businessName={businessName || ""}
-            primaryColor={primaryColor} 
-            logo={logo}
-            welcomeMessage={welcomeMessage}
-          />
-          <div className="mt-10 flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-800"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+            </svg>
           </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Réservation confirmée !</h2>
+          <p className="text-gray-600 mb-6">
+            Votre réservation a été enregistrée avec succès. Vous recevrez un email de confirmation.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors"
+          >
+            Nouvelle réservation
+          </button>
         </div>
       </div>
     );
   }
-  
-  if (!hasServices || services.length === 0) {
-    return (
-      <div className="py-10">
-        <div className="max-w-3xl mx-auto px-4">
-          <BusinessHeader 
-            businessName={businessName || ""}
-            primaryColor={primaryColor} 
-            logo={logo}
-            welcomeMessage={welcomeMessage}
-          />
-          <EmptyServicesState businessName={businessName || ""} />
-        </div>
-      </div>
-    );
-  }
-  
-  // Check if we're at the confirmation step (after all regular steps)
-  const isConfirmationStep = currentStep === steps.length;
-  
+
+  const currentStepData = activeSteps[currentStep];
+
   return (
-    <div className="py-10">
-      <div className="max-w-3xl mx-auto px-4">
-        <BusinessHeader 
-          businessName={businessName || ""}
-          primaryColor={primaryColor} 
-          logo={logo}
-          welcomeMessage={welcomeMessage}
+    <div className="min-h-screen bg-gray-50">
+      <Helmet>
+        <title>{businessSettings?.name || 'Réservation'} - Réservation en ligne</title>
+      </Helmet>
+      
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* En-tête */}
+        <div className="text-center mb-8">
+          {businessSettings?.logo_url && (
+            <img 
+              src={businessSettings.logo_url} 
+              alt={businessSettings.name}
+              className="h-16 mx-auto mb-4"
+            />
+          )}
+          <h1 className="text-3xl font-bold text-gray-900">
+            {businessSettings?.name || 'Réservation en ligne'}
+          </h1>
+          <p className="text-gray-600 mt-2">
+            {bookingPageSettings?.welcome_message || 'Bienvenue sur notre page de réservation'}
+          </p>
+        </div>
+
+        {/* Indicateur de progression */}
+        <BookingProgress 
+          currentStep={currentStep}
+          totalSteps={activeSteps.length}
+          steps={activeSteps}
         />
-        
-        {isConfirmationStep ? (
-          <BookingConfirmation 
-            booking={booking}
-            primaryColor={primaryColor}
-            customTexts={customTexts}
-            getButtonStyle={getButtonStyle}
-          />
-        ) : (
-          <>
-            {/* Step Navigation */}
-            <div className="mb-8">
-              <StepNavigation 
-                steps={steps} 
-                currentStep={currentStep}
-                primaryColor={primaryColor}
-              />
-            </div>
-            
-            {/* Current Step Content */}
-            <StepRenderer 
-              currentStep={steps[currentStep]}
-              services={services}
+
+        {/* Contenu de l'étape */}
+        <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
+          {currentStepData && (
+            <StepRenderer
+              currentStep={currentStepData}
+              services={bookingServices}
               selectedService={selectedService}
               setSelectedService={setSelectedService}
               selectedDate={selectedDate}
               setSelectedDate={setSelectedDate}
               selectedTime={selectedTime}
               setSelectedTime={setSelectedTime}
-              availableTimes={availableTimes}
-              isLoadingTimes={isLoadingTimes}
               clientInfo={clientInfo}
               setClientInfo={setClientInfo}
-              customTexts={customTexts}
-              businessId={businessId}
+              availableTimes={availableTimes}
+              isLoadingTimes={isLoadingTimes}
+              customTexts={bookingPageSettings?.custom_texts || {}}
               getButtonStyle={getButtonStyle}
-              primaryColor={primaryColor}
+              primaryColor={bookingPageSettings?.primary_color || '#9b87f5'}
+              businessId={businessId}
             />
-            
-            {/* Navigation Buttons */}
-            <div className="mt-8 flex justify-between">
-              <button
-                onClick={handlePrevStep}
-                className="px-5 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-                disabled={currentStep === 0}
-              >
-                {customTexts?.previousButtonText || "Précédent"}
-              </button>
-              
-              <button
-                onClick={handleNextStep}
-                className={`px-5 py-2 ${getButtonStyle().className} text-white`}
-                style={getButtonStyle().style}
-                disabled={!isCurrentStepComplete()}
-              >
-                {customTexts?.nextButtonText || "Suivant"}
-              </button>
-            </div>
-          </>
-        )}
+          )}
+        </div>
+
+        {/* Boutons de navigation */}
+        <BookingForm
+          currentStep={currentStep}
+          isCurrentStepComplete={isCurrentStepComplete()}
+          handlePrevStep={handlePrevStep}
+          handleNextStep={handleNextStep}
+          selectedService={selectedService}
+          selectedDate={selectedDate}
+          selectedTime={selectedTime}
+          clientInfo={clientInfo}
+          businessId={businessId}
+          buttonCorners={bookingPageSettings?.button_corners || 'rounded'}
+          primaryColor={bookingPageSettings?.primary_color || '#9b87f5'}
+          steps={activeSteps}
+          onBookingSuccess={handleBookingSuccess}
+        />
       </div>
     </div>
   );

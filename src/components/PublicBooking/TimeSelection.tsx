@@ -1,100 +1,89 @@
 
 import React from 'react';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { Service } from '@/types/service';
 import { BookingCustomTexts } from '@/components/Visibility/BookingPage/types';
 import { defaultCustomTexts } from '@/components/Visibility/BookingPage/constants/defaultData';
-import { Clock, Loader } from 'lucide-react';
+import { Service } from '@/types/service';
+import { Loader2 } from 'lucide-react';
 
 interface TimeSelectionProps {
   customTexts: BookingCustomTexts;
-  selectedService: Service | null;
-  selectedDate: Date | undefined;
-  availableTimes: string[];
   isLoadingTimes: boolean;
+  availableTimes: string[];
   selectedTime: string | null;
   setSelectedTime: (time: string | null) => void;
-  getButtonStyle: () => { className: string; style: { backgroundColor: string; borderColor: string } };
+  selectedService: Service | null;
+  selectedDate: Date | undefined;
+  getButtonStyle: () => { className: string; style: { backgroundColor: string; borderColor: string; borderRadius: string } };
 }
 
 const TimeSelection = ({
   customTexts = defaultCustomTexts,
-  selectedService,
-  selectedDate,
-  availableTimes,
   isLoadingTimes,
+  availableTimes,
   selectedTime,
   setSelectedTime,
+  selectedService,
+  selectedDate,
   getButtonStyle
 }: TimeSelectionProps) => {
   // Ensure customTexts is never undefined
   const safeCustomTexts = customTexts || defaultCustomTexts;
   
-  // Use the correct property names or fallbacks
-  const timeSelectionTitle = safeCustomTexts.timeSelectionTitle || "Sélection de l'horaire";
-  const timeSelectionDescription = safeCustomTexts.timeSelectionDescription || "Choisissez un horaire disponible";
-  const noTimesMessage = safeCustomTexts.noAvailableTimesMessage || "Aucun horaire disponible pour cette date";
-
   return (
     <div className="space-y-6">
-      <div className="text-center mb-8">
+      <div className="text-center">
         <h2 className="text-2xl font-bold">
-          {timeSelectionTitle}
+          {safeCustomTexts.timeSelectionTitle || "Choisissez un horaire"}
         </h2>
         <p className="text-gray-600 mt-2">
-          {timeSelectionDescription}
+          {safeCustomTexts.timeSelectionDescription || "Sélectionnez l'heure qui vous convient"}
         </p>
-        
-        {selectedService && selectedDate && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-md inline-block">
-            <p className="font-medium">{selectedService.name}</p>
-            <p className="text-sm text-gray-500">
-              {format(selectedDate, 'EEEE d MMMM yyyy', { locale: fr })}
-            </p>
-            <p className="text-sm text-gray-500">
-              {selectedService.duration} min - {new Intl.NumberFormat("fr-FR", {
-                style: "currency",
-                currency: "EUR",
-              }).format(selectedService.price)}
-            </p>
-          </div>
-        )}
       </div>
       
-      {isLoadingTimes ? (
-        <div className="flex justify-center py-8">
-          <div className="flex flex-col items-center">
-            <Loader className="h-8 w-8 animate-spin text-primary" />
-            <p className="mt-4 text-gray-600">Chargement des horaires disponibles...</p>
-          </div>
+      {selectedService && selectedDate && (
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <p className="text-sm text-gray-600">
+            <span className="font-medium">{selectedService.name}</span> - {selectedService.duration} min
+          </p>
+          <p className="text-sm text-gray-600">
+            {selectedDate.toLocaleDateString('fr-FR', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </p>
         </div>
-      ) : availableTimes.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {availableTimes.map((time, index) => (
+      )}
+      
+      {isLoadingTimes ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin mr-2" />
+          <span>Chargement des créneaux disponibles...</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          {availableTimes.map((time) => (
             <button
-              key={index}
+              key={time}
               onClick={() => setSelectedTime(time)}
               className={`
-                flex items-center justify-center gap-2 px-4 py-3 border rounded-md
+                p-3 rounded-md border text-center transition-all
                 ${selectedTime === time 
-                  ? `${getButtonStyle().className} text-white` 
-                  : 'border-gray-300 hover:border-gray-400 bg-white'
+                  ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium' 
+                  : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
                 }
               `}
-              style={selectedTime === time ? getButtonStyle().style : {}}
             >
-              <Clock className={`h-4 w-4 ${selectedTime === time ? 'text-white' : 'text-gray-500'}`} />
-              <span>{time}</span>
+              {time}
             </button>
           ))}
         </div>
-      ) : (
+      )}
+      
+      {availableTimes.length === 0 && !isLoadingTimes && (
         <div className="text-center py-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-100">
-            <Clock className="h-8 w-8 text-gray-400" />
-          </div>
-          <p className="mt-4 text-gray-600">{noTimesMessage}</p>
+          <p className="text-gray-500">Aucun créneau disponible pour cette date</p>
         </div>
       )}
       

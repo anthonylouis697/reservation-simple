@@ -394,6 +394,7 @@ export type Database = {
           description: string | null
           duration: number
           id: string
+          image_url: string | null
           is_active: boolean
           name: string
           position: number
@@ -407,6 +408,7 @@ export type Database = {
           description?: string | null
           duration?: number
           id?: string
+          image_url?: string | null
           is_active?: boolean
           name: string
           position?: number
@@ -420,6 +422,7 @@ export type Database = {
           description?: string | null
           duration?: number
           id?: string
+          image_url?: string | null
           is_active?: boolean
           name?: string
           position?: number
