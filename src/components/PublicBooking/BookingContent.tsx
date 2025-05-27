@@ -31,9 +31,9 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
     showConfirmation = true
   } = useBookingPage();
 
-  // Convert showConfirmation to boolean if it's a string
+  // Convert showConfirmation to boolean properly
   const confirmationEnabled = typeof showConfirmation === 'string' 
-    ? showConfirmation === 'true' 
+    ? showConfirmation.toLowerCase() === 'true' 
     : Boolean(showConfirmation);
 
   // États de la réservation
