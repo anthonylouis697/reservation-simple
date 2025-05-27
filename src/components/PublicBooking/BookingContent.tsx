@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
@@ -32,7 +33,15 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
   } = useBookingPage();
 
   // Convert showConfirmation to boolean properly with type safety
-  const confirmationEnabled: boolean = Boolean(showConfirmation === true || showConfirmation === 'true');
+  const confirmationEnabled: boolean = (() => {
+    if (typeof showConfirmation === 'boolean') {
+      return showConfirmation;
+    }
+    if (typeof showConfirmation === 'string') {
+      return showConfirmation === 'true';
+    }
+    return true; // default fallback
+  })();
 
   // États de la réservation
   const {
