@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { usePublicBookingData } from '@/components/Visibility/BookingPage/PublicBookingData';
@@ -217,9 +218,11 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
         primaryColor={primaryColor}
         steps={activeSteps}
         onBookingSuccess={handleBookingSuccess}
+        showConfirmation={confirmationEnabled}
       />
     </BookingLayout>
   );
 };
 
 export default BookingContent;
+
