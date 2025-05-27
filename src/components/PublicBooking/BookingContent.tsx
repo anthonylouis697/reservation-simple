@@ -32,11 +32,7 @@ const BookingContent = ({ businessId }: BookingContentProps) => {
   } = useBookingPage();
 
   // Convert showConfirmation to boolean properly with type safety
-  const confirmationEnabled = Boolean(
-    typeof showConfirmation === 'string' 
-      ? showConfirmation === 'true' || showConfirmation === true
-      : showConfirmation
-  );
+  const confirmationEnabled: boolean = Boolean(showConfirmation === true || showConfirmation === 'true');
 
   // États de la réservation
   const {
